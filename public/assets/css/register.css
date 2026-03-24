@@ -60,12 +60,10 @@ body {
     margin-bottom: 1.5rem;
 }
 
-.logo-text {
-    font-family: var(--font-marker);
-    font-size: 2.8rem;
-    line-height: 1;
-    color: #FFFFFF;
-    letter-spacing: -2px;
+.logo-img {
+    height: 50px;
+    width: auto;
+    display: block;
 }
 
 .hero-title {
