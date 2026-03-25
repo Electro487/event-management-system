@@ -1,23 +1,26 @@
 <?php
 
-class AuthController {
-    
+class AuthController
+{
+
     private $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         // Need to require User.php inside index.php or here.
         require_once dirname(__DIR__) . '/models/User.php';
         $this->userModel = new User();
-        
+
         // Start session if not started
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
     }
 
-    public function register() {
+    public function register()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            
+
             // Init data
             $data = [
                 'fullname' => trim($_POST['first_name'] . ' ' . $_POST['last_name']),
@@ -67,7 +70,8 @@ class AuthController {
         }
     }
 
-    public function login() {
+    public function login()
+    {
         $error = '';
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -85,9 +89,9 @@ class AuthController {
                     $_SESSION['user_email'] = $user['email'];
                     $_SESSION['user_role'] = $user['role'];
                     $_SESSION['user_fullname'] = $user['fullname'];
-                    
-                    // Redirect to dashboard (or home)
-                    header('Location: /EventManagementSystem/public/dashboard');
+
+                    // Redirect to home page (handled by HomeController via index.php)
+                    header('Location: ' . URL_ROOT);
                     exit;
                 } else {
                     $error = 'Invalid email or password.';
@@ -99,7 +103,8 @@ class AuthController {
         require_once dirname(__DIR__) . '/views/auth/login.php';
     }
 
-    public function logout() {
+    public function logout()
+    {
         unset($_SESSION['user_id']);
         unset($_SESSION['user_email']);
         unset($_SESSION['user_fullname']);

@@ -76,7 +76,7 @@
                 </form>
 
                 <div class="auth-footer">
-                    <p>Already have an account? <a href="/auth/login" class="login-link">Sign in here</a></p>
+                    <p>Already have an account? <a href="/EventManagementSystem/public/login" class="login-link">Sign in here</a></p>
                 </div>
             </div>
         </section>
