@@ -43,6 +43,12 @@
                 <h2 class="form-title">Create Account</h2>
                 <p class="form-subtitle">Enter your credentials to access the management dashboard.</p>
 
+                <?php if (!empty($_SESSION['error'])): ?>
+                    <div class="error-message" style="color: #d9534f; background: #f9ebeb; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
+                        <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+                    </div>
+                <?php endif; ?>
+
                 <form action="/EventManagementSystem/public/register" method="POST" class="register-form">
 
                     <div class="form-row">

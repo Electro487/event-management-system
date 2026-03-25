@@ -23,6 +23,18 @@
         </div>
     <?php endif; ?>
 
+    <?php if (!empty($_SESSION['error'])): ?>
+        <div class="error-message">
+            <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($_SESSION['success'])): ?>
+        <div class="success-message" style="color: #2d5a27; background: #e8f5e9; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;">
+            <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+        </div>
+    <?php endif; ?>
+
     <form action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
         <div class="form-group">
             <div class="form-label-row">
