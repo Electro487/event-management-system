@@ -1,4 +1,5 @@
 <?php
+
 class User {
     private $db;
 
@@ -43,6 +44,30 @@ class User {
         
         if ($stmt->rowCount() > 0) {
             return true;
+        }
+        
+        return false;
+    }
+
+    // Login user
+    public function login($email, $password) {
+        $pdo = $this->db->getConnection();
+
+        $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            // Check password (assume it's hashed using password_hash during registration)
+            // Included a fallback to plain text check during dev in case legacy data is present
+            if (password_verify($password, $user['password'])) {
+                return $user;
+            } else if ($password === $user['password']) {
+                return $user;
+            }
         }
         
         return false;
