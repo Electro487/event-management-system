@@ -68,6 +68,9 @@ class AuthController
                 die('Registration errors: ' . implode(', ', array_filter([$data['fullname_err'], $data['email_err'], $data['password_err']])));
             }
         }
+
+        // Load register view for GET requests
+        require_once dirname(__DIR__) . '/views/auth/register.php';
     }
 
     public function login()

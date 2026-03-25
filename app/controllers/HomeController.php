@@ -6,13 +6,7 @@ class HomeController {
             session_start();
         }
 
-        // Redirect to login if not authenticated
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
-
-        // Load home view for authenticated users
+        // Show the public landing page (from the home folder)
         require_once dirname(__DIR__) . '/views/home/index.php';
     }
 }
