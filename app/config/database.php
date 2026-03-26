@@ -14,12 +14,12 @@ class Database {
             $this->host = $env['DB_HOST'] ?? 'localhost';
             $this->user = $env['DB_USER'] ?? 'root';
             $this->pass = $env['DB_PASS'] ?? '';
-            $this->dbname = $env['DB_NAME'] ?? 'ems_db';
+            $this->dbname = $env['DB_NAME'] ?? 'event_management_system';
         } else {
             $this->host = 'localhost';
             $this->user = 'root';
             $this->pass = '';
-            $this->dbname = 'ems_db';
+            $this->dbname = 'event_management_system';
         }
 
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;

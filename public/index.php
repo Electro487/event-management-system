@@ -2,6 +2,10 @@
 
 require_once dirname(__DIR__) . '/app/config/config.php';
 require_once dirname(__DIR__) . '/app/config/database.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+
 require_once dirname(__DIR__) . '/app/config/routes.php';
 
 // Basic Routing Logic
