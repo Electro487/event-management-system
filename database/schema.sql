@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS event_management_system;
 USE event_management_system;
-
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `fullname` VARCHAR(100) NOT NULL,
