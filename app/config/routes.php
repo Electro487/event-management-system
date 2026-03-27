@@ -10,4 +10,6 @@ $routes = [
     '/reset-password' => 'AuthController@resetPassword',
     '/client/dashboard' => 'ClientController@dashboard',
     '/organizer/dashboard' => 'OrganizerController@dashboard',
+    '/organizer/events' => 'OrganizerController@events',
+    '/organizer/events/create' => 'OrganizerController@createEvent',
 ];
