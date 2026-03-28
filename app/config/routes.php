@@ -12,4 +12,9 @@ $routes = [
     '/organizer/dashboard' => 'OrganizerController@dashboard',
     '/organizer/events' => 'OrganizerController@events',
     '/organizer/events/create' => 'OrganizerController@createEvent',
+    '/organizer/events/store' => 'OrganizerController@storeEvent',
+    '/organizer/events/view' => 'OrganizerController@viewEvent',
+    '/organizer/events/edit' => 'OrganizerController@editEvent',
+    '/organizer/events/update' => 'OrganizerController@updateEvent',
+    '/organizer/events/delete' => 'OrganizerController@deleteEvent',
 ];

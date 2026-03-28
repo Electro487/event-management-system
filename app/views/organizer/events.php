@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
@@ -23,7 +24,7 @@
         <header class="content-header">
             <div class="header-left">
                 <div class="breadcrumb">
-                    <span class="current">My Events</span>
+                    <span class="current">Events</span>
                 </div>
             </div>
             <div class="header-right">
@@ -44,28 +45,35 @@
             <a href="/EventManagementSystem/public/organizer/events/create" class="btn-primary">+ Add New Event</a>
         </section>
 
+        <?php if (isset($_GET['success'])): ?>
+        <div class="alert-success">
+            <span>🎉 Event successfully created! Your curated experience is now saved.</span>
+            <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size:18px;">&times;</button>
+        </div>
+        <?php endif; ?>
+
         <section class="filters-bar">
             <div class="tabs">
-                <button class="tab-btn active">All</button>
-                <button class="tab-btn">Active</button>
-                <button class="tab-btn">Draft</button>
+                <button class="tab-btn active" data-filter-status="all">All</button>
+                <button class="tab-btn" data-filter-status="active">Active</button>
+                <button class="tab-btn" data-filter-status="draft">Draft</button>
             </div>
             <div class="category-filter">
-                <select>
-                    <option>All Categories</option>
-                    <option>Weddings</option>
-                    <option>Meetings</option>
-                    <option>Cultural Events</option>
-                    <option>Family Functions</option>
-                    <option>Other Events and Programs</option>
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                    <option value="Weddings">Weddings</option>
+                    <option value="Meetings">Meetings</option>
+                    <option value="Cultural Events">Cultural Events</option>
+                    <option value="Family Functions">Family Functions</option>
+                    <option value="Other Events and Programs">Other Events and Programs</option>
                 </select>
             </div>
             <div class="status-info">
-                <span>Showing <?php echo count($events); ?> active event campaigns</span>
+                <span id="eventsCount">Showing <?php echo count($events); ?> event campaigns</span>
             </div>
         </section>
 
-        <div class="events-grid">
+        <div class="events-grid" id="eventsGrid">
             <!-- Create Event Placeholder -->
             <a href="/EventManagementSystem/public/organizer/events/create" class="event-card create-placeholder">
                 <div class="placeholder-content">
@@ -77,7 +85,7 @@
 
             <?php if (!empty($events)): ?>
                 <?php foreach ($events as $event): ?>
-                <div class="event-card">
+                <div class="event-card" data-status="<?php echo strtolower($event['status']); ?>" data-category="<?php echo $event['category']; ?>">
                     <div class="event-image">
                         <img src="<?php echo $event['image_path'] ?: '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
                         <span class="status-badge <?php echo strtolower($event['status']); ?>"><?php echo ucfirst($event['status']); ?></span>
@@ -90,54 +98,70 @@
                             <span class="stat">Bookings: <strong><?php echo $event['bookings_count']; ?></strong></span>
                         </div>
                         <div class="event-actions">
-                            <a href="#" class="btn-outline">Edit</a>
-                            <a href="#" class="btn-outline">View</a>
+                            <a href="/EventManagementSystem/public/organizer/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit" title="Edit">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="/EventManagementSystem/public/organizer/events/view?id=<?php echo $event['id']; ?>" class="btn-action view" title="View">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="/EventManagementSystem/public/organizer/events/delete?id=<?php echo $event['id']; ?>" class="btn-action delete" title="Delete" onclick="return confirm('Are you sure you want to delete this event?')">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </a>
                         </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <!-- Dummy data for design preview if no events exist -->
-                <div class="event-card">
-                    <div class="event-image">
-                        <div class="dummy-img" style="background: #e0e0e0;"></div>
-                        <span class="status-badge active">Active</span>
-                        <span class="category-tag">Meetings</span>
-                    </div>
-                    <div class="event-details">
-                        <h3 class="event-title">Emerald Tech Summit 2024</h3>
-                        <p class="event-desc">A premium multi-day summit focusing on architectural innovatio...</p>
-                        <div class="event-stats">
-                            <span class="stat">Bookings: <strong>142</strong></span>
-                        </div>
-                        <div class="event-actions">
-                            <button class="btn-outline">✏️ Edit</button>
-                            <button class="btn-outline">👁️ View</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-image">
-                        <div class="dummy-img" style="background: #333;"></div>
-                        <span class="status-badge inactive">Inactive</span>
-                        <span class="category-tag">Weddings</span>
-                    </div>
-                    <div class="event-details">
-                        <h3 class="event-title">Winter Solstice Nuptials</h3>
-                        <p class="event-desc">An intimate luxury wedding showcase designed for high-net-...</p>
-                        <div class="event-stats">
-                            <span class="stat">Bookings: <strong>0</strong></span>
-                        </div>
-                        <div class="event-actions">
-                            <button class="btn-outline">✏️ Edit</button>
-                            <button class="btn-outline">👁️ View</button>
-                        </div>
-                    </div>
+                <div class="no-events-message" style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #999;">
+                    <p>No events found. Start by creating your first curated experience!</p>
                 </div>
             <?php endif; ?>
         </div>
     </main>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const categorySelect = document.getElementById('categoryFilter');
+    const eventCards = document.querySelectorAll('.event-card:not(.create-placeholder)');
+    const countLabel = document.getElementById('eventsCount');
+
+    let currentStatus = 'all';
+    let currentCategory = 'all';
+
+    function filterEvents() {
+        let visibleCount = 0;
+        eventCards.forEach(card => {
+            const status = card.dataset.status;
+            const category = card.dataset.category;
+
+            const statusMatch = (currentStatus === 'all' || status === currentStatus);
+            const categoryMatch = (currentCategory === 'all' || category === currentCategory);
+
+            if (statusMatch && categoryMatch) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        countLabel.textContent = `Showing ${visibleCount} event campaigns`;
+    }
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentStatus = this.dataset.filterStatus;
+            filterEvents();
+        });
+    });
+
+    categorySelect.addEventListener('change', function() {
+        currentCategory = this.value;
+        filterEvents();
+    });
+});
+</script>
 </body>
 </html>

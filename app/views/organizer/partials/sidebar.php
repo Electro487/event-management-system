@@ -13,7 +13,7 @@
             </li>
             <li>
                 <a href="/EventManagementSystem/public/organizer/events" class="<?php echo ($activePage == 'events') ? 'active' : ''; ?>">
-                    <span class="icon">📅</span> My Events
+                    <span class="icon">📅</span> Events
                 </a>
             </li>
             <li>

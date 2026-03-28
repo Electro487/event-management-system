@@ -45,7 +45,7 @@ body {
     font-weight: 800;
     letter-spacing: 1px;
     font-style: italic;
-    font-family: 'Inter', sans-serif; /* Would be better with a handwriting font if available */
+    font-family: 'Inter', sans-serif;
 }
 
 .sidebar-header .role-tag {
@@ -100,7 +100,7 @@ body {
 
 .sidebar-footer {
     padding: 20px;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logout-link {
@@ -123,13 +123,100 @@ body {
     padding: 40px;
 }
 
+/* Content Header */
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.breadcrumb a {
+    color: var(--primary-color);
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.breadcrumb a:hover {
+    opacity: 1;
+}
+
+.breadcrumb .separator {
+    margin: 0 8px;
+    opacity: 0.5;
+}
+
+.breadcrumb .current {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.6;
+    transition: 0.2s;
+}
+
+.icon-btn:hover {
+    opacity: 1;
+}
+
+.user-avatar-small {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--primary-color);
+}
+
+.user-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;
     }
-    .sidebar-header .logo, .sidebar-header .role-tag, .sidebar-nav span:not(.icon) {
+
+    .sidebar-header .logo,
+    .sidebar-header .role-tag,
+    .sidebar-nav span:not(.icon) {
         display: none;
     }
+
     .main-content {
         margin-left: 70px;
     }
