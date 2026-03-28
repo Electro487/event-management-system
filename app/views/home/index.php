@@ -3,29 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>e.PLAN | Premium Event Management</title>
+    <title>e.PLAN | Architectural Precision for Every Milestone</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Caveat+Brush&family=Permanent+Marker&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/home.css">
 </head>
 <body>
 
 <header class="header">
-    <div class="logo">e.PLAN</div>
-    <nav class="nav-links">
-        <a href="/EventManagementSystem/public/login">Login</a>
-        <a href="/EventManagementSystem/public/register" class="btn-login">Register</a>
-    </nav>
+    <div class="header-left">
+        <div class="logo"><img src="/EventManagementSystem/public/assets/images/logo_colorful.png" alt="e.PLAN" style="height: 45px; width: auto; object-fit: contain;"></div>
+        <nav class="nav-links">
+            <a href="#services">Services</a>
+            <a href="#about">About</a>
+        </nav>
+    </div>
+    <div class="nav-right">
+        <a href="/EventManagementSystem/public/login" class="btn-secondary">Login</a>
+        <a href="/EventManagementSystem/public/register" class="btn-primary">Get Started</a>
+    </div>
 </header>
 
-<div class="container">
-    <div class="welcome-card">
-        <h2>Experience the Best Events</h2>
-        <p>Welcome to e.PLAN. We help you curate, organize, and experience premium events tailored to your vision. Join us today to get started.</p>
-        <a href="/EventManagementSystem/public/register" class="btn-action">Get Started Now</a>
+<section class="hero">
+    <div class="hero-content">
+        <h1>Architectural precision <span>for every milestone.</span></h1>
+        <p>We bring your dream event into life.</p>
+        <a href="/EventManagementSystem/public/booking" class="btn-primary" style="padding: 18px 45px; font-size: 18px; text-decoration: none; display: inline-block;">Book Now</a>
     </div>
-</div>
+    <div class="hero-image">
+        <div class="image-tilted" style="background-image: url('/EventManagementSystem/public/assets/images/hero.png');"></div>
+    </div>
+</section>
+
+<section class="section-models" id="services">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>Event Models</h2>
+            <p>Every celebration has its own structural logic. Explore our specialized categories for a tailored experience.</p>
+        </div>
+        <a href="/EventManagementSystem/public/services" class="btn-view" style="color: #00796b; border-color: #00796b; height: 50px; padding: 15px 30px; display: inline-flex; align-items: center; text-decoration: none;">See All Services</a>
+    </div>
+
+    <div class="grid-top">
+        <div class="model-card card-wedding" style="background-image: url('/EventManagementSystem/public/assets/images/wedding.png');">
+            <div class="model-info">
+                <h3>Weddings</h3>
+                <p style="margin-bottom: 20px; opacity: 0.8;">Timeless architectural celebrations of union.</p>
+                <a href="/EventManagementSystem/public/wedding-packages" class="btn-view btn-dark">View Types</a>
+            </div>
+        </div>
+        <div class="model-card card-meeting" style="background-image: url('/EventManagementSystem/public/assets/images/meeting.png');">
+            <div class="model-info">
+                <h3>Meetings</h3>
+                <p style="margin-bottom: 20px; opacity: 0.8;">Professional environments for strategic flow.</p>
+                <a href="/EventManagementSystem/public/meeting-packages" class="btn-view btn-dark">View Types</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="models-grid">
+        <div class="model-card" style="background-image: url('/EventManagementSystem/public/assets/images/cultural.png');">
+            <div class="model-info">
+                <h3>Cultural Events</h3>
+                <a href="/EventManagementSystem/public/cultural-packages" class="btn-view btn-dark">View Types</a>
+            </div>
+        </div>
+        <div class="model-card" style="background-image: url('/EventManagementSystem/public/assets/images/family.png');">
+            <div class="model-info">
+                <h3>Family Functions</h3>
+                <a href="/EventManagementSystem/public/family-packages" class="btn-view btn-dark">View Types</a>
+            </div>
+        </div>
+        <div class="model-card" style="background-image: url('/EventManagementSystem/public/assets/images/hero.png');">
+            <div class="model-info">
+                <h3>Other Events and Programs</h3>
+                <a href="/EventManagementSystem/public/other-packages" class="btn-view btn-dark">View Types</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-section" id="about">
+    <h2>About Us</h2>
+    <p class="about-lead">At e.plan, we are dedicated to transforming your vision into reality. We provide comprehensive event curation services that blend architectural precision with creative elegance.</p>
+    
+    <div class="about-cards-container">
+        <a href="#" class="about-card card-dark" style="text-decoration: none;">
+            <h3>What We Do</h3>
+            <p>We design and execute milestone events with a focus on structural integrity and curated aesthetic appeal.</p>
+        </a>
+        <a href="#services" class="about-card card-gold" style="text-decoration: none;">
+            <h3>Our Services</h3>
+            <p>From weddings and corporate meetings to cultural ceremonies, we offer full-service planning, catering, and decor.</p>
+        </a>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-top">
+        <div class="footer-brand">
+            <div class="logo-footer"><img src="/EventManagementSystem/public/assets/images/logo-white.png" alt="e.PLAN" style="height: 65px; width: auto; object-fit: contain; margin-bottom: 5px; image-rendering: high-quality;"></div>
+            <p>Transforming spaces into curated architectural experiences for the elite.</p>
+        </div>
+        <nav class="footer-nav">
+            <a href="/EventManagementSystem/public/privacy">Privacy Policy</a>
+            <a href="/EventManagementSystem/public/terms">Terms of Service</a>
+            <a href="/EventManagementSystem/public/contact">Contact Us</a>
+        </nav>
+        <div class="footer-copy">
+            &copy; 2026 e.plan Architectural Event Curation. All rights reserved.
+        </div>
+    </div>
+</footer>
 
 </body>
 </html>

@@ -3,3 +3,5 @@
 /.env
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+*.ps1
