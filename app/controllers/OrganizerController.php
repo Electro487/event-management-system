@@ -25,6 +25,7 @@ class OrganizerController {
         }
 
         require_once dirname(__DIR__) . '/models/Event.php';
+        /** @var \Event $eventModel */
         $eventModel = new Event();
         $events = $eventModel->getAllByOrganizer($_SESSION['user_id']);
 

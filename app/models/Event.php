@@ -31,7 +31,10 @@ class Event {
         return false;
     }
 
-    public function getAllByOrganizer($organizer_id) {
+    /**
+     * @return array
+     */
+    public function getAllByOrganizer($organizer_id): array {
         $sql = "SELECT * FROM events WHERE organizer_id = :organizer_id ORDER BY created_at DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':organizer_id', $organizer_id);
@@ -39,6 +42,9 @@ class Event {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * @return array|false
+     */
     public function getById($id) {
         $sql = "SELECT * FROM events WHERE id = :id";
         $stmt = $this->db->prepare($sql);

@@ -127,10 +127,11 @@ class AuthController
 
                     // Redirect based on role
                     $role = $user['role'];
-                    if ($role === 'admin') {
-                        $role = 'organizer';
+                    if ($role === 'admin' || $role === 'organizer') {
+                        $redirect = '/EventManagementSystem/public/organizer/events';
+                    } else {
+                        $redirect = '/EventManagementSystem/public/' . $role . '/dashboard';
                     }
-                    $redirect = '/EventManagementSystem/public/' . $role . '/dashboard';
                     header('Location: ' . $redirect);
                     exit;
                 } else {
