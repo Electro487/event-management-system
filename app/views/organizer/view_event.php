@@ -48,8 +48,13 @@
             if (!empty($packages)): 
                 foreach ($packages as $pkg): ?>
                 <div class="package-card">
-                    <h3><?php echo htmlspecialchars($pkg['title']); ?></h3>
-                    <p><?php echo nl2br(htmlspecialchars($pkg['description'])); ?></p>
+                    <?php if (is_array($pkg)): ?>
+                        <h3><?php echo htmlspecialchars($pkg['title'] ?? 'Package'); ?></h3>
+                        <p><?php echo nl2br(htmlspecialchars($pkg['description'] ?? '')); ?></p>
+                    <?php else: ?>
+                        <h3>Package</h3>
+                        <p><?php echo nl2br(htmlspecialchars((string)$pkg)); ?></p>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; 
             else: ?>
