@@ -17,6 +17,7 @@
         <div class="header-left">
             <div class="logo"><img src="/EventManagementSystem/public/assets/images/logo_colorful.png" alt="e.PLAN" style="height: 45px; width: auto; object-fit: contain;"></div>
             <nav class="nav-links">
+                <a href="/EventManagementSystem/public/client/events">Browse Events</a>
                 <a href="#services">Services</a>
                 <a href="#about">About</a>
             </nav>

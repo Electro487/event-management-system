@@ -43,6 +43,35 @@ class Event {
     }
 
     /**
+     * @return array
+     */
+    public function getAllActiveEvents($category = null, $search = null): array {
+        $sql = "SELECT * FROM events WHERE status = 'active'";
+        $params = [];
+
+        if ($category && $category !== 'All') {
+            $sql .= " AND category = :category";
+            $params[':category'] = $category;
+        }
+
+        if ($search) {
+            $sql .= " AND (title LIKE :search OR description LIKE :search OR venue_location LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $sql .= " ORDER BY created_at DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($params as $key => &$val) {
+            $stmt->bindParam($key, $val);
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * @return array|false
      */
     public function getById($id) {
