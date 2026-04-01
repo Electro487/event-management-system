@@ -31,7 +31,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -98,7 +98,8 @@ body {
 
 /* Hero Section */
 .hero {
-    background-color: #1f6f59; /* Matching the screenshot's dark green/teal */
+    background-color: #1f6f59;
+    /* Matching the screenshot's dark green/teal */
     padding: 60px 20px;
     text-align: center;
     color: var(--white);
@@ -128,7 +129,7 @@ body {
     border-radius: 50px;
     padding: 5px;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .search-icon {
@@ -212,7 +213,7 @@ body {
     background: var(--white);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s, box-shadow 0.3s;
     display: flex;
     flex-direction: column;
@@ -220,7 +221,7 @@ body {
 
 .event-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .event-image-container {
@@ -403,10 +404,12 @@ footer {
     .event-grid {
         grid-template-columns: 1fr;
     }
+
     .header {
         flex-direction: column;
-         gap: 15px;
+        gap: 15px;
     }
+
     .hero {
         margin: 10px;
     }

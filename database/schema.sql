@@ -28,3 +28,21 @@ CREATE TABLE IF NOT EXISTS `events` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`organizer_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `bookings` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `event_id` INT NOT NULL,
+    `client_id` INT NOT NULL,
+    `package_tier` VARCHAR(50) NOT NULL,
+    `event_date` DATE NOT NULL,
+    `guest_count` INT NOT NULL,
+    `full_name` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(100) NOT NULL,
+    `phone` VARCHAR(20) NOT NULL,
+    `total_amount` DECIMAL(10, 2) NOT NULL,
+    `service_fee` DECIMAL(10, 2) NOT NULL,
+    `status` ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;

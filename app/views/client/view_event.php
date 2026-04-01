@@ -45,7 +45,9 @@ if (empty($includedItemsList)) {
         <nav class="nav-links">
             <a href="/EventManagementSystem/public/">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="#">My Bookings</a>
+            <?php if (isset($_SESSION['user_id'])): ?>
+            <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
+            <?php endif; ?>
             <a href="#">About</a>
         </nav>
         <div class="nav-icons">
@@ -175,11 +177,12 @@ if (empty($includedItemsList)) {
                     endforeach; 
                     ?>
 
-                    <button class="btn-book-now">
+                    <button class="btn-book-now" onclick="proceedToBooking(<?php echo $event['id']; ?>)">
                         Book Now <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <p class="tax-note">* Prices are exclusive of taxes and subject to customization.</p>
                 </div>
+
 
                 <div class="trust-badges">
                     <span><i class="fa-solid fa-shield-halved"></i> Verified Service</span>
@@ -245,7 +248,23 @@ if (empty($includedItemsList)) {
              .replace(/"/g, "&quot;")
              .replace(/'/g, "&#039;");
     }
+
+    function proceedToBooking(eventId) {
+        const activeTierEl = document.querySelector('.package-tier.active-tier');
+        if (!activeTierEl) {
+            alert('Please select a package tier first.');
+            return;
+        }
+        
+        // Find which tier is selected by checking inner text or class
+        let selectedTier = 'basic';
+        if (activeTierEl.classList.contains('standard')) selectedTier = 'standard';
+        if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
+        
+        window.location.href = `/EventManagementSystem/public/client/book?event_id=${eventId}&package=${selectedTier}`;
+    }
 </script>
 
 </body>
+
 </html>

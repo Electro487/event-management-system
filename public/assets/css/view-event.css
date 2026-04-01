@@ -1,12 +1,16 @@
 /* View Event CSS */
 :root {
-    --primary-color: #0c3b2e; /* Very dark green */
-    --primary-light: #1f6f59; /* Lighter teal-green */
-    --secondary-color: #ffc247; /* Yellow/Gold */
+    --primary-color: #0c3b2e;
+    /* Very dark green */
+    --primary-light: #1f6f59;
+    /* Lighter teal-green */
+    --secondary-color: #ffc247;
+    /* Yellow/Gold */
     --secondary-hover: #ffb420;
     --text-dark: #1a1e23;
     --text-gray: #6b7280;
-    --bg-light: #f6f8f6; /* Off-white matching screenshot */
+    --bg-light: #f6f8f6;
+    /* Off-white matching screenshot */
     --white: #ffffff;
     --border-color: #e5e7eb;
 }
@@ -122,7 +126,7 @@ body {
     left: 0;
     right: 0;
     height: 60%;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
     z-index: 1;
 }
 
@@ -198,7 +202,8 @@ body {
 }
 
 .included-item {
-    background-color: rgba(31, 111, 89, 0.05); /* very light green tint */
+    background-color: rgba(31, 111, 89, 0.05);
+    /* very light green tint */
     padding: 15px;
     border-radius: 8px;
     display: flex;
@@ -245,7 +250,8 @@ body {
 }
 
 .detail-col p.status-open {
-    color: #bfa15f; /* matching the screenshot gold color */
+    color: #bfa15f;
+    /* matching the screenshot gold color */
 }
 
 /* Right Column - Packages */
@@ -253,7 +259,7 @@ body {
     background-color: var(--white);
     border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .packages-box h3 {
@@ -276,7 +282,7 @@ body {
 
 .package-tier:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .package-tier.active-tier {
@@ -336,7 +342,7 @@ body {
 }
 
 .package-tier.premium .tier-desc {
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .btn-book-now {
@@ -372,7 +378,8 @@ body {
 .trust-badges {
     display: flex;
     justify-content: space-between;
-    background-color: #e9eceb; /* light gray context */
+    background-color: #e9eceb;
+    /* light gray context */
     padding: 15px 20px;
     border-radius: 8px;
     margin-top: 20px;
@@ -396,12 +403,15 @@ body {
     .hero {
         height: 300px;
     }
+
     .hero h1 {
         font-size: 32px;
     }
+
     .included-grid {
         grid-template-columns: 1fr;
     }
+
     .details-grid {
         grid-template-columns: 1fr 1fr;
     }

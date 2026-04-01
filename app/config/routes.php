@@ -20,4 +20,9 @@ $routes = [
     '/organizer/events/edit' => 'OrganizerController@editEvent',
     '/organizer/events/update' => 'OrganizerController@updateEvent',
     '/organizer/events/delete' => 'OrganizerController@deleteEvent',
+    '/client/book' => 'ClientController@bookEvent',
+    '/client/book/store' => 'ClientController@storeBooking',
+    '/client/bookings' => 'ClientController@myBookings',
+    '/client/bookings/cancel' => 'ClientController@cancelBooking',
+    '/client/bookings/view' => 'ClientController@viewBookingDetails',
 ];
