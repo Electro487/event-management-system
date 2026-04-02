@@ -18,15 +18,15 @@ body {
     color: var(--text-main);
 }
 
-/* Optimal aesthetic distance from sidebar */
+/* Balanced aesthetic distance from sidebar */
 .sidebar {
-    width: 220px !important;
+    width: 250px !important;
 }
 
 .main-content {
-    margin-left: 220px !important;
-    padding: 30px 40px 30px 32px;
-    /* Precision gutter: 32px from sidebar edge */
+    margin-left: 0 !important; /* Sidebar is sticky/flow, so no margin needed to push */
+    padding: 30px 35px;
+    /* Flush alignment with sidebar */
 }
 
 /* Breadcrumbs & Header */

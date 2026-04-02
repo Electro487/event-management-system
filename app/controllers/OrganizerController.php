@@ -206,6 +206,7 @@ class OrganizerController
             if ($displayStatus === 'cancelled') $cancelledCount++;
             if ($displayStatus === 'completed') $completedCount++;
         }
+        unset($b); // Important: break the reference to the last element
 
         require_once dirname(__DIR__) . '/views/organizer/bookings.php';
     }
