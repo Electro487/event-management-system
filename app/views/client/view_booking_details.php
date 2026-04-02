@@ -1,8 +1,9 @@
 <?php
 $bgImage = !empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
 $eventTitle = htmlspecialchars($booking['event_title']);
-$statusStr = strtoupper($booking['status']);
-$statusClass = "status-" . strtolower($booking['status']);
+$displayStatus = $booking['display_status'] ?? strtolower($booking['status']);
+$statusStr = strtoupper($displayStatus);
+$statusClass = "status-" . strtolower($displayStatus);
 
 // Parse package features
 $items = $selectedPackage['items'] ?? [];
@@ -15,6 +16,48 @@ if (empty($items)) {
          $items = [['title' => 'Basic Management'], ['title' => 'Standard Decor'], ['title' => 'Venue Rental']];
     }
 }
+
+// Timeline Logic
+$currentDate = new DateTime();
+$todayStr = $currentDate->format('Y-m-d');
+$eventDate = new DateTime($booking['event_date']);
+$eventDateStr = $eventDate->format('Y-m-d');
+$status = strtolower($booking['status']);
+
+if (!function_exists('getStepClass')) {
+    function getStepClass($stepKey, $currentStatus, $currentDate, $eventDate) {
+        if ($currentStatus === 'cancelled') return '';
+        $todayStr = $currentDate->format('Y-m-d');
+        $eventDateStr = $eventDate->format('Y-m-d');
+        
+        switch ($stepKey) {
+            case 'received':
+            case 'review':
+                return 'completed';
+            case 'confirmed':
+                if ($currentStatus === 'confirmed' || $currentStatus === 'completed') return 'completed';
+                return '';
+            case 'event':
+                if ($currentStatus !== 'confirmed' && $currentStatus !== 'completed') return '';
+                if ($todayStr === $eventDateStr) return 'active';
+                if ($todayStr > $eventDateStr) return 'completed';
+                return '';
+            case 'completed':
+                if ($currentStatus !== 'confirmed' && $currentStatus !== 'completed') return '';
+                return ($todayStr > $eventDateStr) ? 'completed' : '';
+            default:
+                return '';
+        }
+    }
+}
+
+$steps = [
+    ['label' => 'Received', 'desc' => 'Booking received', 'key' => 'received'],
+    ['label' => 'Under Review', 'desc' => ($status === 'cancelled') ? 'Booking cancelled' : 'Awaiting review', 'key' => 'review'],
+    ['label' => 'Confirmed', 'desc' => ($status === 'confirmed' || $status === 'completed') ? 'Booking confirmed' : 'Pending confirmation', 'key' => 'confirmed'],
+    ['label' => 'Event Day', 'desc' => 'Scheduled for ' . $eventDate->format('M d, Y'), 'key' => 'event'],
+    ['label' => 'Completed', 'desc' => ($todayStr > $eventDateStr && $status !== 'cancelled') ? 'Event completed' : 'Awaiting event day', 'key' => 'completed']
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,6 +133,19 @@ if (empty($items)) {
                             <i class="fa-regular fa-calendar info-icon"></i>
                         </div>
                         <div class="info-item">
+                            <span class="info-label">Check-in Time</span>
+                            <span class="info-val"><?php 
+                                $time = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
+                                // If it's in 24hr format from input (HH:mm), convert to AM/PM
+                                if (preg_match('/^\d{2}:\d{2}$/', $time)) {
+                                    echo date('h:i A', strtotime($time)); 
+                                } else {
+                                    echo htmlspecialchars($time);
+                                }
+                            ?></span>
+                            <i class="fa-regular fa-clock info-icon"></i>
+                        </div>
+                        <div class="info-item">
                             <span class="info-label">Guests</span>
                             <span class="info-val"><?php echo htmlspecialchars($booking['guest_count']); ?> Attendees</span>
                             <i class="fa-solid fa-user-group info-icon"></i>
@@ -137,8 +193,27 @@ if (empty($items)) {
                 </div>
             </div>
 
-            <!-- Right Column: Summary & Actions -->
+            <!-- Right Column: Summary & Journey -->
             <div class="right-col">
+                <div class="card-section journey-card">
+                    <h2 class="card-title"><i class="fa-solid fa-route"></i> Booking Journey</h2>
+                    <div class="timeline">
+                        <?php foreach($steps as $step): 
+                            $cls = getStepClass($step['key'], $displayStatus, $currentDate, $eventDate);
+                        ?>
+                        <div class="timeline-item <?php echo $cls; ?>">
+                            <div class="tl-dot">
+                                <div class="dot-inner"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                            <div class="tl-content">
+                                <h5><?php echo $step['label']; ?></h5>
+                                <p><?php echo $step['desc']; ?></p>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
                 <div class="summary-box">
                     <h3>Payment Summary</h3>
                     
@@ -152,7 +227,7 @@ if (empty($items)) {
                         <span>Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
                     </div>
 
-                    <?php if (in_array($booking['status'], ['pending', 'confirmed'])): ?>
+                    <?php if (in_array($displayStatus, ['pending', 'confirmed'])): ?>
                         <div style="margin-top: 30px;">
                             <form action="/EventManagementSystem/public/client/bookings/cancel" method="POST" style="margin:0;">
                                 <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">

@@ -45,17 +45,25 @@ class ClientController
 
             $totalBookings = count($bookings);
 
+            $today = date('Y-m-d');
             foreach ($bookings as &$b) {
-                if ($b['status'] == 'confirmed')
-                    $confirmedCount++;
-                if ($b['status'] == 'pending')
-                    $pendingCount++;
-                if ($b['status'] == 'completed')
-                    $completedCount++;
-                if ($b['status'] == 'cancelled')
-                    $cancelledCount++;
-                if (in_array($b['status'], ['pending', 'confirmed']))
+                $isPast = ($b['event_date'] < $today);
+                
+                // Dynamic Status Logic: Past confirmed bookings reflect as 'completed'
+                $displayStatus = $b['status'];
+                if ($b['status'] === 'confirmed' && $isPast) {
+                    $displayStatus = 'completed';
+                }
+                $b['display_status'] = $displayStatus;
+
+                if ($displayStatus === 'confirmed') $confirmedCount++;
+                if ($displayStatus === 'pending') $pendingCount++;
+                if ($displayStatus === 'completed') $completedCount++;
+                if ($displayStatus === 'cancelled') $cancelledCount++;
+                
+                if (in_array($displayStatus, ['pending', 'confirmed'])) {
                     $upcomingCount++;
+                }
 
                 if (!empty($b['event_packages'])) {
                     $b['packages_data'] = json_decode($b['event_packages'], true);
@@ -147,8 +155,8 @@ class ClientController
                 'full_name' => $_POST['full_name'],
                 'email' => $_POST['email'],
                 'phone' => $_POST['phone'],
+                'checkin_time' => $_POST['checkin_time'],
                 'total_amount' => $_POST['total_amount'],
-                'service_fee' => 0,
                 'status' => 'pending'
             ];
 
@@ -228,6 +236,17 @@ class ClientController
             header('Location: /EventManagementSystem/public/client/events#my-bookings');
             exit;
         }
+
+        // Dynamic Status Logic: Past confirmed bookings reflect as 'completed'
+        $today = date('Y-m-d');
+        $dateStr = $booking['event_date'] ?: ($booking['event_start_date'] ?? '9999-12-31');
+        $isPast = ($dateStr < $today);
+        
+        $displayStatus = strtolower($booking['status']);
+        if ($displayStatus === 'confirmed' && $isPast) {
+            $displayStatus = 'completed';
+        }
+        $booking['display_status'] = $displayStatus;
 
         $packages = !empty($booking['event_packages']) ? json_decode($booking['event_packages'], true) : [];
         $selectedPackage = $packages[$booking['package_tier']] ?? null;

@@ -180,12 +180,13 @@ $searchQuery = $_GET['search'] ?? '';
                     <div class="empty-state">No bookings found in this category.</div>
                 <?php else: ?>
                     <?php foreach ($bookings as $index => $booking): 
-                        $isUpcoming = in_array($booking['status'], ['pending', 'confirmed']) ? 'true' : 'false';
+                        $dispStatus = $booking['display_status'] ?? $booking['status'];
+                        $isUpcoming = in_array($dispStatus, ['pending', 'confirmed']) ? 'true' : 'false';
                         $catStyle = $booking['event_category'] == 'Exhibition' || strtolower($booking['event_category']) == 'education' ? 'background: #e5e7eb; color: #4b5563;' : '';
                         if (strtolower($booking['event_category']) == 'music') { $catStyle = 'background: #fef08a; color: #854d0e;'; }
                     ?>
                         <div class="b-item" 
-                             data-status="<?php echo $booking['status']; ?>" 
+                             data-status="<?php echo $dispStatus; ?>" 
                              data-upcoming="<?php echo $isUpcoming; ?>"
                              data-index="<?php echo $index; ?>"
                              onclick="selectBooking(<?php echo $index; ?>, this)">
@@ -200,8 +201,8 @@ $searchQuery = $_GET['search'] ?? '';
                                             <h3 class="b-title"><?php echo htmlspecialchars($booking['event_title']); ?></h3>
                                             <span class="b-cat-badge" style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($booking['event_category'] ?: 'Event'); ?></span>
                                         </div>
-                                        <span class="b-status-badge status-<?php echo htmlspecialchars($booking['status']); ?>">
-                                            <?php echo strtoupper($booking['status']); ?>
+                                        <span class="b-status-badge status-<?php echo htmlspecialchars($dispStatus); ?>">
+                                            <?php echo strtoupper($dispStatus); ?>
                                         </span>
                                     </div>
                                     <div class="b-middle">
@@ -333,6 +334,19 @@ $searchQuery = $_GET['search'] ?? '';
             return hours + ':' + minutes + ' ' + ampm;
         }
 
+        function formatCheckinTime(timeStr) {
+            if (!timeStr) return '10:00 AM';
+            // If it's already in AM/PM format
+            if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+            
+            const [hours24, minutes] = timeStr.split(':');
+            let hours = parseInt(hours24);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
         function selectBooking(index, element) {
             document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
             if (element) { element.classList.add('active'); }
@@ -343,9 +357,10 @@ $searchQuery = $_GET['search'] ?? '';
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
             document.getElementById('sb-img').src = data.event_image ? data.event_image : '/EventManagementSystem/public/assets/images/placeholder.jpg';
 
+            const dispStatus = data.display_status || data.status;
             const statusEl = document.getElementById('sb-status');
-            statusEl.innerText = data.status.toUpperCase();
-            statusEl.className = 'b-status-badge status-' + data.status;
+            statusEl.innerText = dispStatus.toUpperCase();
+            statusEl.className = 'b-status-badge status-' + dispStatus;
 
             document.getElementById('sb-event-title').innerText = data.event_title;
             document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -365,7 +380,7 @@ $searchQuery = $_GET['search'] ?? '';
             if (!data.venue_name && data.venue_location) { locName = data.venue_location; locAddr = "Local Venue"; }
             document.getElementById('sb-loc-name').innerText = locName;
             document.getElementById('sb-loc-address').innerText = locAddr;
-            document.getElementById('sb-time').innerText = formatTime(data.event_date);
+            document.getElementById('sb-time').innerText = formatCheckinTime(data.checkin_time);
 
             // Handle Cancel Button
             let cancelForm = document.getElementById('cancel-booking-form');

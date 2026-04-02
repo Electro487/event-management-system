@@ -191,13 +191,39 @@ body {
 .user-avatar-small {
     width: 38px;
     height: 38px;
-    border-radius: 50%;
+    border-radius: 8px;
     background: #e0e0e0;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--sidebar-bg);
+}
+
+.user-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.up-text {
+    text-align: right;
+}
+
+.up-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
+}
+
+.up-role {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-top: 2px;
 }
 
 .user-avatar-small img {

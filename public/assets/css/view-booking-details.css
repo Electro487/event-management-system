@@ -99,3 +99,106 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
     .items-list { grid-template-columns: 1fr; }
     .header { flex-direction: column; gap: 15px; }
 }
+
+/* Booking Journey Timeline */
+.journey-card {
+    padding: 25px !important;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 36px;
+    margin-top: 10px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: var(--border-color);
+    border-style: dashed;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.tl-dot {
+    position: absolute;
+    left: -36px;
+    top: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.dot-inner {
+    width: 24px;
+    height: 24px;
+    background: var(--white);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.tl-dot i {
+    font-size: 10px;
+    color: var(--text-gray);
+    display: none;
+}
+
+.timeline-item.completed .dot-inner {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+.timeline-item.completed .tl-dot i {
+    display: block;
+    color: var(--white);
+}
+
+.timeline-item.active .dot-inner {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(31, 111, 89, 0.15);
+}
+
+.timeline-item.active .dot-inner::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--white);
+    border-radius: 50%;
+}
+
+.tl-content h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.tl-content p {
+    margin: 2px 0 0 0;
+    font-size: 11px;
+    color: var(--text-gray);
+    line-height: 1.4;
+}
+
+.summary-box {
+    margin-top: 25px;
+}

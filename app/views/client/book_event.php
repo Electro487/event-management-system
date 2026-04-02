@@ -137,7 +137,6 @@ if (empty($items)) {
                 <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event['id']); ?>">
                 <input type="hidden" name="package_tier" value="<?php echo htmlspecialchars($packageTier); ?>">
                 <input type="hidden" name="total_amount" value="<?php echo $totalAmount; ?>">
-                <input type="hidden" name="service_fee" value="<?php echo $serviceFee; ?>">
 
                 <!-- Left Column -->
                 <div class="left-col">
@@ -160,6 +159,10 @@ if (empty($items)) {
                             <div class="input-group">
                                 <label>EVENT DATE</label>
                                 <input type="date" name="event_date" required min="<?php echo date('Y-m-d'); ?>" value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
+                            </div>
+                            <div class="input-group">
+                                <label>CHECK IN TIME</label>
+                                <input type="time" name="checkin_time" required value="10:00">
                             </div>
                             <div class="input-group">
                                 <label>GUEST COUNT</label>
