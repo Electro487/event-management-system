@@ -11,6 +11,78 @@ class OrganizerController {
             exit;
         }
 
+        // Fetch Upcoming Events
+        require_once dirname(__DIR__) . '/models/Event.php';
+        $eventModel = new Event();
+        $totalEvents = 24; // Mock total events
+        
+        // Mock Upcomin Events Data
+        $upcomingEvents = [
+            [
+                'title' => 'The Royal Wedding',
+                'category' => 'Wedding',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+3 days'))
+            ],
+            [
+                'title' => 'Global Tech Expo',
+                'category' => 'Corporate',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+7 days'))
+            ],
+            [
+                'title' => 'Winter Charity Gala',
+                'category' => 'Gala',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+12 days'))
+            ],
+            [
+                'title' => 'Jazz on the Beach',
+                'category' => 'Concert',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+24 days'))
+            ]
+        ];
+        
+        // Dummy Booking Data 
+        $totalBookings = 87;
+        $pendingRequests = 14;
+        $revenue = 240000;
+        
+        $recentBookings = [
+            [
+                'client_name' => 'Sarah Miller', 
+                'event_name' => 'Winter Gala',
+                'package_name' => 'Premium',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-2 days')),
+                'status' => 'confirmed'
+            ],
+            [
+                'client_name' => 'Mark Ruffalo', 
+                'event_name' => 'Tech Summit',
+                'package_name' => 'Corporate',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-4 days')),
+                'status' => 'pending'
+            ],
+            [
+                'client_name' => 'Alia Bhatt', 
+                'event_name' => 'Mehndi Night',
+                'package_name' => 'Custom',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-5 days')),
+                'status' => 'confirmed'
+            ],
+            [
+                'client_name' => 'John Doe', 
+                'event_name' => 'Art Expo',
+                'package_name' => 'Basic',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 week')),
+                'status' => 'cancelled'
+            ]
+        ];
+
+        // Fetch Status Summary
+        $statusSummary = ['confirmed' => 52, 'pending' => 14, 'cancelled' => 21];
+
         require_once dirname(__DIR__) . '/views/organizer/dashboard.php';
     }
 

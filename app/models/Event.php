@@ -42,6 +42,28 @@ class Event {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getTotalEvents($organizer_id) {
+        $sql = "SELECT COUNT(*) as total FROM events WHERE organizer_id = :organizer_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['total'] : 0;
+    }
+
+    public function getUpcomingEvents($organizer_id, $limit = 5) {
+        $sql = "SELECT id, title, category, image_path, event_date 
+                FROM events 
+                WHERE organizer_id = :organizer_id AND event_date >= CURDATE()
+                ORDER BY event_date ASC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * @return array|false
      */
