@@ -161,7 +161,11 @@
 
                                 <td style="padding-left:24px;">
                                     <div class="client-cell">
-                                        <div class="client-avatar <?php echo $packageClass; ?>-av"><?php echo $initials; ?></div>
+                                        <?php if (!empty($b['client_profile_pic'])): ?>
+                                            <img src="<?php echo htmlspecialchars($b['client_profile_pic']); ?>" alt="Client" class="client-avatar-img" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-right: 12px;">
+                                        <?php else: ?>
+                                            <div class="client-avatar <?php echo $packageClass; ?>-av" style="margin-right: 12px;"><?php echo $initials; ?></div>
+                                        <?php endif; ?>
                                         <span class="client-name"><?php echo htmlspecialchars($clientName); ?></span>
                                     </div>
                                 </td>
@@ -238,7 +242,7 @@
             let currentCategory = 'all';
             let currentPackage = 'all';
             let currentPage = 1;
-            const itemsPerPage = 8;
+            const itemsPerPage = 5;
 
             // Custom Dropdown Handling
             function initCustomDropdown(id, callback) {

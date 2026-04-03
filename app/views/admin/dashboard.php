@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <style>
-        .admin-badge { background: #eef2ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .admin-badge { background: #e6fcf0; color: #246A55; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -50,28 +50,28 @@
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon" style="background: #eef2ff; color: #4338ca;"><i class="fas fa-users"></i></div>
+                    <div class="stat-icon" style="background: #e6fcf0; color: #246A55;"><i class="fas fa-users"></i></div>
                 </div>
                 <p>Total Users</p>
                 <h3><?php echo number_format($totalUsers ?? 0); ?></h3>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon" style="background: #fff7ed; color: #c2410c;"><i class="far fa-calendar-alt"></i></div>
+                    <div class="stat-icon" style="background: #e6fcf0; color: #246A55;"><i class="far fa-calendar-alt"></i></div>
                 </div>
                 <p>Total Events</p>
                 <h3><?php echo number_format($totalEvents ?? 0); ?></h3>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon" style="background: #f0fdf4; color: #246A55;"><i class="fas fa-check-double"></i></div>
+                    <div class="stat-icon" style="background: #f0fdf4; color: #246A55;"><i class="fa-solid fa-bookmark"></i></div>
                 </div>
                 <p>Total Bookings</p>
                 <h3><?php echo number_format($totalBookings ?? 0); ?></h3>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon" style="background: #fef2f2; color: #b91c1c;"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="stat-icon" style="background: #e6fcf0; color: #246A55;"><i class="fas fa-exclamation-circle"></i></div>
                 </div>
                 <p>Pending Requests</p>
                 <h3><?php echo number_format($pendingRequests ?? 0); ?></h3>
@@ -106,8 +106,21 @@
                                 <?php foreach ($recentBookings as $booking): ?>
                                     <tr>
                                         <td>
-                                            <div class="client-info">
-                                                <span><?php echo htmlspecialchars($booking['client_name']); ?></span>
+                                            <div class="client-info" style="display: flex; align-items: center; gap: 12px;">
+                                                <?php if (!empty($booking['client_profile_pic'])): ?>
+                                                    <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                                <?php else: ?>
+                                                    <div style="width: 32px; height: 32px; background: #f0f7f3; color: #246A55; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">
+                                                        <?php 
+                                                            $nameArr = explode(' ', $booking['client_name']);
+                                                            $initArr = array_filter($nameArr);
+                                                            $init = '';
+                                                            foreach(array_slice($initArr, 0, 2) as $n) $init .= strtoupper(substr($n, 0, 1));
+                                                            echo $init ?: '??';
+                                                        ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <span style="font-weight: 500; font-size: 13.5px; color: var(--text-main);"><?php echo htmlspecialchars($booking['client_name']); ?></span>
                                             </div>
                                         </td>
                                         <td style="color:var(--text-main); font-weight:500;"><?php echo htmlspecialchars($booking['event_title']); ?></td>
@@ -118,7 +131,7 @@
                                             </span>
                                         </td>
                                          <td>
-                                            <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $booking['id']; ?>" style="color: #4338ca; font-weight: 600; text-decoration: none; font-size: 13px;">
+                                            <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $booking['id']; ?>" style="color: #246A55; font-weight: 700; text-decoration: none; font-size: 13px;">
                                                 View
                                             </a>
                                         </td>

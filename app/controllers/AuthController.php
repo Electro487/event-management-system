@@ -136,9 +136,9 @@ class AuthController
                         if ($role === 'admin') {
                             $redirect = '/EventManagementSystem/public/admin/dashboard';
                         } elseif ($role === 'organizer') {
-                            $redirect = '/EventManagementSystem/public/organizer/events';
+                            $redirect = '/EventManagementSystem/public/organizer/dashboard';
                         } else {
-                            $redirect = '/EventManagementSystem/public/client/dashboard';
+                            $redirect = '/EventManagementSystem/public/client/home';
                         }
                         header('Location: ' . $redirect);
                         exit;

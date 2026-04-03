@@ -161,9 +161,9 @@
                         ];
                     }
                     $tiers = [
-                        'basic' => ['name' => 'Basic Tier', 'icon' => '📗', 'subtitle' => 'Foundational services', 'class' => ''],
-                        'standard' => ['name' => 'Standard Tier', 'icon' => '📘', 'subtitle' => 'Recommended architecture', 'class' => 'tier-highlight'],
-                        'premium' => ['name' => 'Premium Tier', 'icon' => '📙', 'subtitle' => 'Full luxury curation', 'class' => 'tier-premium']
+                        'basic' => ['name' => 'Basic Tier', 'icon' => 'fa-solid fa-box', 'subtitle' => 'Foundational services', 'class' => ''],
+                        'standard' => ['name' => 'Standard Tier', 'icon' => 'fa-solid fa-certificate', 'subtitle' => 'Recommended architecture', 'class' => 'tier-highlight'],
+                        'premium' => ['name' => 'Premium Tier', 'icon' => 'fa-solid fa-award', 'subtitle' => 'Full luxury curation', 'class' => 'tier-premium']
                     ];
 
                     foreach ($tiers as $tierKey => $tierInfo):
@@ -173,7 +173,9 @@
                     <!-- <?php echo $tierInfo['name']; ?> -->
                     <div class="package-card <?php echo $tierInfo['class']; ?>" data-tier="<?php echo $tierKey; ?>">
                         <div class="package-header">
-                            <span class="tier-icon"><?php echo $tierInfo['icon']; ?></span>
+                            <span class="tier-icon-box tier-<?php echo $tierKey; ?>">
+                                <i class="<?php echo $tierInfo['icon']; ?>"></i>
+                            </span>
                             <div class="tier-info">
                                 <h3><?php echo $tierInfo['name']; ?></h3>
                                 <p><?php echo $tierInfo['subtitle']; ?></p>
@@ -200,8 +202,8 @@
                                         <input type="hidden" name="packages[<?php echo $tierKey; ?>][items][<?php echo $idx; ?>][description]" value="<?php echo htmlspecialchars($item['description']); ?>">
                                     </div>
                                     <div class="item-actions">
-                                        <button type="button" class="icon-action-btn edit-item-btn" title="Edit">✏️</button>
-                                        <button type="button" class="icon-action-btn delete-item-btn" title="Delete">🗑️</button>
+                                        <button type="button" class="icon-action-btn edit-item-btn" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button type="button" class="icon-action-btn delete-item-btn" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
@@ -357,8 +359,8 @@ function buildItemRow(tier, title, desc) {
             <input type="hidden" name="packages[${tier}][items][${index}][description]" value="${escapeHtml(desc)}">
         </div>
         <div class="item-actions">
-            <button type="button" class="icon-action-btn edit-item-btn" title="Edit">✏️</button>
-            <button type="button" class="icon-action-btn delete-item-btn" title="Delete">🗑️</button>
+            <button type="button" class="icon-action-btn edit-item-btn" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button type="button" class="icon-action-btn delete-item-btn" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
         </div>
     `;
     return row;

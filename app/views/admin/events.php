@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
     <style>
         .organizer-tag { background: #f0fdf4; color: #246A55; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 5px; display: inline-block; }
     </style>
@@ -51,14 +52,20 @@
                 <button class="tab-btn" data-filter-status="draft">Draft</button>
             </div>
             <div class="category-filter">
-                <select id="categoryFilter">
-                    <option value="all">All Categories</option>
-                    <?php 
-                    $cats = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
-                    foreach($cats as $cat): ?>
-                        <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="custom-premium-dropdown small" id="categoryFilter">
+                    <div class="dropdown-trigger">
+                        <span class="selected-val">All Categories</span>
+                        <i class="fa-solid fa-angle-down"></i>
+                    </div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item active" data-value="all">All Categories</div>
+                        <?php 
+                        $cats = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                        foreach($cats as $cat): ?>
+                            <div class="dropdown-item" data-value="<?php echo $cat; ?>"><?php echo $cat; ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
             <div class="status-info">
                 <span id="eventsCount">Showing <?php echo count($events); ?> system campaigns</span>
@@ -81,7 +88,7 @@
                         
                         <div class="event-actions" style="margin-top: 15px;">
                             <a href="/EventManagementSystem/public/admin/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit">
-                                <i class="fas fa-edit"></i> Edit
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
                             </a>
 
                             <a href="/EventManagementSystem/public/admin/events/delete?id=<?php echo $event['id']; ?>" class="btn-action delete" onclick="return confirm('ADMIN: Delete this user\'s event?')">
@@ -136,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    categorySelect.addEventListener('change', function() {
-        currentCategory = this.value;
+    DropdownManager.onSelect('categoryFilter', (val) => {
+        currentCategory = val;
         filterEvents();
     });
 });

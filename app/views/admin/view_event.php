@@ -44,9 +44,8 @@ if (empty($includedItemsList)) {
         .hero { margin-top: 20px; border-radius: 16px; }
         .btn-back { display: inline-block; margin-bottom: 20px; color: var(--primary-light); text-decoration: none; font-weight: 600; font-size: 14px; }
         .btn-back:hover { text-decoration: underline; }
-        /* Disable hover interactions on tiers for admin */
-        .package-tier { cursor: default; }
-        .package-tier:hover { transform: none; box-shadow: none; }
+        /* Enable interactions on tiers for admin now that they are interactive */
+        .package-tier { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -87,7 +86,7 @@ if (empty($includedItemsList)) {
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 class="section-title" style="margin-bottom: 0;">What's Included</h2>
-                    <span style="font-size: 13px; font-weight: 600; color: #bfa15f; text-transform: uppercase;">All Packages Scope</span>
+                    <span id="whats-included-subtitle" style="font-size: 13px; font-weight: 600; color: #bfa15f; text-transform: uppercase;">All Packages Scope</span>
                 </div>
                 <div class="included-grid" id="includedGrid">
                     <?php foreach ($includedItemsList as $item): ?>
@@ -142,7 +141,7 @@ if (empty($includedItemsList)) {
                             $priceValue = $pkgData['price'] ?? ($pkgData['price_range'] ?? '');
                             $priceDisplay = !empty($priceValue) ? 'Rs. ' . number_format((float)str_replace(['Rs.', ',', ' '], '', $priceValue), 0) : 'Custom Pricing';
                     ?>
-                    <div class="package-tier <?php echo $cssClass; ?>">
+                    <div class="package-tier <?php echo $cssClass; ?>" onclick="selectPackage('<?php echo $tierKey; ?>', this)">
                         <?php if ($tierKey === 'standard'): ?>
                             <div class="most-popular-badge">Most Popular</div>
                         <?php endif; ?>
@@ -169,5 +168,62 @@ if (empty($includedItemsList)) {
 
         </div>
     </main>
+
+    <script>
+        // Pass PHP packages array to JS
+        const packagesData = <?php echo json_encode($packages); ?>;
+        const globalItemsHtml = document.getElementById('includedGrid').innerHTML;
+
+        function selectPackage(tierKey, element) {
+            // Remove active class from all tiers
+            document.querySelectorAll('.package-tier').forEach(el => {
+                el.classList.remove('active-tier');
+            });
+
+            // Add active class to clicked tier
+            if (element) {
+                element.classList.add('active-tier');
+            }
+
+            const includedGrid = document.getElementById('includedGrid');
+            const subtitle = document.getElementById('whats-included-subtitle');
+
+            if (!tierKey || !packagesData[tierKey] || !packagesData[tierKey].items || packagesData[tierKey].items.length === 0) {
+                includedGrid.innerHTML = globalItemsHtml;
+                subtitle.innerText = "All Packages Scope";
+                return;
+            }
+
+            const items = packagesData[tierKey].items;
+            subtitle.innerText = tierKey.charAt(0).toUpperCase() + tierKey.slice(1) + " Package Scope";
+
+            let html = '';
+            items.forEach(item => {
+                const title = escapeHtml(item.title);
+                const desc = item.description ? escapeHtml(item.description) : '';
+
+                html += `
+                <div class="included-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <span>${title}</span>
+                        ${desc ? `<span style="font-size: 11px; color: var(--text-gray); font-weight: normal; margin-top: 2px;">${desc}</span>` : ''}
+                    </div>
+                </div>
+            `;
+            });
+
+            includedGrid.innerHTML = html;
+        }
+
+        function escapeHtml(unsafe) {
+            return (unsafe || "").toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
 </body>
 </html>

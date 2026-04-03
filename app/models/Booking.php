@@ -62,10 +62,12 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.description as event_description, e.venue_location, e.venue_name, e.packages as event_packages, 
-                       e.event_date as event_start_date, e.organizer_id, u.fullname as organizer_name
+                       e.event_date as event_start_date, e.organizer_id, u.fullname as organizer_name,
+                       c.profile_picture as client_profile_pic
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 JOIN users u ON e.organizer_id = u.id
+                LEFT JOIN users c ON b.client_id = c.id
                 WHERE b.id = :id";
 
         $stmt = $this->db->prepare($sql);
@@ -88,7 +90,7 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.venue_location, e.venue_name, e.packages as event_packages, e.event_date as event_start_date,
-                       e.organizer_id, c.fullname as client_user_name
+                       e.organizer_id, c.fullname as client_user_name, c.profile_picture as client_profile_pic
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 LEFT JOIN users c ON b.client_id = c.id
@@ -106,7 +108,7 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.venue_location, e.venue_name, e.packages as event_packages, e.event_date as event_start_date,
-                       e.organizer_id, c.fullname as client_user_name
+                       e.organizer_id, c.fullname as client_user_name, c.profile_picture as client_profile_pic
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 LEFT JOIN users c ON b.client_id = c.id
@@ -147,7 +149,7 @@ class Booking
 
     public function getRecent($limit = 5)
     {
-        $sql = "SELECT b.*, e.title as event_title, c.fullname as client_name
+        $sql = "SELECT b.*, e.title as event_title, c.fullname as client_name, c.profile_picture as client_profile_pic
                 FROM bookings b
                 JOIN events e ON b.event_id = e.id
                 JOIN users c ON b.client_id = c.id
@@ -182,7 +184,7 @@ class Booking
 
     public function getRecentByOrganizer($organizer_id, $limit = 5)
     {
-        $sql = "SELECT b.*, e.title as event_name, b.package_tier as package_name, c.fullname as client_name
+        $sql = "SELECT b.*, e.title as event_name, b.package_tier as package_name, c.fullname as client_name, c.profile_picture as client_profile_pic
                 FROM bookings b
                 JOIN events e ON b.event_id = e.id
                 JOIN users c ON b.client_id = c.id

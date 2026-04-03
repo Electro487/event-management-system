@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-bookings.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
 </head>
 
 <body>
@@ -167,10 +168,15 @@
                                 data-status="<?php echo $rowStatus; ?>" data-date="<?php echo $dateObj->format('Y-m-d'); ?>">
 
                                 <td style="padding-left:24px;">
-                                    <div class="client-cell">
-                                        <div class="client-avatar <?php echo $packageClass; ?>-av"><?php echo $initials; ?>
+                                    <div class="client-cell" style="display: flex; align-items: center; gap: 12px;">
+                                        <div class="client-avatar <?php echo $packageClass; ?>-av" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;">
+                                            <?php if (!empty($b['client_profile_pic'])): ?>
+                                                <img src="<?php echo htmlspecialchars($b['client_profile_pic']); ?>" alt="Client" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <?php else: ?>
+                                                <?php echo $initials; ?>
+                                            <?php endif; ?>
                                         </div>
-                                        <span class="client-name"><?php echo htmlspecialchars($clientName); ?></span>
+                                        <span class="client-name" style="font-weight: 600; color: #111827;"><?php echo htmlspecialchars($clientName); ?></span>
                                     </div>
                                 </td>
                                 <td>
@@ -289,13 +295,12 @@
                 document.querySelectorAll('.custom-premium-dropdown').forEach(d => d.classList.remove('open'));
             });
 
-            initCustomDropdown('eventDropdown', (val) => {
+            DropdownManager.onSelect('eventDropdown', (val) => {
                 currentCategory = val;
                 currentPage = 1;
                 applyFilters();
             });
-
-            initCustomDropdown('packageDropdown', (val) => {
+            DropdownManager.onSelect('packageDropdown', (val) => {
                 currentPackage = val;
                 currentPage = 1;
                 applyFilters();

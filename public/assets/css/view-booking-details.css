@@ -1,6 +1,6 @@
 :root {
     --primary-color: #0c3b2e;
-    --primary-light: #1f6f59;
+    --primary-light: #246A55;
     --secondary-color: #ffc241;
     --text-dark: #1a1e23;
     --text-gray: #6b7280;
@@ -137,20 +137,28 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
     margin-top: 10px;
 }
 
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 17px;
-    top: 10px;
-    bottom: 10px;
-    width: 2px;
-    background: var(--border-color);
-    border-style: dashed;
-}
-
 .timeline-item {
     position: relative;
     margin-bottom: 25px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -19px;
+    top: 18px;
+    bottom: -43px; /* 25px gap + 18px to center of next dot */
+    width: 2px;
+    background: var(--border-color);
+    z-index: 0;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-item.completed::before {
+    background: var(--primary-light);
 }
 
 .timeline-item:last-child {
@@ -230,6 +238,33 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
 }
 
 /* Profile Dropdown Styles */
+.header-profile-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid var(--white, #ffffff);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.header-profile-icon:hover {
+    transform: scale(1.05);
+}
+
+.header-profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .profile-dropdown {
     position: absolute;
     top: 50px;
@@ -251,7 +286,7 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
     right: 8px;
     width: 16px;
     height: 16px;
-    background: #1f6f59;
+    background: var(--primary-light);
     transform: rotate(45deg);
     z-index: -1;
 }
@@ -261,7 +296,7 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
 }
 
 .pd-top {
-    background-color: #1f6f59;
+    background-color: var(--primary-light);
     padding: 30px 20px;
     text-align: center;
     color: var(--white, #ffffff);
@@ -278,7 +313,7 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
 .pd-avatar {
     width: 100%;
     height: 100%;
-    background-color: #1f6f59;
+    background-color: var(--primary-light);
     border: 2px solid var(--white, #ffffff);
     border-radius: 16px;
     display: flex;

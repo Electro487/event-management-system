@@ -135,7 +135,13 @@ $steps = [
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="client-info-main">
-                        <div class="client-avatar-large"><?php echo $initials; ?></div>
+                        <div class="client-avatar-large">
+                            <?php if (!empty($booking['client_profile_pic'])): ?>
+                                <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+                            <?php else: ?>
+                                <?php echo $initials; ?>
+                            <?php endif; ?>
+                        </div>
                         <div class="client-details">
                             <h3><?php echo htmlspecialchars($fullName); ?></h3>
                             <div class="contact-row">

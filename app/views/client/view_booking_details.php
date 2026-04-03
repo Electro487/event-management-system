@@ -86,7 +86,7 @@ $steps = [
                 src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/events#my-bookings" class="active">My Bookings</a>
         </nav>

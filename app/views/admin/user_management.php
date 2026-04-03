@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
     <style>
         .user-table th { background: #f8fafc; color: #64748b; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
         .user-row:hover { background: #f1f5f9; }
@@ -83,17 +84,23 @@
         <!-- User Table -->
         <div class="recent-bookings">
             <div class="section-header" style="padding: 20px 25px; border-bottom: 1px solid #f1f5f9;">
-                <div class="search-bar" style="max-width: 300px; margin: 0; background: #f1f5f9;">
+                <div class="search-bar" style="max-width: 300px; margin: 0; background: none;">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search by name or email...">
+                    <input type="text" id="userSearchInput" placeholder="Search by name or email...">
                 </div>
                 <div class="filters" style="display: flex; gap: 10px;">
-                    <select class="action-btn-outline">
-                        <option>All Roles</option>
-                        <option>Admin</option>
-                        <option>Organizer</option>
-                        <option>Client</option>
-                    </select>
+                    <div class="custom-premium-dropdown small" id="roleFilter">
+                        <div class="dropdown-trigger">
+                            <span class="selected-val">All Roles</span>
+                            <i class="fa-solid fa-angle-down"></i>
+                        </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item active" data-value="all">All Roles</div>
+                            <div class="dropdown-item" data-value="admin">Admin</div>
+                            <div class="dropdown-item" data-value="organizer">Organizer</div>
+                            <div class="dropdown-item" data-value="client">Client</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <table class="user-table">
@@ -109,11 +116,23 @@
                 </thead>
                 <tbody>
                     <?php foreach ($users as $user): ?>
-                    <tr class="user-row">
+                    <tr class="user-row" data-name="<?php echo strtolower(htmlspecialchars($user['fullname'])); ?>" data-email="<?php echo strtolower(htmlspecialchars($user['email'])); ?>" data-role="<?php echo strtolower($user['role']); ?>">
                         <td>
                             <div class="client-info">
-                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['fullname']); ?>&background=random" alt="">
-                                <span><?php echo htmlspecialchars($user['fullname']); ?></span>
+                                <?php if (!empty($user['profile_picture'])): ?>
+                                    <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="User" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                <?php else: ?>
+                                    <div style="width: 32px; height: 32px; background: #f0f7f3; color: #246A55; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">
+                                        <?php 
+                                            $nameArr = explode(' ', $user['fullname']);
+                                            $initArr = array_filter($nameArr);
+                                            $init = '';
+                                            foreach(array_slice($initArr, 0, 2) as $n) $init .= strtoupper(substr($n, 0, 1));
+                                            echo $init ?: '??';
+                                        ?>
+                                    </div>
+                                <?php endif; ?>
+                                <span style="margin-left: 12px;"><?php echo htmlspecialchars($user['fullname']); ?></span>
                             </div>
                         </td>
                         <td><?php echo htmlspecialchars($user['email']); ?></td>
@@ -134,11 +153,18 @@
                             <div style="display: flex; gap: 8px;">
                                 <form action="/EventManagementSystem/public/admin/users/update-role" method="POST" style="display:inline;">
                                     <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                                    <select name="role" onchange="this.form.submit()" class="action-btn-outline" style="padding: 4px 8px;">
-                                        <option value="client" <?php echo $user['role'] == 'client' ? 'selected' : ''; ?>>Client</option>
-                                        <option value="organizer" <?php echo $user['role'] == 'organizer' ? 'selected' : ''; ?>>Organizer</option>
-                                        <option value="admin" <?php echo $user['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
-                                    </select>
+                                    <input type="hidden" name="role" value="<?php echo $user['role']; ?>">
+                                    <div class="custom-premium-dropdown small" data-auto-submit="true" style="width: 120px;">
+                                        <div class="dropdown-trigger" style="height: 32px; padding: 0 10px;">
+                                            <span class="selected-val"><?php echo ucfirst($user['role']); ?></span>
+                                            <i class="fa-solid fa-angle-down"></i>
+                                        </div>
+                                        <div class="dropdown-menu">
+                                            <div class="dropdown-item <?php echo $user['role'] == 'client' ? 'active' : ''; ?>" data-value="client">Client</div>
+                                            <div class="dropdown-item <?php echo $user['role'] == 'organizer' ? 'active' : ''; ?>" data-value="organizer">Organizer</div>
+                                            <div class="dropdown-item <?php echo $user['role'] == 'admin' ? 'active' : ''; ?>" data-value="admin">Admin</div>
+                                        </div>
+                                    </div>
                                 </form>
                                 
                                 <form action="/EventManagementSystem/public/admin/users/toggle-block" method="POST" style="display:inline;">
@@ -185,6 +211,66 @@
         function closeBlockModal() {
             document.getElementById('blockModal').style.display = 'none';
         }
+
+        // Filtering Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('userSearchInput');
+            const roleFilter = document.getElementById('roleFilter');
+            const userRows = document.querySelectorAll('.user-row');
+
+            function filterUsers() {
+                const searchQ = searchInput.value.toLowerCase();
+                const roleQ = roleFilter.value.toLowerCase();
+
+                userRows.forEach(row => {
+                    const name = row.dataset.name;
+                    const email = row.dataset.email;
+                    const role = row.dataset.role;
+
+                    const matchesSearch = name.includes(searchQ) || email.includes(searchQ);
+                    const matchesRole = roleQ === 'all' || role === roleQ;
+
+                    if (matchesSearch && matchesRole) {
+                        row.style.display = 'table-row';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            searchInput.addEventListener('input', filterUsers);
+            
+            // Re-sync with custom dropdown
+            document.getElementById('roleFilter').addEventListener('change', (e) => {
+                const val = e.detail.value;
+                const roleFilterEl = document.getElementById('roleFilter'); // Already exists as const in outer scope but local to DOMContentLoaded callback init
+                // We overwrite roleQ in the parent function or just call it
+                filterUsers();
+            });
+            
+            // Need to update the filterUsers to read from custom component
+            const originalFilterUsers = filterUsers;
+            filterUsers = function() {
+                const searchQ = searchInput.value.toLowerCase();
+                const roleItem = document.querySelector('#roleFilter .dropdown-item.active');
+                const roleQ = roleItem ? roleItem.dataset.value : 'all';
+
+                userRows.forEach(row => {
+                    const name = row.dataset.name;
+                    const email = row.dataset.email;
+                    const role = row.dataset.role;
+
+                    const matchesSearch = name.includes(searchQ) || email.includes(searchQ);
+                    const matchesRole = roleQ === 'all' || role === roleQ;
+
+                    if (matchesSearch && matchesRole) {
+                        row.style.display = 'table-row';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

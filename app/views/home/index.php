@@ -17,6 +17,11 @@
         <div class="header-left">
             <div class="logo"><img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN" style="height: 45px; width: auto; object-fit: contain;"></div>
             <nav class="nav-links">
+                <?php if (isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'client'): ?>
+                    <a href="/EventManagementSystem/public/client/home">Home</a>
+                <?php else: ?>
+                    <a href="/EventManagementSystem/public/login">Home</a>
+                <?php endif; ?>
                 <a href="/EventManagementSystem/public/client/events">Browse Events</a>
                 <a href="#services">Services</a>
                 <a href="#about">About</a>

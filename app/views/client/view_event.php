@@ -47,7 +47,7 @@ if (empty($includedItemsList)) {
                 src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
@@ -220,7 +220,7 @@ if (empty($includedItemsList)) {
     <div class="container">
         <!-- Breadcrumbs -->
         <div class="breadcrumbs">
-            <a href="/EventManagementSystem/public/">Home</a> &gt;
+            <a href="/EventManagementSystem/public/client/home">Home</a> &gt;
             <a href="/EventManagementSystem/public/client/events">Browse Events</a> &gt;
             <span class="current"><?php echo htmlspecialchars($event['title']); ?></span>
         </div>

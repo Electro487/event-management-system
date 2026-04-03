@@ -10,6 +10,7 @@ $routes = [
     '/verify-otp' => 'AuthController@verifyOtp',
     '/reset-password' => 'AuthController@resetPassword',
     '/client/dashboard' => 'ClientController@dashboard',
+    '/client/home' => 'ClientController@home',
     '/client/events' => 'ClientController@browseEvents',
     '/client/browse-events' => 'ClientController@browseEvents',
     '/client/events/view' => 'ClientController@viewEvent',

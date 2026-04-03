@@ -21,10 +21,11 @@
     <main class="main-content">
         <!-- Header -->
         <header class="header">
-            <div class="search-bar">
+            <form action="/EventManagementSystem/public/organizer/events" method="GET" class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search for events, clients...">
-            </div>
+                <input type="text" name="search" placeholder="Search for events..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+                <button type="submit" style="display:none;"></button>
+            </form>
             <div class="header-icons">
                 <i class="far fa-bell"></i>
 
@@ -35,12 +36,9 @@
         <!-- Welcome Banner -->
         <div class="welcome-banner">
             <div>
-                <h2>Welcome back, <?php $firstName = explode(' ', trim($_SESSION['user_fullname']))[0]; echo htmlspecialchars($firstName); ?>! 👋</h2>
+                <h2>Welcome back, <?php $firstName = explode(' ', trim($_SESSION['user_fullname']))[1]; echo htmlspecialchars($firstName); ?>! 👋</h2>
                 <p>You have <?php echo number_format($pendingRequests ?? 0); ?> pending requests that need your attention today.</p>
             </div>
-            <a href="/EventManagementSystem/public/organizer/events/create" class="btn-primary">
-                <i class="fas fa-plus"></i> Create New Event
-            </a>
         </div>
 
         <!-- Stats Row -->
@@ -102,14 +100,28 @@
                                 <tr><td colspan="6" style="text-align:center;">No recent bookings found.</td></tr>
                             <?php else: ?>
                                 <?php foreach ($recentBookings as $booking): ?>
-                                    <tr>
+                                    <tr class="booking-row" data-client="<?php echo strtolower(htmlspecialchars($booking['client_name'])); ?>" data-event="<?php echo strtolower(htmlspecialchars($booking['event_name'])); ?>">
                                         <td>
-                                            <div class="client-info">
-                                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($booking['client_name']); ?>&background=random" alt="<?php echo htmlspecialchars($booking['client_name']); ?>">
-                                                <span><?php echo htmlspecialchars($booking['client_name']); ?></span>
+                                            <div class="client-info" style="display: flex; align-items: center; gap: 12px;">
+                                                <?php if (!empty($booking['client_profile_pic'])): ?>
+                                                    <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                                <?php else: ?>
+                                                    <div style="width: 32px; height: 32px; background: #f0f7f3; color: #246A55; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">
+                                                        <?php 
+                                                            $nameArr = explode(' ', $booking['client_name']);
+                                                            $init = strtoupper(substr($nameArr[0], 0, 1) . (isset($nameArr[1]) ? substr($nameArr[1], 0, 1) : ''));
+                                                            echo $init ?: '??';
+                                                        ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <span style="font-weight: 500; font-size: 13.5px; color: var(--text-main);"><?php echo htmlspecialchars($booking['client_name']); ?></span>
                                             </div>
                                         </td>
-                                        <td style="color:var(--text-main); font-weight:500;"><?php echo htmlspecialchars($booking['event_name']); ?></td>
+                                        <td style="font-weight:500;">
+                                            <a href="/EventManagementSystem/public/organizer/events/view?id=<?php echo $booking['event_id'] ?? ''; ?>" style="color:var(--text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#246A55'" onmouseout="this.style.color='var(--text-main)'">
+                                                <?php echo htmlspecialchars($booking['event_name']); ?>
+                                            </a>
+                                        </td>
                                         <td><?php echo htmlspecialchars($booking['package_name']); ?></td>
                                         <td>
                                             <?php 
@@ -206,7 +218,7 @@
                                         }
                                     }
                                 ?>
-                                <div class="event-item" style="display: flex; align-items: center; gap: 15px;">
+                                <a href="/EventManagementSystem/public/organizer/events/view?id=<?php echo $event['id']; ?>" class="event-item" data-title="<?php echo strtolower(htmlspecialchars($event['title'] ?? '')); ?>" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; transition: all 0.2s ease;">
                                     <img src="<?php echo htmlspecialchars($event['image_path'] ?? '/EventManagementSystem/public/assets/images/default-event.jpg'); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/default-event.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
                                     <div class="event-info" style="flex: 1; min-width: 0;">
                                         <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($event['title']); ?></h4>
@@ -216,7 +228,7 @@
                                         </div>
                                     </div>
                                     <i class="fas fa-chevron-right" style="color: var(--text-muted); font-size: 14px; flex-shrink: 0;"></i>
-                                </div>
+                                </a>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
@@ -225,6 +237,7 @@
 
         </div>
     </main>
+
 
 </body>
 </html>

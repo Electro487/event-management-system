@@ -148,10 +148,12 @@
 }
 
 .package-card {
-    background: white;
-    border: 1px solid #eee;
+    background: #ffffff;
+    border: 1px solid #e0e6e4;
     border-radius: 12px;
     padding: 25px;
+    color: var(--text-dark);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 
 .package-header {
@@ -175,42 +177,71 @@
     gap: 10px;
 }
 
-.tier-icon {
-    font-size: 24px;
+.tier-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    flex-shrink: 0;
 }
 
+.tier-icon-box.tier-basic { background-color: #1a4d3e; }
+.tier-icon-box.tier-standard { background-color: #1a4d3e; }
+.tier-icon-box.tier-premium { background-color: #fbbd3c; color: #1a1e23; }
+
 .tier-info h3 {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0;
 }
 
 .tier-info p {
-    font-size: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.package-card .form-group label {
     color: var(--text-muted);
 }
 
 .add-section-btn {
     margin-left: auto;
-    background: transparent;
-    border: none;
+    background: #e9eeec;
+    border: 1px solid #d0d6d4;
     color: var(--primary-color);
     font-weight: 600;
     cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.add-section-btn:hover {
+    background: var(--primary-color);
+    color: white;
 }
 
 .item-row {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    background: #fff;
+    padding: 14px 20px;
+    border-radius: 10px;
+    background: #246A55;
     margin-top: 15px;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(36, 106, 85, 0.1);
 }
 
 .drag-handle {
-    color: #ccc;
+    color: rgba(255, 255, 255, 0.6);
     cursor: grab;
 }
 
@@ -221,12 +252,13 @@
 .item-content strong {
     display: block;
     font-size: 14px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
+    font-weight: 700;
 }
 
 .item-content p {
     font-size: 12px;
-    color: var(--text-muted);
+    opacity: 0.9;
 }
 
 .item-actions {
@@ -236,27 +268,36 @@
 
 .icon-action-btn {
     background: transparent;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 5px 9px;
+    border: none;
+    padding: 6px;
     cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s ease;
+    font-size: 16px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-action-btn.edit-item-btn {
+    color: #9cd4c2; /* Muted teal-green from SS */
+}
+
+.icon-action-btn.delete-item-btn {
+    color: #f19595; /* Muted red from SS */
 }
 
 .icon-action-btn:hover {
-    background: #f5f5f5;
-    border-color: #bbb;
-    transform: scale(1.1);
+    transform: scale(1.2);
+    filter: brightness(1.2);
 }
 
 .tier-highlight {
-    border-left: 5px solid var(--primary-color);
+    border-left: none;
 }
 
 .tier-premium {
-    border-left: 5px solid var(--accent-color);
+    border-left: none;
 }
 
 /* Upload Box Improvements */

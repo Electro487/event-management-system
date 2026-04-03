@@ -61,7 +61,7 @@ if (empty($items)) {
                 src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
             <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
         </nav>
@@ -366,7 +366,12 @@ if (empty($items)) {
                                 <h4><?php echo htmlspecialchars($event['category'] ?: 'Event'); ?></h4>
                                 <span class="pkg-badge"><?php echo strtoupper($packageTier); ?> PACKAGE</span>
                             </div>
-                            <i class="fa-solid fa-award" style="color:#1f6f59; font-size:20px;"></i>
+                            <?php 
+                                $tierIcon = 'fa-solid fa-award';
+                                if ($packageTier === 'basic') $tierIcon = 'fa-solid fa-box';
+                                if ($packageTier === 'standard') $tierIcon = 'fa-solid fa-certificate';
+                            ?>
+                            <i class="<?php echo $tierIcon; ?>" style="color:#1f6f59; font-size:24px;"></i>
                         </div>
                         <p class="pkg-desc"><?php echo htmlspecialchars($selectedPackageData['description'] ?? ''); ?></p>
 

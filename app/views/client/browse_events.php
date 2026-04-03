@@ -25,7 +25,7 @@ $searchQuery = $_GET['search'] ?? '';
                 src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events" id="nav-btn-browse" class="active"
                 onclick="showBrowseEvents(event)">Browse Events</a>
             <?php if (isset($_SESSION['user_id'])): ?>

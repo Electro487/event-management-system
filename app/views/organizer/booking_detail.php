@@ -21,6 +21,12 @@ $venueName = $booking['venue_name'] ?: 'Royal Palace';
 $venueLocation = $booking['venue_location'] ?: 'Bhaktapur';
 $eventImage = $booking['event_image'] ?: '/EventManagementSystem/public/assets/images/placeholder.jpg';
 
+// Format check-in time properly
+$checkinTime = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
+if (preg_match('/^\d{2}:\d{2}$/', $checkinTime)) {
+    $checkinTime = date('h:i A', strtotime($checkinTime));
+}
+
 // Package Features logic
 $allPackages = json_decode($booking['event_packages'] ?? '[]', true);
 $features = [];
@@ -110,7 +116,7 @@ $steps = [
                 </div>
                 <div class="title-section">
                     <h1>Booking #BK-<?php echo str_pad($id, 3, '0', STR_PAD_LEFT); ?> <span class="badge-status <?php echo $displayStatus; ?>"><?php echo strtoupper($displayStatus); ?></span></h1>
-                    <p class="sub-title"><?php echo htmlspecialchars($eventTitle); ?> — <?php echo ucfirst(strtolower($packageTier)); ?> Package</p>
+                    <p class="sub-title"><?php echo htmlspecialchars($eventTitle); ?> - <?php echo ucfirst(strtolower($packageTier)); ?> Package</p>
                 </div>
             </div>
 
@@ -120,10 +126,7 @@ $steps = [
                 </a>
                 <div class="header-icons-center">
                     <button class="icon-btn-plain"><i class="fa-regular fa-bell"></i></button>
-                    <button class="icon-btn-plain"><i class="fa-solid fa-gear"></i></button>
-                    <div class="user-avatar-circle">
-                        <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
-                    </div>
+                    <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                 </div>
             </div>
         </header>
@@ -137,7 +140,13 @@ $steps = [
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="client-info-main">
-                        <div class="client-avatar-large"><?php echo $initials; ?></div>
+                        <div class="client-avatar-large">
+                            <?php if (!empty($booking['client_profile_pic'])): ?>
+                                <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            <?php else: ?>
+                                <?php echo $initials; ?>
+                            <?php endif; ?>
+                        </div>
                         <div class="client-details">
                             <h3><?php echo htmlspecialchars($fullName); ?></h3>
                             <div class="contact-row">
@@ -165,6 +174,10 @@ $steps = [
                             <span><?php echo $eventDate->format('F d, Y'); ?></span>
                         </div>
                         <div class="stat-item">
+                            <label>Check-in</label>
+                            <span><?php echo htmlspecialchars($checkinTime); ?></span>
+                        </div>
+                        <div class="stat-item">
                             <label>Guests</label>
                             <span><?php echo $guestCount; ?> Persons</span>
                         </div>
@@ -172,7 +185,7 @@ $steps = [
                             <label>Venue</label>
                             <span><?php echo htmlspecialchars($venueName); ?></span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item" style="grid-column: span 2;">
                             <label>Location</label>
                             <span><?php echo htmlspecialchars($venueLocation); ?></span>
                         </div>

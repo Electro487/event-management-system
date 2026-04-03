@@ -44,6 +44,12 @@ class ClientController
         }
     }
 
+    public function home()
+    {
+        $this->checkClientAuth();
+        require_once dirname(__DIR__) . '/views/client/home.php';
+    }
+
     public function dashboard()
     {
         $this->checkClientAuth();
