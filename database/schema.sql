@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `is_blocked` TINYINT(1) DEFAULT 0,
     `otp_code` VARCHAR(6) DEFAULT NULL,
     `otp_expires_at` DATETIME DEFAULT NULL,
+    `profile_picture` VARCHAR(255) DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 

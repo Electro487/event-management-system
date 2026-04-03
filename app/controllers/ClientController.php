@@ -282,7 +282,11 @@ class ClientController
                 // Allow only images
                 $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                 if (in_array(strtolower($ext), $allowed)) {
-                    $uploadPath = dirname(dirname(__DIR__)) . '/public/assets/images/profiles/' . $filename;
+                    $uploadDir = dirname(dirname(__DIR__)) . '/public/assets/images/profiles/';
+                    if (!file_exists($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+                    $uploadPath = $uploadDir . $filename;
                     
                     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
                         require_once dirname(__DIR__) . '/models/User.php';

@@ -62,7 +62,7 @@ if (empty($includedItemsList)) {
                     if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
-                    <div onclick="toggleProfileDropdown()" id="profile-icon" style="width: 32px; height: 32px; background: #1f6f59; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; overflow: hidden; border: 2px solid #1f6f59;">
+                    <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if(!empty($_SESSION['user_profile_pic'])): ?>
                             <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
                         <?php else: ?>

@@ -133,25 +133,49 @@
             <!-- Right Column -->
             <div class="right-col">
                 <div class="upcoming-events">
-                    <div class="section-header" style="margin-bottom: 25px;">
-                        <h3>Upcoming Events</h3>
-                        <a href="/EventManagementSystem/public/admin/events" style="font-size: 12px; font-weight: 600; color: var(--primary-color);">Manage All</a>
+                    <div class="section-header" style="margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="display: flex; align-items: center; gap: 10px; margin: 0; white-space: nowrap;">
+                            Upcoming Events
+                            <span style="background:#e6fcf0; color:#246A55; padding:4px 10px; border-radius:12px; font-weight:600; font-size:12px; white-space: nowrap;">
+                                <?php echo count($upcomingEvents); ?> Active
+                            </span>
+                        </h3>
                     </div>
                     <div class="events-list">
                         <?php if (empty($upcomingEvents)): ?>
                             <p style="text-align:center; color:var(--text-muted); font-size:14px;">No upcoming events.</p>
                         <?php else: ?>
                             <?php foreach ($upcomingEvents as $event): ?>
-                                <a href="/EventManagementSystem/public/admin/events/view?id=<?php echo $event['id']; ?>" class="event-item" style="text-decoration: none; color: inherit; display: flex;">
-                                    <img src="<?php echo htmlspecialchars($event['image_path'] ?? '/EventManagementSystem/public/assets/images/default-event.jpg'); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/default-event.jpg'">
-                                    <div class="event-info">
-                                        <h4><?php echo htmlspecialchars(strlen($event['title']) > 25 ? substr($event['title'],0,25).'...' : $event['title']); ?></h4>
-                                        <div class="event-meta">
-                                            <span class="category"><?php echo htmlspecialchars($event['category'] ?? 'Event'); ?></span>
-                                            <span class="organizer" style="font-size: 10px; color: #888;">by <?php echo htmlspecialchars($event['organizer_name'] ?? 'System'); ?></span>
+                                <?php
+                                    if (empty($event['event_date'])) {
+                                        $daysText = "Ongoing";
+                                    } else {
+                                        $eventDate = new DateTime($event['event_date']);
+                                        $now = new DateTime();
+                                        $diff = $now->diff($eventDate);
+                                        $daysLeft = $diff->days;
+                                        
+                                        if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
+                                            $daysText = "Today";
+                                        } elseif ($diff->invert) {
+                                            $daysText = "Ongoing";
+                                        } else {
+                                            $daysText = "in {$daysLeft} days";
+                                        }
+                                    }
+                                ?>
+                                <a href="/EventManagementSystem/public/admin/events/view?id=<?php echo $event['id']; ?>" class="event-item" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 15px;">
+                                    <img src="<?php echo htmlspecialchars($event['image_path'] ?? '/EventManagementSystem/public/assets/images/default-event.jpg'); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/default-event.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+                                    <div class="event-info" style="flex: 1; min-width: 0;">
+                                        <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <?php echo htmlspecialchars($event['title']); ?>
+                                        </h4>
+                                        <div class="event-meta" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            <span class="category" style="white-space: nowrap; background: #f4f7f6; padding: 3px 8px; border-radius: 4px; font-size: 11px; color: var(--text-muted);"><?php echo htmlspecialchars($event['category'] ?? 'Event'); ?></span>
+                                            <span class="date" style="white-space: nowrap; color: #e74c3c; font-size: 12px; font-weight: 600; margin-left: auto;"><?php echo $daysText; ?></span>
                                         </div>
                                     </div>
-                                    <i class="fas fa-chevron-right"></i>
+                                    <i class="fas fa-chevron-right" style="color: var(--text-muted); font-size: 14px; flex-shrink: 0;"></i>
                                 </a>
                             <?php endforeach; ?>
                         <?php endif; ?>
