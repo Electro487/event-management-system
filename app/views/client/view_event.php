@@ -29,6 +29,7 @@ if (empty($includedItemsList)) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,18 +38,20 @@ if (empty($includedItemsList)) {
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-event.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
     <!-- Navbar -->
     <header class="header">
-        <a href="/EventManagementSystem/public/" class="logo">e-Plan</a>
+        <a href="/EventManagementSystem/public/" class="logo"><img
+                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
+                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/">Home</a>
-            <a href="/EventManagementSystem/public/client/events">Browse Events</a>
+            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
             <?php if (isset($_SESSION['user_id'])): ?>
-            <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
             <?php endif; ?>
-            <a href="#">About</a>
         </nav>
         <div class="nav-icons">
             <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
@@ -208,7 +211,8 @@ if (empty($includedItemsList)) {
                 }
                 </script>
             <?php else: ?>
-                <a href="/EventManagementSystem/public/login" style="color: #1f6f59; font-weight: 600; text-decoration: none;">Login</a>
+                <a href="/EventManagementSystem/public/login"
+                    style="color: #1f6f59; font-weight: 600; text-decoration: none;">Login</a>
             <?php endif; ?>
         </div>
     </header>
@@ -216,8 +220,8 @@ if (empty($includedItemsList)) {
     <div class="container">
         <!-- Breadcrumbs -->
         <div class="breadcrumbs">
-            <a href="/EventManagementSystem/public/">Home</a> &gt; 
-            <a href="/EventManagementSystem/public/client/events">Browse Events</a> &gt; 
+            <a href="/EventManagementSystem/public/">Home</a> &gt;
+            <a href="/EventManagementSystem/public/client/events">Browse Events</a> &gt;
             <span class="current"><?php echo htmlspecialchars($event['title']); ?></span>
         </div>
 
@@ -234,23 +238,25 @@ if (empty($includedItemsList)) {
 
         <!-- Main Content Grid -->
         <div class="content-grid">
-            
+
             <!-- Left Column -->
             <div class="left-col">
                 <h2 class="section-title">About This Event</h2>
                 <div class="about-text">
-                    <?php 
-                        if (!empty($event['description'])) {
-                            echo nl2br(htmlspecialchars($event['description']));
-                        } else {
-                            echo "Your event is a tapestry of moments that define your journey together. At e-Plan, we specialize in transforming your vision into an architectural masterpiece of floral arrangements, curated catering, and seamless logistical execution. We handle the structural foundation so you can focus on the heart of the celebration.";
-                        }
+                    <?php
+                    if (!empty($event['description'])) {
+                        echo nl2br(htmlspecialchars($event['description']));
+                    } else {
+                        echo "Your event is a tapestry of moments that define your journey together. At e-Plan, we specialize in transforming your vision into an architectural masterpiece of floral arrangements, curated catering, and seamless logistical execution. We handle the structural foundation so you can focus on the heart of the celebration.";
+                    }
                     ?>
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 class="section-title" style="margin-bottom: 0;">What's Included</h2>
-                    <span id="whats-included-subtitle" style="font-size: 13px; font-weight: 600; color: #bfa15f; text-transform: uppercase;">All Packages</span>
+                    <span id="whats-included-subtitle"
+                        style="font-size: 13px; font-weight: 600; color: #bfa15f; text-transform: uppercase;">All
+                        Packages</span>
                 </div>
                 <div class="included-grid" id="includedGrid">
                     <?php foreach ($includedItemsList as $item): ?>
@@ -259,7 +265,8 @@ if (empty($includedItemsList)) {
                             <div style="display: flex; flex-direction: column;">
                                 <span><?php echo htmlspecialchars($item['title']); ?></span>
                                 <?php if (!empty($item['description'])): ?>
-                                    <span style="font-size: 11px; color: var(--text-gray); font-weight: normal; margin-top: 2px;"><?php echo htmlspecialchars($item['description']); ?></span>
+                                    <span
+                                        style="font-size: 11px; color: var(--text-gray); font-weight: normal; margin-top: 2px;"><?php echo htmlspecialchars($item['description']); ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -271,12 +278,16 @@ if (empty($includedItemsList)) {
                     <div class="details-grid">
                         <div class="detail-col">
                             <h4>Location</h4>
-                            <p><?php echo htmlspecialchars($event['venue_name'] ?: $event['venue_location'] ?: 'Location TBD'); ?></p>
-                            <span style="font-size:11px; color:#6b7280;"><?php echo htmlspecialchars($event['venue_location']); ?></span>
+                            <p><?php echo htmlspecialchars($event['venue_name'] ?: $event['venue_location'] ?: 'Location TBD'); ?>
+                            </p>
+                            <span
+                                style="font-size:11px; color:#6b7280;"><?php echo htmlspecialchars($event['venue_location']); ?></span>
                         </div>
                         <div class="detail-col">
                             <h4>Status</h4>
-                            <p class="status-open"><?php echo $event['status'] === 'active' ? 'Booking Open' : ucfirst($event['status']); ?></p>
+                            <p class="status-open">
+                                <?php echo $event['status'] === 'active' ? 'Booking Open' : ucfirst($event['status']); ?>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -287,7 +298,7 @@ if (empty($includedItemsList)) {
                 <div class="packages-box">
                     <h3>Choose Your Package</h3>
 
-                    <?php 
+                    <?php
                     // Render packages elegantly
                     if (empty($packages)) {
                         echo '<p class="no-data">No package information available for this event.</p>';
@@ -296,34 +307,37 @@ if (empty($includedItemsList)) {
 
                     // Force rendering order
                     $tiersToRender = ['basic', 'standard', 'premium'];
-                    
+
                     foreach ($tiersToRender as $tierKey):
                         if (isset($packages[$tierKey])):
                             $pkgData = $packages[$tierKey];
-                            
-                            $cssClass = '';
-                            if ($tierKey === 'standard') $cssClass = 'standard';
-                            if ($tierKey === 'premium') $cssClass = 'premium';
-                            
-                            $priceValue = $pkgData['price'] ?? ($pkgData['price_range'] ?? '');
-                            $priceDisplay = !empty($priceValue) ? 'Rs. ' . number_format((float)str_replace(['Rs.', ',', ' '], '', $priceValue), 0) : 'Custom Pricing';
-                    ?>
-                    <div class="package-tier <?php echo $cssClass; ?>" onclick="selectPackage('<?php echo $tierKey; ?>', this)">
-                        <?php if ($tierKey === 'standard'): ?>
-                            <div class="most-popular-badge">Most Popular</div>
-                        <?php endif; ?>
 
-                        <div class="package-header">
-                            <div class="tier-name"><?php echo ucfirst($tierKey); ?></div>
-                            <div class="tier-price"><?php echo htmlspecialchars($priceDisplay); ?></div>
-                        </div>
-                        <div class="tier-desc">
-                            <?php echo htmlspecialchars($pkgData['description'] ?: 'Complete set of services curated for this tier.'); ?>
-                        </div>
-                    </div>
-                    <?php 
+                            $cssClass = '';
+                            if ($tierKey === 'standard')
+                                $cssClass = 'standard';
+                            if ($tierKey === 'premium')
+                                $cssClass = 'premium';
+
+                            $priceValue = $pkgData['price'] ?? ($pkgData['price_range'] ?? '');
+                            $priceDisplay = !empty($priceValue) ? 'Rs. ' . number_format((float) str_replace(['Rs.', ',', ' '], '', $priceValue), 0) : 'Custom Pricing';
+                            ?>
+                            <div class="package-tier <?php echo $cssClass; ?>"
+                                onclick="selectPackage('<?php echo $tierKey; ?>', this)">
+                                <?php if ($tierKey === 'standard'): ?>
+                                    <div class="most-popular-badge">Most Popular</div>
+                                <?php endif; ?>
+
+                                <div class="package-header">
+                                    <div class="tier-name"><?php echo ucfirst($tierKey); ?></div>
+                                    <div class="tier-price"><?php echo htmlspecialchars($priceDisplay); ?></div>
+                                </div>
+                                <div class="tier-desc">
+                                    <?php echo htmlspecialchars($pkgData['description'] ?: 'Complete set of services curated for this tier.'); ?>
+                                </div>
+                            </div>
+                        <?php
                         endif;
-                    endforeach; 
+                    endforeach;
                     ?>
 
                     <button class="btn-book-now" onclick="proceedToBooking(<?php echo $event['id']; ?>)">
@@ -342,40 +356,40 @@ if (empty($includedItemsList)) {
         </div>
     </div>
 
-<script>
-    // Pass PHP packages array to JS
-    const packagesData = <?php echo json_encode($packages); ?>;
-    const globalItemsHtml = document.getElementById('includedGrid').innerHTML;
+    <script>
+        // Pass PHP packages array to JS
+        const packagesData = <?php echo json_encode($packages); ?>;
+        const globalItemsHtml = document.getElementById('includedGrid').innerHTML;
 
-    function selectPackage(tierKey, element) {
-        // Remove active class from all tiers
-        document.querySelectorAll('.package-tier').forEach(el => {
-            el.classList.remove('active-tier');
-        });
-        
-        // Add active class to clicked tier
-        if (element) {
-            element.classList.add('active-tier');
-        }
+        function selectPackage(tierKey, element) {
+            // Remove active class from all tiers
+            document.querySelectorAll('.package-tier').forEach(el => {
+                el.classList.remove('active-tier');
+            });
 
-        const includedGrid = document.getElementById('includedGrid');
-        const subtitle = document.getElementById('whats-included-subtitle');
+            // Add active class to clicked tier
+            if (element) {
+                element.classList.add('active-tier');
+            }
 
-        if (!tierKey || !packagesData[tierKey] || !packagesData[tierKey].items || packagesData[tierKey].items.length === 0) {
-            includedGrid.innerHTML = globalItemsHtml;
-            subtitle.innerText = "All Packages";
-            return;
-        }
+            const includedGrid = document.getElementById('includedGrid');
+            const subtitle = document.getElementById('whats-included-subtitle');
 
-        const items = packagesData[tierKey].items;
-        subtitle.innerText = tierKey + " Package";
+            if (!tierKey || !packagesData[tierKey] || !packagesData[tierKey].items || packagesData[tierKey].items.length === 0) {
+                includedGrid.innerHTML = globalItemsHtml;
+                subtitle.innerText = "All Packages";
+                return;
+            }
 
-        let html = '';
-        items.forEach(item => {
-            const title = escapeHtml(item.title);
-            const desc = item.description ? escapeHtml(item.description) : '';
-            
-            html += `
+            const items = packagesData[tierKey].items;
+            subtitle.innerText = tierKey + " Package";
+
+            let html = '';
+            items.forEach(item => {
+                const title = escapeHtml(item.title);
+                const desc = item.description ? escapeHtml(item.description) : '';
+
+                html += `
                 <div class="included-item">
                     <i class="fa-solid fa-circle-check"></i>
                     <div style="display: flex; flex-direction: column;">
@@ -384,35 +398,35 @@ if (empty($includedItemsList)) {
                     </div>
                 </div>
             `;
-        });
-        
-        includedGrid.innerHTML = html;
-    }
+            });
 
-    function escapeHtml(unsafe) {
-        return (unsafe || "").toString()
-             .replace(/&/g, "&amp;")
-             .replace(/</g, "&lt;")
-             .replace(/>/g, "&gt;")
-             .replace(/"/g, "&quot;")
-             .replace(/'/g, "&#039;");
-    }
-
-    function proceedToBooking(eventId) {
-        const activeTierEl = document.querySelector('.package-tier.active-tier');
-        if (!activeTierEl) {
-            alert('Please select a package tier first.');
-            return;
+            includedGrid.innerHTML = html;
         }
-        
-        // Find which tier is selected by checking inner text or class
-        let selectedTier = 'basic';
-        if (activeTierEl.classList.contains('standard')) selectedTier = 'standard';
-        if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
-        
-        window.location.href = `/EventManagementSystem/public/client/book?event_id=${eventId}&package=${selectedTier}`;
-    }
-</script>
+
+        function escapeHtml(unsafe) {
+            return (unsafe || "").toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function proceedToBooking(eventId) {
+            const activeTierEl = document.querySelector('.package-tier.active-tier');
+            if (!activeTierEl) {
+                alert('Please select a package tier first.');
+                return;
+            }
+
+            // Find which tier is selected by checking inner text or class
+            let selectedTier = 'basic';
+            if (activeTierEl.classList.contains('standard')) selectedTier = 'standard';
+            if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
+
+            window.location.href = `/EventManagementSystem/public/client/book?event_id=${eventId}&package=${selectedTier}`;
+        }
+    </script>
 
 </body>
 

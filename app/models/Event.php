@@ -36,7 +36,11 @@ class Event {
      * @return array
      */
     public function getAllByOrganizer($organizer_id): array {
-        $sql = "SELECT * FROM events WHERE organizer_id = :organizer_id ORDER BY created_at DESC";
+        $sql = "SELECT e.*, 
+                (SELECT COUNT(*) FROM bookings b WHERE b.event_id = e.id AND b.status != 'cancelled') as dynamic_bookings_count
+                FROM events e 
+                WHERE e.organizer_id = :organizer_id 
+                ORDER BY e.created_at DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':organizer_id', $organizer_id);
         $stmt->execute();

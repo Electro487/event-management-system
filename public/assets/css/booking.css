@@ -19,12 +19,18 @@ body {
 
 /* Header Re-use */
 .header {
+    background-color: #fff;
+    padding: 15px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 5%; /* Reduced padding slightly for better height consistency */
     background: #fff;
     border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .header-profile-icon {
@@ -59,26 +65,45 @@ body {
 }
 
 .logo {
-    font-size: 1.5rem;
     font-weight: 700;
+    font-size: 22px;
     color: var(--primary-green);
     text-decoration: none;
 }
 
 .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 30px;
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--text-gray);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 14px;
+    position: relative;
+    padding-bottom: 5px;
+    transition: color 0.3s;
 }
 
 .nav-links a:hover {
     color: var(--primary-green);
+}
+
+.nav-links a.active {
+    color: var(--primary-green);
+}
+
+.nav-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background-color: var(--primary-green);
+    border-radius: 2px;
 }
 
 .nav-icons {

@@ -17,12 +17,13 @@
 
     <!-- Navbar -->
     <header class="header">
-        <a href="/EventManagementSystem/public/" class="logo">e-Plan</a>
+        <a href="/EventManagementSystem/public/" class="logo"><img
+                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
+                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/">Home</a>
+            <a href="/EventManagementSystem/public/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/bookings" style="color: #1f6f59;">My Bookings</a>
-            <a href="#">About</a>
+            <a href="/EventManagementSystem/public/client/bookings" class="active">My Bookings</a>
         </nav>
         <div class="nav-icons">
             <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
@@ -221,13 +222,17 @@
         <!-- Filter Tabs -->
         <div class="filter-tabs">
             <div class="filter-tab active" onclick="filterBookings('all', this)">All
-                <span><?php echo $totalBookings; ?></span></div>
+                <span><?php echo $totalBookings; ?></span>
+            </div>
             <div class="filter-tab" onclick="filterBookings('upcoming', this)">Upcoming
-                <span><?php echo $upcomingCount; ?></span></div>
+                <span><?php echo $upcomingCount; ?></span>
+            </div>
             <div class="filter-tab" onclick="filterBookings('completed', this)">Completed
-                <span><?php echo $completedCount; ?></span></div>
+                <span><?php echo $completedCount; ?></span>
+            </div>
             <div class="filter-tab" onclick="filterBookings('cancelled', this)">Cancelled
-                <span><?php echo $cancelledCount; ?></span></div>
+                <span><?php echo $cancelledCount; ?></span>
+            </div>
         </div>
 
         <div class="main-layout">
@@ -274,7 +279,8 @@
                                 </div>
                                 <div class="b-bottom">
                                     <div class="b-date-booked">Booked on:
-                                        <?php echo date('M d, Y', strtotime($booking['created_at'])); ?></div>
+                                        <?php echo date('M d, Y', strtotime($booking['created_at'])); ?>
+                                    </div>
                                     <div class="b-price-action">
                                         <span class="b-price">Rs.
                                             <?php echo number_format($booking['total_amount'], 2); ?></span>

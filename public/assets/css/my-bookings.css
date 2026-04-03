@@ -231,6 +231,11 @@
     font-size: 18px;
     font-weight: 700;
     color: #111827;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .b-cat-badge {
@@ -419,6 +424,11 @@
     font-size: 14px;
     color: #4b5563;
     font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dp-package-box {
@@ -461,6 +471,11 @@
     line-height: 1.5;
     margin: 0;
     opacity: 0.9;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dp-info-list {

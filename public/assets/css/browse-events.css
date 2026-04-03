@@ -66,8 +66,9 @@ body {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 40%;
-    width: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
     height: 3px;
     background-color: var(--primary-color);
     border-radius: 2px;
@@ -294,6 +295,11 @@ body {
     font-weight: 600;
     margin-bottom: 10px;
     color: var(--text-dark);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .event-description {
@@ -301,10 +307,11 @@ body {
     color: var(--text-gray);
     margin-bottom: 20px;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
     flex: 1;
 }
 
