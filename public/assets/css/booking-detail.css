@@ -2,7 +2,7 @@
 :root {
     --primary-green: #0b3d2e;
     --highlight-yellow: #f59e0b;
-    --highlight-yellow-dark: #d97706;
+    --highlight-yellow-dark: #FFC24A;
     --bg-light: #f8fafb;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --border-color: #eff2f5;
@@ -645,7 +645,7 @@ body {
 .user-avatar-small {
     width: 38px;
     height: 38px;
-    border-radius: 8px;
+    border-radius: 50%;
     overflow: hidden;
 }
 

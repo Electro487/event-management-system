@@ -2,16 +2,123 @@
 
 class OrganizerController
 {
-    public function dashboard()
+    private function checkAuth()
     {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id'])) {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
+
+        // FETCH CURRENT ROLE FROM DATABASE FOR REAL-TIME SYNC
+        require_once dirname(__DIR__) . '/models/User.php';
+        $userModel = new User();
+        $currentUser = $userModel->findById($_SESSION['user_id']);
+
+        if (!$currentUser || $currentUser['is_blocked']) {
+            session_destroy();
+            header('Location: /EventManagementSystem/public/login');
+            exit;
+        }
+
+        // Update session role if it changed in DB
+        $_SESSION['user_role'] = $currentUser['role'];
+        $role = $_SESSION['user_role'];
+
+        if ($role === 'admin') {
+            header('Location: /EventManagementSystem/public/admin/dashboard');
+            exit;
+        }
+
+        if ($role === 'client') {
+            header('Location: /EventManagementSystem/public/client/events');
+            exit;
+        }
+
+        if ($role !== 'organizer') {
+            header('Location: /EventManagementSystem/public/login');
+            exit;
+        }
+    }
+
+    public function dashboard()
+    {
+        $this->checkAuth();
+
+        // Fetch Upcoming Events
+        require_once dirname(__DIR__) . '/models/Event.php';
+        $eventModel = new Event();
+        $totalEvents = 24; // Mock total events
+        
+        // Mock Upcomin Events Data
+        $upcomingEvents = [
+            [
+                'title' => 'The Royal Wedding',
+                'category' => 'Wedding',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+3 days'))
+            ],
+            [
+                'title' => 'Global Tech Expo',
+                'category' => 'Corporate',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+7 days'))
+            ],
+            [
+                'title' => 'Winter Charity Gala',
+                'category' => 'Gala',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+12 days'))
+            ],
+            [
+                'title' => 'Jazz on the Beach',
+                'category' => 'Concert',
+                'image_path' => null,
+                'event_date' => date('Y-m-d H:i:s', strtotime('+24 days'))
+            ]
+        ];
+        
+        // Dummy Booking Data 
+        $totalBookings = 87;
+        $pendingRequests = 14;
+        $revenue = 240000;
+        
+        $recentBookings = [
+            [
+                'client_name' => 'Sarah Miller', 
+                'event_name' => 'Winter Gala',
+                'package_name' => 'Premium',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-2 days')),
+                'status' => 'confirmed'
+            ],
+            [
+                'client_name' => 'Mark Ruffalo', 
+                'event_name' => 'Tech Summit',
+                'package_name' => 'Corporate',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-4 days')),
+                'status' => 'pending'
+            ],
+            [
+                'client_name' => 'Alia Bhatt', 
+                'event_name' => 'Mehndi Night',
+                'package_name' => 'Custom',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-5 days')),
+                'status' => 'confirmed'
+            ],
+            [
+                'client_name' => 'John Doe', 
+                'event_name' => 'Art Expo',
+                'package_name' => 'Basic',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 week')),
+                'status' => 'cancelled'
+            ]
+        ];
+
+        // Fetch Status Summary
+        $statusSummary = ['confirmed' => 52, 'pending' => 14, 'cancelled' => 21];
 
         require_once dirname(__DIR__) . '/views/organizer/dashboard.php';
     }
@@ -22,7 +129,7 @@ class OrganizerController
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
@@ -41,7 +148,7 @@ class OrganizerController
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
@@ -55,7 +162,7 @@ class OrganizerController
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
@@ -178,11 +285,7 @@ class OrganizerController
         require_once dirname(__DIR__) . '/models/Booking.php';
         $bookingModel = new Booking();
 
-        if ($_SESSION['user_role'] === 'admin') {
-            $bookings = $bookingModel->getAll();
-        } else {
-            $bookings = $bookingModel->getByOrganizer($_SESSION['user_id']);
-        }
+        $bookings = $bookingModel->getByOrganizer($_SESSION['user_id']);
 
         $totalBookings = count($bookings);
         $confirmedCount = 0;
@@ -224,7 +327,7 @@ class OrganizerController
         $bookingModel = new Booking();
         $booking = $bookingModel->getById($id);
 
-        if (!$booking) {
+        if (!$booking || $booking['organizer_id'] != $_SESSION['user_id']) {
             header('Location: /EventManagementSystem/public/organizer/bookings');
             exit;
         }
@@ -251,9 +354,13 @@ class OrganizerController
             if ($id) {
                 require_once dirname(__DIR__) . '/models/Booking.php';
                 $bookingModel = new Booking();
-                $bookingModel->updateStatus($id, 'confirmed');
-                header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
-                exit;
+                $booking = $bookingModel->getById($id);
+
+                if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
+                    $bookingModel->updateStatus($id, 'confirmed');
+                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
+                    exit;
+                }
             }
         }
         header('Location: /EventManagementSystem/public/organizer/bookings');
@@ -268,24 +375,17 @@ class OrganizerController
             if ($id) {
                 require_once dirname(__DIR__) . '/models/Booking.php';
                 $bookingModel = new Booking();
-                $bookingModel->updateStatus($id, 'cancelled');
-                header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
-                exit;
+                $booking = $bookingModel->getById($id);
+
+                if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
+                    $bookingModel->updateStatus($id, 'cancelled');
+                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
+                    exit;
+                }
             }
         }
         header('Location: /EventManagementSystem/public/organizer/bookings');
         exit;
-    }
-
-    private function checkAuth()
-    {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
     }
 
     private function getEventDataFromPost()
@@ -319,5 +419,11 @@ class OrganizerController
             }
         }
         return null;
+    }
+
+    public function messages()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/organizer/messages.php';
     }
 }

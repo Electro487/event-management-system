@@ -105,8 +105,12 @@ class AuthController
                 $user = $this->userModel->login($email, $password);
 
                 if ($user) {
+                    // Check if blocked
+                    if ($user['is_blocked']) {
+                        $error = 'Your account has been blocked. Please contact support.';
+                    }
                     // Check if verified
-                    if (!$user['is_verified']) {
+                    elseif (!$user['is_verified']) {
                         // Generate new OTP and redirect to verification
                         $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
                         $expires_at = date("Y-m-d H:i:s", strtotime("+10 minutes"));
@@ -119,21 +123,25 @@ class AuthController
                         exit;
                     }
 
-                    // Login success
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_email'] = $user['email'];
-                    $_SESSION['user_role'] = $user['role'];
-                    $_SESSION['user_fullname'] = $user['fullname'];
+                    if (empty($error)) {
+                        // Login success
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['user_email'] = $user['email'];
+                        $_SESSION['user_role'] = $user['role'];
+                        $_SESSION['user_fullname'] = $user['fullname'];
 
-                    // Redirect based on role
-                    $role = $user['role'];
-                    if ($role === 'admin' || $role === 'organizer') {
-                        $redirect = '/EventManagementSystem/public/organizer/events';
-                    } else {
-                        $redirect = '/EventManagementSystem/public/' . $role . '/dashboard';
+                        // Redirect based on role
+                        $role = $user['role'];
+                        if ($role === 'admin') {
+                            $redirect = '/EventManagementSystem/public/admin/dashboard';
+                        } elseif ($role === 'organizer') {
+                            $redirect = '/EventManagementSystem/public/organizer/events';
+                        } else {
+                            $redirect = '/EventManagementSystem/public/client/dashboard';
+                        }
+                        header('Location: ' . $redirect);
+                        exit;
                     }
-                    header('Location: ' . $redirect);
-                    exit;
                 } else {
                     $error = 'Invalid email or password.';
                 }

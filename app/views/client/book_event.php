@@ -13,21 +13,11 @@ if (!$selectedPackageData) {
 }
 
 // Ensure correct types for calculation
-$basePrice = 0;
-if (isset($selectedPackageData['price_range'])) {
-    // Strip commas first, then extract the first numeric block (which ignores "Rs." prefixes and their dots)
-    $rawPrice = str_replace(',', '', $selectedPackageData['price_range']);
-    if (preg_match('/[0-9]+(?:\.[0-9]+)?/', $rawPrice, $matches)) {
-        $basePrice = (float) $matches[0];
-    } else {
-        $basePrice = 0;
-    }
-    
-    if ($basePrice == 0 && $packageTier == 'standard') $basePrice = 60000;
-    if ($basePrice == 0 && $packageTier == 'premium') $basePrice = 150000;
-    if ($basePrice == 0 && $packageTier == 'basic') $basePrice = 20000;
-} else {
-    // defaults
+$priceValue = $selectedPackageData['price'] ?? ($selectedPackageData['price_range'] ?? '');
+$basePrice = !empty($priceValue) ? (float)str_replace(['Rs.', ',', ' '], '', $priceValue) : 0;
+
+// Only use defaults as absolute last resort if cost is 0
+if ($basePrice <= 0) {
     if ($packageTier == 'standard') $basePrice = 60000;
     else if ($packageTier == 'premium') $basePrice = 150000;
     else $basePrice = 20000;
@@ -167,7 +157,7 @@ if (empty($items)) {
                             <div class="input-group">
                                 <label>GUEST COUNT</label>
                                 <div class="icon-input">
-                                    <input type="number" name="guest_count" required min="10" placeholder="150">
+                                    <input type="number" name="guest_count" required min="10" step="1" placeholder="150" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                                     <i class="fa-solid fa-user-group"></i>
                                 </div>
                             </div>
@@ -190,7 +180,8 @@ if (empty($items)) {
                             </div>
                             <div class="input-group">
                                 <label>PHONE NUMBER</label>
-                                <input type="tel" name="phone" required placeholder="+1 (555) 012-3456">
+                                <input type="tel" name="phone" id="phone" required placeholder="98XXXXXXXX" pattern="[0-9]{10}" maxlength="10" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                                <small style="font-size: 10px; color: #6b7280;">Exactly 10 digits (e.g., 9841234567)</small>
                             </div>
                         </div>
                     </div>

@@ -14,18 +14,18 @@
 
     <?php 
         $activePage = 'events';
-        include_once dirname(__DIR__) . "/organizer/partials/sidebar.php"; 
+        include_once dirname(__DIR__) . "/admin/partials/sidebar.php"; 
         
         $isEdit = isset($isEdit) && $isEdit;
         $event = $event ?? [];
-        $formAction = $isEdit ? "/EventManagementSystem/public/organizer/events/update" : "/EventManagementSystem/public/organizer/events/store";
+        $formAction = $isEdit ? "/EventManagementSystem/public/admin/events/update" : "/EventManagementSystem/public/admin/events/store";
     ?>
 
     <main class="main-content">
         <header class="content-header">
             <div class="header-left">
                 <div class="breadcrumb">
-                    <a href="/EventManagementSystem/public/organizer/events">Events</a> 
+                    <a href="/EventManagementSystem/public/admin/events">Events</a> 
                     <span class="separator">›</span> 
                     <span class="current"><?php echo $isEdit ? 'Edit Event' : 'Create New Event'; ?></span>
                 </div>

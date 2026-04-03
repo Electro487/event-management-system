@@ -161,6 +161,20 @@
     margin-bottom: 25px;
 }
 
+.pkg-desc-group {
+    margin-bottom: 5px;
+}
+
+.pkg-price-group {
+    margin-top: 25px;
+}
+
+.package-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .tier-icon {
     font-size: 24px;
 }

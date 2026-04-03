@@ -1,0 +1,33 @@
+<aside class="sidebar admin-sidebar">
+    <div>
+        <div class="brand">e-Plan <br><small style="font-size: 10px; color: var(--accent-color);">ADMIN PANEL</small></div>
+        <nav>
+            <ul>
+                <li><a href="/EventManagementSystem/public/admin/dashboard"
+                        class="<?php echo ($activePage == 'dashboard' || empty($activePage)) ? 'active' : ''; ?>"><i
+                            class="fas fa-th-large"></i> Dashboard</a></li>
+                <li><a href="/EventManagementSystem/public/admin/users"
+                        class="<?php echo ($activePage == 'users') ? 'active' : ''; ?>"><i
+                            class="fas fa-users-cog"></i> User Management</a></li>
+                <li><a href="/EventManagementSystem/public/admin/events"
+                        class="<?php echo ($activePage == 'events') ? 'active' : ''; ?>"><i
+                            class="far fa-calendar-alt"></i> All Events</a></li>
+                <li><a href="/EventManagementSystem/public/admin/bookings" class="<?php echo ($activePage == 'bookings') ? 'active' : ''; ?>"><i
+                            class="far fa-calendar-check"></i> All Bookings</a></li>
+
+            </ul>
+        </nav>
+    </div>
+    <div class="sidebar-bottom">
+
+        <div class="user-profile">
+            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
+            <div class="info">
+                <h4>
+                    <?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'Admin'); ?>
+                </h4>
+                <span>System Admin</span>
+            </div>
+        </div>
+    </div>
+</aside>

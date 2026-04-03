@@ -2,32 +2,74 @@
 
 class ClientController
 {
-    public function dashboard()
+    private function checkClientAuth()
     {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'client') {
+        if (!isset($_SESSION['user_id'])) {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
 
+        // FETCH CURRENT ROLE FROM DATABASE FOR REAL-TIME SYNC
+        require_once dirname(__DIR__) . '/models/User.php';
+        $userModel = new User();
+        $currentUser = $userModel->findById($_SESSION['user_id']);
+
+        if (!$currentUser || $currentUser['is_blocked']) {
+            session_destroy();
+            header('Location: /EventManagementSystem/public/login');
+            exit;
+        }
+
+        // Update session role if it changed in DB
+        $_SESSION['user_role'] = $currentUser['role'];
+        $role = $_SESSION['user_role'];
+
+        if ($role === 'admin') {
+            header('Location: /EventManagementSystem/public/admin/dashboard');
+            exit;
+        }
+
+        if ($role === 'organizer') {
+            header('Location: /EventManagementSystem/public/organizer/dashboard');
+            exit;
+        }
+
+        if ($role !== 'client') {
+            header('Location: /EventManagementSystem/public/login');
+            exit;
+        }
+    }
+
+    public function dashboard()
+    {
+        $this->checkClientAuth();
         require_once dirname(__DIR__) . '/views/client/dashboard.php';
     }
 
     public function browseEvents()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+        $this->checkClientAuth();
 
         $category = $_GET['category'] ?? 'All';
         $search = $_GET['search'] ?? '';
 
         require_once dirname(__DIR__) . '/models/Event.php';
         $eventModel = new Event();
-        $events = $eventModel->getAllActiveEvents($category, $search);
+
+        // Pagination Logic
+        $limit = 6; // Shows 6 events per page as per user's preference/design
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($page < 1) $page = 1;
+        $offset = ($page - 1) * $limit;
+
+        $totalActiveEvents = $eventModel->countActiveEvents($category, $search);
+        $totalPages = ceil($totalActiveEvents / $limit);
+        
+        $events = $eventModel->getAllActiveEvents($category, $search, $limit, $offset);
 
         // Fetch bookings for the dynamic tab view
         $bookings = [];
@@ -78,9 +120,7 @@ class ClientController
 
     public function viewEvent()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+        $this->checkClientAuth();
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -102,14 +142,7 @@ class ClientController
 
     public function bookEvent()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'client') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkClientAuth();
 
         $event_id = $_GET['event_id'] ?? null;
         $packageTier = $_GET['package'] ?? null;
@@ -133,18 +166,18 @@ class ClientController
 
     public function storeBooking()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'client') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkClientAuth();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once dirname(__DIR__) . '/models/Booking.php';
             $bookingModel = new Booking();
+
+            // Check for duplicate booking
+            if ($bookingModel->exists($_POST['event_id'], $_SESSION['user_id'])) {
+                $_SESSION['error'] = "You have already booked a package for this event. Please manage your existing reservation in 'My Bookings'.";
+                header('Location: /EventManagementSystem/public/client/events');
+                exit;
+            }
 
             $data = [
                 'event_id' => $_POST['event_id'],
@@ -176,14 +209,7 @@ class ClientController
 
     public function myBookings()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'client') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkClientAuth();
 
         // Redirect the old bookings page to the new combined SPA view
         header('Location: /EventManagementSystem/public/client/events#my-bookings');
@@ -192,14 +218,7 @@ class ClientController
 
     public function cancelBooking()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'client') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkClientAuth();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
             require_once dirname(__DIR__) . '/models/Booking.php';
@@ -213,14 +232,7 @@ class ClientController
 
     public function viewBookingDetails()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'client') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkClientAuth();
 
         $booking_id = $_GET['id'] ?? null;
         if (!$booking_id) {

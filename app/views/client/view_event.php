@@ -139,12 +139,9 @@ if (empty($includedItemsList)) {
                     <?php 
                     // Render packages elegantly
                     if (empty($packages)) {
-                        $packages = [
-                            'basic' => ['description' => 'Essential coordination and venue rental for intimate gatherings.', 'price_range' => 'Rs. 20,000'],
-                            'standard' => ['description' => 'Complete catering, decoration, and basic photography included.', 'price_range' => 'Rs. 60,000'],
-                            'premium' => ['description' => 'All-inclusive luxury experience with cinematic video and VIP concierge.', 'price_range' => 'Rs. 1,50,000']
-                        ];
+                        echo '<p class="no-data">No package information available for this event.</p>';
                     }
+
 
                     // Force rendering order
                     $tiersToRender = ['basic', 'standard', 'premium'];
@@ -157,7 +154,8 @@ if (empty($includedItemsList)) {
                             if ($tierKey === 'standard') $cssClass = 'standard';
                             if ($tierKey === 'premium') $cssClass = 'premium';
                             
-                            $priceDisplay = $pkgData['price_range'] ?: 'Custom Pricing';
+                            $priceValue = $pkgData['price'] ?? ($pkgData['price_range'] ?? '');
+                            $priceDisplay = !empty($priceValue) ? 'Rs. ' . number_format((float)str_replace(['Rs.', ',', ' '], '', $priceValue), 0) : 'Custom Pricing';
                     ?>
                     <div class="package-tier <?php echo $cssClass; ?>" onclick="selectPackage('<?php echo $tierKey; ?>', this)">
                         <?php if ($tierKey === 'standard'): ?>

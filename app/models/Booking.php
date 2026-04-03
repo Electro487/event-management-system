@@ -3,6 +3,7 @@ require_once dirname(__DIR__) . '/config/database.php';
 
 class Booking
 {
+    /** @var PDO */
     private $db;
 
     public function __construct()
@@ -124,5 +125,48 @@ class Booking
         $stmt->bindParam(':status', $status);
         $stmt->bindParam(':id', $id);
         return $stmt->execute();
+    }
+
+    public function countAll()
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function countByStatus($status)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE status = :status";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':status', $status);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function getRecent($limit = 5)
+    {
+        $sql = "SELECT b.*, e.title as event_title, c.fullname as client_name
+                FROM bookings b
+                JOIN events e ON b.event_id = e.id
+                JOIN users c ON b.client_id = c.id
+                ORDER BY b.created_at DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function exists($event_id, $client_id)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE event_id = :event_id AND client_id = :client_id AND status != 'cancelled'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':event_id', $event_id);
+        $stmt->bindParam(':client_id', $client_id);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'] > 0;
     }
 }

@@ -120,9 +120,9 @@
 .user-avatar-small {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: 50%;
     overflow: hidden;
-    background: #f3f4f6;
+    background: transparent;
 }
 
 .user-avatar-small img {
@@ -173,7 +173,7 @@
 }
 
 .stat-number.orange {
-    color: #d97706;
+    color: #FFC24A;
 }
 
 .stat-number.red {
@@ -511,7 +511,7 @@
 }
 
 .dot.pending {
-    background: #d97706;
+    background: #FFC24A;
 }
 
 .dot.cancelled {
@@ -532,7 +532,7 @@
 }
 
 .st-text.pending {
-    color: #d97706;
+    color: #FFC24A;
 }
 
 .st-text.cancelled {

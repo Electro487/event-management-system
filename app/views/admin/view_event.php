@@ -13,11 +13,11 @@
 </head>
 <body>
     <?php 
-        include_once dirname(__DIR__) . "/organizer/partials/sidebar.php"; 
+        include_once dirname(__DIR__) . "/admin/partials/sidebar.php"; 
     ?>
     
     <main class="main-content">
-        <a href="/EventManagementSystem/public/organizer/events" class="btn-back">← Back to Dashboard</a>
+        <a href="/EventManagementSystem/public/admin/events" class="btn-back">← Back to Dashboard</a>
         
         <div class="event-view-header">
             <img src="<?php echo $event['image_path'] ?: '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>" class="event-main-img" alt="">

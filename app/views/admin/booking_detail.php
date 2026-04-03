@@ -97,16 +97,16 @@ $steps = [
 
     <?php 
         $activePage = 'bookings';
-        include_once dirname(__DIR__) . "/organizer/partials/sidebar.php"; 
+        include_once dirname(__DIR__) . "/admin/partials/sidebar.php"; 
     ?>
 
     <main class="main-content">
         <header class="detail-header">
             <div class="header-left-info">
                 <div class="breadcrumb-container">
-                    <a href="/EventManagementSystem/public/organizer/bookings" class="bc-link">Bookings</a> 
+                    <a href="/EventManagementSystem/public/admin/bookings" class="bc-link">Bookings</a> 
                     <span class="separator">❯</span> 
-                    <a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $id; ?>" class="bc-link current">Booking Detail</a>
+                    <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $id; ?>" class="bc-link current">Booking Detail</a>
                 </div>
                 <div class="title-section">
                     <h1>Booking #BK-<?php echo str_pad($id, 3, '0', STR_PAD_LEFT); ?> <span class="badge-status <?php echo $displayStatus; ?>"><?php echo strtoupper($displayStatus); ?></span></h1>
@@ -115,9 +115,7 @@ $steps = [
             </div>
 
             <div class="header-right-actions">
-                <a href="/EventManagementSystem/public/organizer/bookings" class="back-link">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Bookings
-                </a>
+                <a href="/EventManagementSystem/public/admin/bookings" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Bookings</a>
                 <div class="header-icons-center">
                     <button class="icon-btn-plain"><i class="fa-regular fa-bell"></i></button>
                     <button class="icon-btn-plain"><i class="fa-solid fa-gear"></i></button>
@@ -248,7 +246,7 @@ $steps = [
                         </div>
                         
                         <?php if($status === 'pending'): ?>
-                            <form action="/EventManagementSystem/public/organizer/bookings/approve" method="POST" 
+                            <form action="/EventManagementSystem/public/admin/bookings/approve" method="POST" 
                                   onsubmit="return confirm('Are you sure you want to CONFIRM this booking?')">
                                 <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
                                 <button type="submit" class="btn-manage btn-confirm"><i class="fa-solid fa-circle-check"></i> Confirm Booking</button>
@@ -256,7 +254,7 @@ $steps = [
                         <?php endif; ?>
                         
                         <?php if($status === 'pending' || $status === 'confirmed'): ?>
-                            <form action="/EventManagementSystem/public/organizer/bookings/cancel" method="POST"
+                            <form action="/EventManagementSystem/public/admin/bookings/cancel" method="POST"
                                   onsubmit="return confirm('Are you sure you want to CANCEL this booking? This action cannot be undone.')">
                                 <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
                                 <button type="submit" class="btn-manage btn-cancel"><i class="fa-solid fa-circle-xmark"></i> Cancel Booking</button>

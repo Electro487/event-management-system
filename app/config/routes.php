@@ -24,9 +24,29 @@ $routes = [
     '/organizer/bookings/view' => 'OrganizerController@viewBooking',
     '/organizer/bookings/approve' => 'OrganizerController@approveBooking',
     '/organizer/bookings/cancel' => 'OrganizerController@cancelBooking',
+    '/organizer/messages' => 'OrganizerController@messages',
     '/client/book' => 'ClientController@bookEvent',
     '/client/book/store' => 'ClientController@storeBooking',
     '/client/bookings' => 'ClientController@myBookings',
     '/client/bookings/cancel' => 'ClientController@cancelBooking',
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
+
+    // Admin Routes
+    '/admin/dashboard' => 'AdminController@dashboard',
+    '/admin/users' => 'AdminController@users',
+    '/admin/users/update-role' => 'AdminController@updateUserRole',
+    '/admin/users/toggle-block' => 'AdminController@toggleUserBlock',
+    
+    '/admin/events' => 'AdminController@events',
+    '/admin/events/create' => 'AdminController@createEvent',
+    '/admin/events/store' => 'AdminController@storeEvent',
+    '/admin/events/view' => 'AdminController@viewEvent',
+    '/admin/events/edit' => 'AdminController@editEvent',
+    '/admin/events/update' => 'AdminController@updateEvent',
+    '/admin/events/delete' => 'AdminController@deleteEvent',
+
+    '/admin/bookings' => 'AdminController@bookings',
+    '/admin/bookings/view' => 'AdminController@viewBooking',
+    '/admin/bookings/approve' => 'AdminController@approveBooking',
+    '/admin/bookings/cancel' => 'AdminController@cancelBooking',
 ];

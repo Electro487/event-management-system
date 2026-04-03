@@ -2,6 +2,7 @@
 
 class User
 {
+    /** @var Database */
     private $db;
 
     public function __construct()
@@ -140,5 +141,82 @@ class User
         }
 
         return false;
+    }
+
+    public function findByEmail($email)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function findById($id)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT * FROM users WHERE id = :id LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function countAll()
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT COUNT(*) as count FROM users";
+        $stmt = $pdo->query($sql);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function getAll()
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT * FROM users ORDER BY created_at DESC";
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countByRole($role)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT COUNT(*) as count FROM users WHERE role = :role";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':role', $role);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function countBlocked()
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT COUNT(*) as count FROM users WHERE is_blocked = 1";
+        $stmt = $pdo->query($sql);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function updateRole($userId, $role)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "UPDATE users SET role = :role WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':role', $role);
+        $stmt->bindParam(':id', $userId);
+        return $stmt->execute();
+    }
+
+    public function toggleBlock($userId, $status)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "UPDATE users SET is_blocked = :status WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':status', $status, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $userId);
+        return $stmt->execute();
     }
 }

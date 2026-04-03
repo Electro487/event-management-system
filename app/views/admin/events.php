@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Events - <?php echo SITE_NAME; ?></title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>All System Events - Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
+    <style>
+        .organizer-tag { background: #f0fdf4; color: #246A55; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 5px; display: inline-block; }
+    </style>
 </head>
 <body>
 
@@ -23,8 +22,8 @@
     <main class="main-content">
         <header class="content-header">
             <div class="header-left">
-                <div class="breadcrumb">
-                    <span class="current">Events</span>
+                <div class="breadcrumb" style="font-size: 14px; color: #64748b;">
+                    Admin / <span style="color: #246A55; font-weight: 600;">All Events</span>
                 </div>
             </div>
             <div class="header-right">
@@ -39,18 +38,15 @@
 
         <section class="events-summary">
             <div class="summary-text">
-                <h1>Manage Events</h1>
-                <p>Curate and oversee your portfolio of high-end corporate and private experiences.</p>
+                <h1>All System Events</h1>
+                <p>Oversight of all curated event campaigns across the entire platform.</p>
             </div>
-            <a href="/EventManagementSystem/public/organizer/events/create" class="btn-primary">+ Add New Event</a>
+            <div class="summary-actions">
+                <a href="/EventManagementSystem/public/admin/events/create" class="btn-create" style="background: #246A55; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-plus"></i> Create New Event
+                </a>
+            </div>
         </section>
-
-        <?php if (isset($_GET['success'])): ?>
-        <div class="alert-success">
-            <span>🎉 Event successfully created! Your curated experience is now saved.</span>
-            <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size:18px;">&times;</button>
-        </div>
-        <?php endif; ?>
 
         <section class="filters-bar">
             <div class="tabs">
@@ -61,28 +57,19 @@
             <div class="category-filter">
                 <select id="categoryFilter">
                     <option value="all">All Categories</option>
-                    <option value="Weddings">Weddings</option>
-                    <option value="Meetings">Meetings</option>
-                    <option value="Cultural Events">Cultural Events</option>
-                    <option value="Family Functions">Family Functions</option>
-                    <option value="Other Events and Programs">Other Events and Programs</option>
+                    <?php 
+                    $cats = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                    foreach($cats as $cat): ?>
+                        <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="status-info">
-                <span id="eventsCount">Showing <?php echo count($events); ?> event campaigns</span>
+                <span id="eventsCount">Showing <?php echo count($events); ?> system campaigns</span>
             </div>
         </section>
 
         <div class="events-grid" id="eventsGrid">
-            <!-- Create Event Placeholder -->
-            <a href="/EventManagementSystem/public/organizer/events/create" class="event-card create-placeholder">
-                <div class="placeholder-content">
-                    <div class="plus-circle">+</div>
-                    <h3>+ Create your event</h3>
-                    <p>Start a new project and define your curated experience from scratch.</p>
-                </div>
-            </a>
-
             <?php if (!empty($events)): ?>
                 <?php foreach ($events as $event): ?>
                 <div class="event-card" data-status="<?php echo strtolower($event['status']); ?>" data-category="<?php echo $event['category']; ?>">
@@ -93,16 +80,15 @@
                     </div>
                     <div class="event-details">
                         <h3 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h3>
-                        <p class="event-desc"><?php echo htmlspecialchars(substr($event['description'], 0, 80)) . '...'; ?></p>
-                        <div class="event-stats">
-                            <span class="stat">Bookings: <strong><?php echo $event['bookings_count']; ?></strong></span>
-                        </div>
-                        <div class="event-actions">
-                            <a href="/EventManagementSystem/public/organizer/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit" title="Edit">
+                        <span class="organizer-tag"><i class="fas fa-user-tie"></i> <?php echo htmlspecialchars($event['organizer_name']); ?></span>
+                        <p class="event-desc" style="margin-top: 10px;"><?php echo htmlspecialchars(substr($event['description'], 0, 80)) . '...'; ?></p>
+                        
+                        <div class="event-actions" style="margin-top: 15px;">
+                            <a href="/EventManagementSystem/public/admin/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
 
-                            <a href="/EventManagementSystem/public/organizer/events/delete?id=<?php echo $event['id']; ?>" class="btn-action delete" title="Delete" onclick="return confirm('Are you sure you want to delete this event?')">
+                            <a href="/EventManagementSystem/public/admin/events/delete?id=<?php echo $event['id']; ?>" class="btn-action delete" onclick="return confirm('ADMIN: Delete this user\'s event?')">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </a>
                         </div>
@@ -111,7 +97,7 @@
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="no-events-message" style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #999;">
-                    <p>No events found. Start by creating your first curated experience!</p>
+                    <p>No system events found.</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -121,7 +107,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const categorySelect = document.getElementById('categoryFilter');
-    const eventCards = document.querySelectorAll('.event-card:not(.create-placeholder)');
+    const eventCards = document.querySelectorAll('.event-card');
     const countLabel = document.getElementById('eventsCount');
 
     let currentStatus = 'all';
@@ -132,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
         eventCards.forEach(card => {
             const status = card.dataset.status;
             const category = card.dataset.category;
-
             const statusMatch = (currentStatus === 'all' || status === currentStatus);
             const categoryMatch = (currentCategory === 'all' || category === currentCategory);
 
@@ -143,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.style.display = 'none';
             }
         });
-        countLabel.textContent = `Showing ${visibleCount} event campaigns`;
+        countLabel.textContent = `Showing ${visibleCount} system campaigns`;
     }
 
     tabBtns.forEach(btn => {

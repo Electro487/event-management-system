@@ -42,22 +42,31 @@ $searchQuery = $_GET['search'] ?? '';
 
     <!-- VIEWS CONTAINER -->
     <div id="browse-events-view">
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>Browse Events</h1>
-        <p>Discover premium event planning services tailored for your most memorable milestones across Nepal.</p>
-        
-        <form action="/EventManagementSystem/public/client/events" method="GET" class="search-bar">
-            <?php if ($currentCategory !== 'All'): ?>
-                <input type="hidden" name="category" value="<?php echo htmlspecialchars($currentCategory); ?>">
-            <?php endif; ?>
-            <div class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-            <input type="text" name="search" class="search-input" placeholder="Search for weddings, conferences, or festivals..." value="<?php echo htmlspecialchars($searchQuery); ?>">
-            <button type="submit" class="search-btn">Search</button>
-        </form>
-    </section>
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="container" style="margin-top: 20px;">
+                <div style="background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 8px; border-left: 4px solid #b91c1c; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i> <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                </div>
+            </div>
+        <?php endif; ?>
 
-    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Browse Events</h1>
+            <p>Discover premium event planning services tailored for your most memorable milestones across Nepal.</p>
+            
+            <form action="/EventManagementSystem/public/client/events" method="GET" class="search-bar">
+                <?php if ($currentCategory !== 'All'): ?>
+                    <input type="hidden" name="category" value="<?php echo htmlspecialchars($currentCategory); ?>">
+                <?php endif; ?>
+                <div class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <input type="text" name="search" class="search-input" placeholder="Search for weddings, conferences, or festivals..." value="<?php echo htmlspecialchars($searchQuery); ?>">
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </section>
+    
+        <div class="container">
+
         <!-- Category Filters -->
         <div class="category-filters">
             <?php foreach ($categories as $cat): ?>
@@ -66,6 +75,11 @@ $searchQuery = $_GET['search'] ?? '';
                     <?php echo htmlspecialchars($cat); ?>
                 </a>
             <?php endforeach; ?>
+        </div>
+
+        <!-- Showing Count -->
+        <div style="margin-bottom: 20px; color: var(--text-gray); font-size: 14px; font-weight: 500;">
+            Showing <?php echo count($events); ?> of <?php echo $totalActiveEvents; ?> event campaigns
         </div>
 
         <!-- Event Grid -->
@@ -122,13 +136,26 @@ $searchQuery = $_GET['search'] ?? '';
         </div>
 
         <!-- Pagination -->
-        <?php if (!empty($events)): ?>
+        <?php if ($totalPages > 1): ?>
         <div class="pagination">
-            <a href="#" class="page-item page-link-text">Previous</a>
-            <a href="#" class="page-item active">1</a>
-            <a href="#" class="page-item">2</a>
-            <a href="#" class="page-item">3</a>
-            <a href="#" class="page-item page-link-text">Next</a>
+            <?php 
+                $baseUrl = "?category=" . urlencode($currentCategory) . ($searchQuery ? "&search=" . urlencode($searchQuery) : "");
+            ?>
+            
+            <?php if ($page > 1): ?>
+                <a href="<?php echo $baseUrl; ?>&page=<?php echo $page - 1; ?>" class="page-item page-link-text">Previous</a>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <a href="<?php echo $baseUrl; ?>&page=<?php echo $i; ?>" 
+                   class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                   <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+
+            <?php if ($page < $totalPages): ?>
+                <a href="<?php echo $baseUrl; ?>&page=<?php echo $page + 1; ?>" class="page-item page-link-text">Next</a>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
