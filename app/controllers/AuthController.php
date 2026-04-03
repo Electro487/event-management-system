@@ -106,7 +106,7 @@ class AuthController
 
                 if ($user) {
                     // Check if blocked
-                    if ($user['is_blocked']) {
+                    if (isset($user['is_blocked']) && $user['is_blocked']) {
                         $error = 'Your account has been blocked. Please contact support.';
                     }
                     // Check if verified

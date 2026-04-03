@@ -7,22 +7,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - e-Plan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css?v=<?php echo time(); ?>">
     <!-- Base styles (navbar etc) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
 
     <!-- Navbar -->
     <header class="header">
-        <a href="/EventManagementSystem/public/" class="logo">e-Plan</a>
+        <a href="/EventManagementSystem/public/" class="logo"><img
+                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
+                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/">Home</a>
+            <a href="/EventManagementSystem/public/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/bookings" style="color: #1f6f59;">My Bookings</a>
-            <a href="#">About</a>
+            <a href="/EventManagementSystem/public/client/bookings" class="active">My Bookings</a>
         </nav>
         <div class="nav-icons">
             <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
@@ -71,13 +72,17 @@
         <!-- Filter Tabs -->
         <div class="filter-tabs">
             <div class="filter-tab active" onclick="filterBookings('all', this)">All
-                <span><?php echo $totalBookings; ?></span></div>
+                <span><?php echo $totalBookings; ?></span>
+            </div>
             <div class="filter-tab" onclick="filterBookings('upcoming', this)">Upcoming
-                <span><?php echo $upcomingCount; ?></span></div>
+                <span><?php echo $upcomingCount; ?></span>
+            </div>
             <div class="filter-tab" onclick="filterBookings('completed', this)">Completed
-                <span><?php echo $completedCount; ?></span></div>
+                <span><?php echo $completedCount; ?></span>
+            </div>
             <div class="filter-tab" onclick="filterBookings('cancelled', this)">Cancelled
-                <span><?php echo $cancelledCount; ?></span></div>
+                <span><?php echo $cancelledCount; ?></span>
+            </div>
         </div>
 
         <div class="main-layout">
@@ -124,7 +129,8 @@
                                 </div>
                                 <div class="b-bottom">
                                     <div class="b-date-booked">Booked on:
-                                        <?php echo date('M d, Y', strtotime($booking['created_at'])); ?></div>
+                                        <?php echo date('M d, Y', strtotime($booking['created_at'])); ?>
+                                    </div>
                                     <div class="b-price-action">
                                         <span class="b-price">Rs.
                                             <?php echo number_format($booking['total_amount'], 2); ?></span>

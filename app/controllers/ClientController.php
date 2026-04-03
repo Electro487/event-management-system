@@ -18,7 +18,7 @@ class ClientController
         $userModel = new User();
         $currentUser = $userModel->findById($_SESSION['user_id']);
 
-        if (!$currentUser || $currentUser['is_blocked']) {
+        if (!$currentUser || (isset($currentUser['is_blocked']) && $currentUser['is_blocked'])) {
             session_destroy();
             header('Location: /EventManagementSystem/public/login');
             exit;

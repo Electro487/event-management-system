@@ -1,6 +1,6 @@
 <aside class="sidebar">
     <div>
-        <div class="brand">e-Plan</div>
+        <div class="brand"><img src="/EventManagementSystem/public/assets/images/logo-white.png" alt="e.PLAN" style="height: 48px; width: auto; object-fit: contain; margin-left: -5px;"></div>
         <nav>
             <ul>
                 <li><a href="/EventManagementSystem/public/organizer/dashboard"

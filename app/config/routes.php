@@ -2,6 +2,7 @@
 // Basic routing configuration
 $routes = [
     '/' => 'HomeController@index',
+    '/home' => 'HomeController@homePage',
     '/login' => 'AuthController@login',
     '/register' => 'AuthController@register',
     '/logout' => 'AuthController@logout',

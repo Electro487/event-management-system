@@ -1,6 +1,6 @@
 <aside class="sidebar admin-sidebar">
     <div>
-        <div class="brand">e-Plan <br><small style="font-size: 10px; color: var(--accent-color);">ADMIN PANEL</small></div>
+        <div class="brand"><img src="/EventManagementSystem/public/assets/images/logo-white.png" alt="e.PLAN" style="height: 48px; width: auto; object-fit: contain; margin-left: -5px;"> <br><small style="font-size: 10px; color: var(--accent-color);">ADMIN PANEL</small></div>
         <nav>
             <ul>
                 <li><a href="/EventManagementSystem/public/admin/dashboard"

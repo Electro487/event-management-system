@@ -93,9 +93,13 @@
                     </div>
                     <div class="event-details">
                         <h3 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h3>
-                        <p class="event-desc"><?php echo htmlspecialchars(substr($event['description'], 0, 80)) . '...'; ?></p>
+                        <p class="event-desc"><?php echo htmlspecialchars($event['description']); ?></p>
                         <div class="event-stats">
-                            <span class="stat">Bookings: <strong><?php echo $event['bookings_count']; ?></strong></span>
+                            <?php if (strtolower($event['status']) === 'active'): ?>
+                                <span class="stat">Bookings: <strong><?php echo $event['dynamic_bookings_count']; ?></strong></span>
+                            <?php else: ?>
+                                <span class="stat">Bookings: <strong>0</strong></span>
+                            <?php endif; ?>
                         </div>
                         <div class="event-actions">
                             <a href="/EventManagementSystem/public/organizer/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit" title="Edit">
