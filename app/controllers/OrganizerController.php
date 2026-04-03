@@ -268,7 +268,7 @@ class OrganizerController
         require_once dirname(__DIR__) . '/views/organizer/bookings.php';
     }
 
-    public function viewBooking()
+    public function viewBookingDetails()
     {
         $this->checkAuth();
         $id = $_GET['id'] ?? null;
@@ -311,9 +311,15 @@ class OrganizerController
                 $booking = $bookingModel->getById($id);
 
                 if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
-                    $bookingModel->updateStatus($id, 'confirmed');
-                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
-                    exit;
+                    $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+                    if ($payStatus === 'paid' || $payStatus === 'partially_paid') {
+                        $bookingModel->updateStatus($id, 'confirmed');
+                        header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
+                        exit;
+                    } else {
+                        header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&error=unpaid');
+                        exit;
+                    }
                 }
             }
         }
@@ -332,9 +338,12 @@ class OrganizerController
                 $booking = $bookingModel->getById($id);
 
                 if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
-                    $bookingModel->updateStatus($id, 'cancelled');
-                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
-                    exit;
+                    $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+                    if ($payStatus !== 'paid') {
+                        $bookingModel->updateStatus($id, 'cancelled');
+                        header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
+                        exit;
+                    }
                 }
             }
         }
@@ -458,5 +467,28 @@ class OrganizerController
             }
             exit;
         }
+    }
+
+    public function markBookingPaid()
+    {
+        $this->checkAuth();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
+            require_once dirname(__DIR__) . '/models/Booking.php';
+            $bookingModel = new Booking();
+            $id = $_POST['booking_id'];
+
+            $booking = $bookingModel->getById($id);
+            if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
+                if (strtolower($booking['payment_status'] ?? 'unpaid') === 'partially_paid') {
+                    $bookingModel->updatePaymentStatus($id, 'paid');
+                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&paid=1');
+                    exit;
+                }
+            }
+        }
+
+        header('Location: /EventManagementSystem/public/organizer/bookings');
+        exit;
     }
 }

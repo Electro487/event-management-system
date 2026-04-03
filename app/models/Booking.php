@@ -129,6 +129,15 @@ class Booking
         return $stmt->execute();
     }
 
+    public function updatePaymentStatus($id, $paymentStatus)
+    {
+        $sql = "UPDATE bookings SET payment_status = :payment_status WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':payment_status', $paymentStatus);
+        $stmt->bindParam(':id', $id);
+        return $stmt->execute();
+    }
+
     public function countAll()
     {
         $sql = "SELECT COUNT(*) as count FROM bookings";

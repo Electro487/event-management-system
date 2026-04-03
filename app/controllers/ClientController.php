@@ -202,8 +202,13 @@ class ClientController
             $bookingId = $bookingModel->create($data);
 
             if ($bookingId) {
-                // Redirect directly to My Bookings
-                header('Location: /EventManagementSystem/public/client/events#my-bookings');
+                // If Pay Later was selected, redirect to my-bookings
+                if (isset($_POST['pay_later']) && $_POST['pay_later'] == '1') {
+                    header('Location: /EventManagementSystem/public/client/events?booking_success=1#my-bookings');
+                } else {
+                    // Redirect directly to the mock payment checkout page
+                    header('Location: /EventManagementSystem/public/client/payment/checkout?booking_id=' . $bookingId);
+                }
                 exit;
             } else {
                 // Handle error
@@ -229,7 +234,21 @@ class ClientController
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
             require_once dirname(__DIR__) . '/models/Booking.php';
             $bookingModel = new Booking();
-            $bookingModel->cancel($_POST['booking_id'], $_SESSION['user_id']);
+            $id = $_POST['booking_id'];
+            
+            // SECURITY: Check if booking is locked before allowing cancellation
+            $booking = $bookingModel->getById($id);
+            if ($booking && $booking['client_id'] == $_SESSION['user_id']) {
+                $bStatus = strtolower($booking['status'] ?? 'pending');
+                $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+                
+                // Cut-off: Confirmed AND (Partially Paid or Paid) = NO CANCEL
+                $isLocked = ($bStatus === 'confirmed' && $payStatus !== 'unpaid');
+                
+                if (!$isLocked) {
+                    $bookingModel->cancel($id, $_SESSION['user_id']);
+                }
+            }
         }
 
         header('Location: /EventManagementSystem/public/client/events#my-bookings');

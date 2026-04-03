@@ -23,9 +23,10 @@ $routes = [
     '/organizer/events/update' => 'OrganizerController@updateEvent',
     '/organizer/events/delete' => 'OrganizerController@deleteEvent',
     '/organizer/bookings' => 'OrganizerController@bookings',
-    '/organizer/bookings/view' => 'OrganizerController@viewBooking',
+    '/organizer/bookings/view' => 'OrganizerController@viewBookingDetails',
     '/organizer/bookings/approve' => 'OrganizerController@approveBooking',
     '/organizer/bookings/cancel' => 'OrganizerController@cancelBooking',
+    '/organizer/bookings/mark-paid' => 'OrganizerController@markBookingPaid',
     '/organizer/messages' => 'OrganizerController@messages',
     '/client/book' => 'ClientController@bookEvent',
     '/client/book/store' => 'ClientController@storeBooking',
@@ -34,6 +35,12 @@ $routes = [
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
     '/client/profile/update' => 'ClientController@updateProfile',
     '/client/profile/delete-picture' => 'ClientController@deleteProfilePicture',
+    
+    // Payment Routes
+    '/client/payment/checkout' => 'PaymentController@checkout',
+    '/client/payment/process' => 'PaymentController@process',
+    '/client/payment/success' => 'PaymentController@success',
+    '/client/payment/cancel' => 'PaymentController@cancel',
 
     // Admin Routes
     '/admin/dashboard' => 'AdminController@dashboard',
@@ -49,10 +56,13 @@ $routes = [
     '/admin/events/update' => 'AdminController@updateEvent',
     '/admin/events/delete' => 'AdminController@deleteEvent',
 
+    // Admin Bookings
     '/admin/bookings' => 'AdminController@bookings',
-    '/admin/bookings/view' => 'AdminController@viewBooking',
+    '/admin/bookings/view' => 'AdminController@viewBookingDetails',
     '/admin/bookings/approve' => 'AdminController@approveBooking',
     '/admin/bookings/cancel' => 'AdminController@cancelBooking',
+    '/admin/bookings/mark-paid' => 'AdminController@markBookingPaid',
+
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
     

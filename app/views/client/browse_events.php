@@ -595,7 +595,15 @@ $searchQuery = $_GET['search'] ?? '';
             // Handle Cancel Button
             let cancelForm = document.getElementById('cancel-booking-form');
             if (cancelForm) {
-                if (data.status === 'pending' || data.status === 'confirmed') {
+                const bStatus = (data.status || '').toLowerCase();
+                const payStatus = (data.payment_status || 'unpaid').toLowerCase();
+                
+                // Rule: HIDE only if (Confirmed AND (Partially Paid or Paid))
+                // Also hide if already cancelled or completed
+                const isLocked = (bStatus === 'confirmed' && payStatus !== 'unpaid');
+                const isActive = (bStatus === 'pending' || bStatus === 'confirmed');
+                
+                if (isActive && !isLocked) {
                     document.getElementById('cancel-booking-id').value = data.id;
                     cancelForm.style.display = 'block';
                 } else {

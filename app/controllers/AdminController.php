@@ -294,7 +294,7 @@ class AdminController
 
     // --- Admin Booking Management ---
 
-    public function viewBooking()
+    public function viewBookingDetails()
     {
         $this->checkAuth();
         $id = $_GET['id'] ?? null;
@@ -325,9 +325,17 @@ class AdminController
             if ($id) {
                 require_once dirname(__DIR__) . '/models/Booking.php';
                 $bookingModel = new Booking();
-                $bookingModel->updateStatus($id, 'confirmed');
-                header('Location: /EventManagementSystem/public/admin/bookings?approved=1');
-                exit;
+                $booking = $bookingModel->getById($id);
+                $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+
+                if ($booking && ($payStatus === 'paid' || $payStatus === 'partially_paid')) {
+                    $bookingModel->updateStatus($id, 'confirmed');
+                    header('Location: /EventManagementSystem/public/admin/bookings/view?id=' . $id . '&approved=1');
+                    exit;
+                } else {
+                    header('Location: /EventManagementSystem/public/admin/bookings/view?id=' . $id . '&error=unpaid');
+                    exit;
+                }
             }
         }
         header('Location: /EventManagementSystem/public/admin/bookings?error=1');
@@ -341,9 +349,13 @@ class AdminController
             if ($id) {
                 require_once dirname(__DIR__) . '/models/Booking.php';
                 $bookingModel = new Booking();
-                $bookingModel->updateStatus($id, 'cancelled');
-                header('Location: /EventManagementSystem/public/admin/bookings?cancelled=1');
-                exit;
+                $booking = $bookingModel->getById($id);
+                
+                if ($booking && strtolower($booking['payment_status'] ?? 'unpaid') !== 'paid') {
+                    $bookingModel->updateStatus($id, 'cancelled');
+                    header('Location: /EventManagementSystem/public/admin/bookings?cancelled=1');
+                    exit;
+                }
             }
         }
         header('Location: /EventManagementSystem/public/admin/bookings?error=1');
@@ -457,5 +469,26 @@ class AdminController
             }
             exit;
         }
+    }
+
+    public function markBookingPaid()
+    {
+        $this->checkAuth();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
+            require_once dirname(__DIR__) . '/models/Booking.php';
+            $bookingModel = new Booking();
+            $id = $_POST['booking_id'];
+
+            $booking = $bookingModel->getById($id);
+            if ($booking && strtolower($booking['payment_status'] ?? 'unpaid') === 'partially_paid') {
+                $bookingModel->updatePaymentStatus($id, 'paid');
+                header('Location: /EventManagementSystem/public/admin/bookings/view?id=' . $id . '&paid=1');
+                exit;
+            }
+        }
+
+        header('Location: /EventManagementSystem/public/admin/bookings');
+        exit;
     }
 }

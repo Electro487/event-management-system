@@ -1,5 +1,6 @@
 CREATE DATABASE IF NOT EXISTS event_management_system;
 USE event_management_system;
+
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `fullname` VARCHAR(100) NOT NULL,
@@ -47,5 +48,18 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     `payment_status` ENUM('unpaid', 'paid') NOT NULL DEFAULT 'unpaid',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `payments` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `booking_id` INT NOT NULL,
+    `client_id` INT NOT NULL,
+    `transaction_id` VARCHAR(100) UNIQUE NOT NULL,
+    `amount` DECIMAL(10, 2) NOT NULL,
+    `payment_method` VARCHAR(50) DEFAULT 'card',
+    `status` ENUM('succeeded', 'failed') NOT NULL DEFAULT 'succeeded',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`booking_id`) REFERENCES `bookings`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;

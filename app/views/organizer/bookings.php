@@ -208,11 +208,17 @@
                                 <td style="text-align:right; padding-right:24px;">
                                     <div class="action-cell">
                                         <?php if ($rowStatus == 'pending'): ?>
+                                            <?php 
+                                                $pStat = strtolower($b['payment_status'] ?? 'unpaid');
+                                                $canApprove = ($pStat === 'paid' || $pStat === 'partially_paid');
+                                            ?>
                                             <form action="/EventManagementSystem/public/organizer/bookings/approve" method="POST"
                                                 style="margin:0; display:inline-block;">
                                                 <input type="hidden" name="booking_id" value="<?php echo $b['id']; ?>">
                                                 <button type="submit" class="btn-approve"
-                                                    onclick="return confirm('Approve this booking?')">Approve</button>
+                                                    <?php echo !$canApprove ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Wait for 50% advance payment"' : 'onclick="return confirm(\'Approve this booking?\')"'; ?>>
+                                                    Approve
+                                                </button>
                                             </form>
                                             <a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $b['id']; ?>"
                                                 class="btn-view secondary">View</a>

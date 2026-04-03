@@ -386,23 +386,53 @@ if (empty($items)) {
                         </div>
 
                         <div class="price-breakdown">
-                            <div class="price-row">
-                                <span><?php echo ucfirst($packageTier); ?> Package</span>
-                                <span><?php echo number_format($basePrice, 2); ?></span>
+                            <div class="price-row" style="margin-bottom: 5px;">
+                                <span>Total Amount</span>
+                                <span>₨ <?php echo number_format($totalAmount, 2); ?></span>
+                            </div>
+                            <div class="price-row" style="color: #1f6f59; font-weight: 600; margin-bottom: 5px;">
+                                <span>Advance (50% Online)</span>
+                                <span>₨ <?php echo number_format($totalAmount * 0.5, 2); ?></span>
+                            </div>
+                            <div class="price-row" style="color: #64748b; font-size: 13px;">
+                                <span>Balance (50% Cash)</span>
+                                <span>₨ <?php echo number_format($totalAmount * 0.5, 2); ?></span>
                             </div>
                         </div>
 
-                        <div class="total-row">
-                            <span>Total Amount</span>
-                            <span class="total-price">NRs <?php echo number_format($totalAmount, 2); ?></span>
-                        </div>
+                        <input type="hidden" name="pay_later" id="pay_later_flag" value="0">
 
                         <button type="submit" class="btn-confirm">
-                            Confirm Booking <i class="fa-solid fa-arrow-right"></i>
+                            Proceed to Pay Advance <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
-                        <p class="terms-text">By clicking confirm, you agree to e-Plan's Terms of Service and Privacy
+                        <button type="button" class="btn-confirm" onclick="submitWithPayLater()" 
+                                style="background: transparent; color: #64748b; border: 1px solid #e2e8f0; margin-top: 10px;">
+                            I'll Pay Advance Later
+                        </button>
+
+                        <div class="policy-info" style="margin-top: 15px; padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; line-height: 1.4;">
+                            <i class="fa-solid fa-circle-info"></i> <b>Advance Required:</b> A 50% non-refundable advance is required online to secure your booking. The remaining 50% balance must be paid in cash on the event day.
+                        </div>
+
+                        <p class="terms-text" style="margin-top: 15px;">By clicking confirm, you agree to e-Plan's Terms of Service and Privacy
                             Policy.</p>
+
+                        <script>
+                            function submitWithPayLater() {
+                                const form = document.querySelector('form');
+                                
+                                // Manually trigger HTML5 validation
+                                if (!form.reportValidity()) {
+                                    return; // Stop if form is invalid
+                                }
+
+                                if (confirm("Notice: Your booking will remain 'PENDING' and is NOT secured until the 50% advance is received. You can pay this later from your 'My Bookings' dashboard. Do you want to proceed and book now?")) {
+                                    document.getElementById('pay_later_flag').value = '1';
+                                    form.submit();
+                                }
+                            }
+                        </script>
                     </div>
                 </div>
 

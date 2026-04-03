@@ -251,15 +251,44 @@ $steps = [
                             <span class="badge-status <?php echo $displayStatus; ?>"><?php echo strtoupper($displayStatus); ?></span>
                         </div>
                         
+                        <?php 
+                            $pStat = strtolower($booking['payment_status'] ?? 'unpaid');
+                            $canConfirm = ($pStat === 'paid' || $pStat === 'partially_paid');
+                        ?>
+                        
                         <?php if($status === 'pending'): ?>
                             <form action="/EventManagementSystem/public/admin/bookings/approve" method="POST" 
                                   onsubmit="return confirm('Are you sure you want to CONFIRM this booking?')">
                                 <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
-                                <button type="submit" class="btn-manage btn-confirm"><i class="fa-solid fa-circle-check"></i> Confirm Booking</button>
+                                <button type="submit" class="btn-manage btn-confirm" <?php echo !$canConfirm ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
+                                    <i class="fa-solid fa-circle-check"></i> 
+                                    <?php echo $canConfirm ? 'Confirm Booking' : 'Advance Payment Required'; ?>
+                                </button>
+                                <?php if(!$canConfirm): ?>
+                                    <p style="color: #ef4444; font-size: 11px; margin-top: 8px; font-weight: 500; display: flex; align-items: center; gap: 5px;">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> 
+                                        Wait for client to pay 50% advance first.
+                                    </p>
+                                <?php endif; ?>
                             </form>
                         <?php endif; ?>
                         
-                        <?php if($status === 'pending' || $status === 'confirmed'): ?>
+                        <?php if($status !== 'cancelled' && $pStat === 'partially_paid'): ?>
+                            <form action="/EventManagementSystem/public/admin/bookings/mark-paid" method="POST"
+                                  onsubmit="return confirm('Confirm that you have received the remaining 50% cash balance for this booking?')">
+                                <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
+                                <button type="submit" class="btn-manage" style="background: #10b981; color: white;">
+                                    <i class="fa-solid fa-money-bill-check"></i> Mark as Fully Paid (Cash)
+                                </button>
+                            </form>
+                        <?php endif; ?>
+
+                        <?php if(($status === 'pending' || $status === 'confirmed') && $pStat !== 'paid'): ?>
+                            <?php if($pStat === 'partially_paid'): ?>
+                                <div style="margin: 15px 0 10px; padding: 10px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; font-size: 11px; color: #9f1239; line-height: 1.4;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> <b>Payment Detected:</b> This booking has a recorded payment. If you cancel, you must manually process any refunds via your payment provider.
+                                </div>
+                            <?php endif; ?>
                             <form action="/EventManagementSystem/public/admin/bookings/cancel" method="POST"
                                   onsubmit="return confirm('Are you sure you want to CANCEL this booking? This action cannot be undone.')">
                                 <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
@@ -273,22 +302,49 @@ $steps = [
                 <div class="card">
                     <div class="card-header-small"><h4>Financial Summary</h4></div>
                     <div class="finance-row">
-                        <span>Package Price</span>
-                        <span>Rs. <?php echo number_format($basePrice, 0); ?></span>
-                    </div>
-                    <div class="finance-row total">
                         <span>Total Amount</span>
                         <span>Rs. <?php echo number_format($totalAmount, 0); ?></span>
                     </div>
-                    
+
+                    <?php 
+                        $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+                        $advance = $totalAmount * 0.5;
+                        $balance = $totalAmount * 0.5;
+                    ?>
+
+                    <div class="finance-row">
+                        <span>Advance (50% Online)</span>
+                        <span style="color: <?php echo ($payStatus !== 'unpaid') ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($advance, 0); ?> 
+                            <?php if($payStatus !== 'unpaid'): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
+                    </div>
+
+                    <div class="finance-row">
+                        <span>Remaining (50% Cash)</span>
+                        <span style="color: <?php echo ($payStatus === 'paid') ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($balance, 0); ?>
+                            <?php if($payStatus === 'paid'): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
+                    </div>
+
                     <div class="payment-status">
-                        <span class="lbl">Payment Status</span>
+                        <span class="lbl">Current Status</span>
                         <?php 
-                            $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                            $payLabel = ($payStatus === 'paid') ? 'PAID' : 'PENDING';
-                            $payCls = ($payStatus === 'paid') ? 'paid' : 'pending';
+                            if ($payStatus === 'paid') {
+                                $payLabel = 'FULLY PAID';
+                                $payCls = 'paid';
+                            } elseif ($payStatus === 'partially_paid') {
+                                $payLabel = 'ADVANCE RECEIVED';
+                                $payCls = 'pending'; // Using orange for partial
+                            } else {
+                                $payLabel = 'NOT PAID';
+                                $payCls = 'pending';
+                            }
                         ?>
-                        <span class="badge-status <?php echo $payCls; ?>"><?php echo $payLabel; ?></span>
+                        <span class="val <?php echo $payCls; ?>" style="<?php echo ($payStatus === 'partially_paid') ? 'background:#fff7ed; color:#f59e0b; border:1px solid #ffedd5;' : ''; ?>">
+                            <?php echo $payLabel; ?>
+                        </span>
                     </div>
                 </div>
 

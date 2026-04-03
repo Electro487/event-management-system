@@ -318,7 +318,7 @@
                     <p class="dp-pkg-desc" id="sb-pkg-desc">Includes full access features.</p>
                 </div>
 
-                <div class="dp-info-list">
+                <div class="dp-info-list" style="margin-bottom: 0; padding-bottom: 0;">
                     <div class="dp-info-item">
                         <div class="dp-ii-icon"><i class="fa-regular fa-user"></i></div>
                         <div class="dp-ii-content">
@@ -327,6 +327,23 @@
                             <span class="dp-ii-sub">Event Manager</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Payment Breakdown Section -->
+                <div class="dp-info-list" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">PAYMENT BREAKDOWN (50/50 POLICY)</div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #475569;">Advance (50% Online)</span>
+                        <span id="sb-advance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs. 0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-size: 13px; color: #475569;">Remaining (50% Cash)</span>
+                        <span id="sb-balance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs. 0.00</span>
+                    </div>
+                </div>
+
+                <div class="dp-info-list" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 20px;">
                     <div class="dp-info-item">
                         <div class="dp-ii-icon"><i class="fa-solid fa-location-dot"></i></div>
                         <div class="dp-ii-content">
@@ -346,6 +363,12 @@
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Pay Now Button (Hidden by default, shown via JS) -->
+                    <a href="#" id="sb-pay-btn" class="btn-send-msg" 
+                       style="display: none; background: #246A55; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600;">
+                        <i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online
+                    </a>
+
                     <button class="btn-send-msg" type="button"><i class="fa-regular fa-message"></i> Send
                         Message</button>
                     <form id="cancel-booking-form" action="/EventManagementSystem/public/client/bookings/cancel"
@@ -431,10 +454,56 @@
 
             document.getElementById('sb-time').innerText = formatTime(data.event_date);
 
+            // Handle Payment Breakdown
+            const total = parseFloat(data.total_amount);
+            const advance = total * 0.5;
+            const balance = total * 0.5;
+            const payStatus = (data.payment_status || 'unpaid').toLowerCase();
+
+            document.getElementById('sb-advance-val').innerText = 'Rs. ' + advance.toLocaleString(undefined, { minimumFractionDigits: 2 });
+            document.getElementById('sb-balance-val').innerText = 'Rs. ' + balance.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+            const advanceEl = document.getElementById('sb-advance-val');
+            const balanceEl = document.getElementById('sb-balance-val');
+
+            if (payStatus !== 'unpaid') {
+                advanceEl.innerHTML = 'Rs. ' + advance.toLocaleString(undefined, { minimumFractionDigits: 2 }) + ' <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>';
+                advanceEl.style.color = '#10b981';
+            } else {
+                advanceEl.style.color = '#1e293b';
+            }
+
+            if (payStatus === 'paid') {
+                balanceEl.innerHTML = 'Rs. ' + balance.toLocaleString(undefined, { minimumFractionDigits: 2 }) + ' <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>';
+                balanceEl.style.color = '#10b981';
+            } else {
+                balanceEl.style.color = '#1e293b';
+            }
+
+            // Handle Pay Now Button
+            const payBtn = document.getElementById('sb-pay-btn');
+            if (payBtn) {
+                // Only show Pay Now if they haven't even paid the advance yet
+                if (payStatus === 'unpaid' && (data.status === 'pending' || data.status === 'confirmed')) {
+                    payBtn.href = '/EventManagementSystem/public/client/payment/checkout?booking_id=' + data.id;
+                    payBtn.style.display = 'block';
+                } else {
+                    payBtn.style.display = 'none';
+                }
+            }
+
             // Handle Cancel Button
             let cancelForm = document.getElementById('cancel-booking-form');
             if (cancelForm) {
-                if (data.status === 'pending' || data.status === 'confirmed') {
+                const bStatus = (data.status || '').toLowerCase();
+                const payStatus = (data.payment_status || 'unpaid').toLowerCase();
+                
+                // Rule: HIDE only if (Confirmed AND (Partially Paid or Paid))
+                // Also hide if already cancelled or completed
+                const isLocked = (bStatus === 'confirmed' && payStatus !== 'unpaid');
+                const isActive = (bStatus === 'pending' || bStatus === 'confirmed');
+                
+                if (isActive && !isLocked) {
                     document.getElementById('cancel-booking-id').value = data.id;
                     cancelForm.style.display = 'block';
                 } else {
@@ -500,6 +569,19 @@
 
         // Initialize first item on load
         document.addEventListener("DOMContentLoaded", function () {
+            // Check for success notifications
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('booking_success')) {
+                // Show a nice notification (could be a toast, but using alert for simplicity in this base)
+                setTimeout(() => {
+                    alert("✅ Event Reserved! Your booking is saved, but please remember to pay the 50% advance soon to secure your date. You can pay anytime from the sidebar.");
+                }, 500);
+                
+                // Clear the URL param without refreshing
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash;
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+
             const firstItem = document.querySelector('.b-item');
             if (firstItem) {
                 selectBooking(firstItem.getAttribute('data-index'), firstItem);

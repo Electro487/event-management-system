@@ -344,6 +344,10 @@ if (empty($includedItemsList)) {
                         Book Now <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <p class="tax-note">* Prices are exclusive of taxes and subject to customization.</p>
+                    <div class="policy-badge" style="margin-top: 15px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; display: flex; align-items: start; gap: 8px; line-height: 1.4;">
+                        <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
+                        <span><b>Payment Policy:</b> Securing this event requires a non-refundable <b>50% advance payment</b> online. The remaining balance will be collected in cash on the event day.</span>
+                    </div>
                 </div>
 
 

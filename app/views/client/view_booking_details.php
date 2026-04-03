@@ -388,17 +388,70 @@ $steps = [
                     <h3>Payment Summary</h3>
 
                     <div class="price-row">
-                        <span><?php echo ucfirst($booking['package_tier']); ?> Package</span>
+                        <span>Total Booking Amount</span>
                         <span>Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
                     </div>
 
-                    <div class="price-row total">
-                        <span>Total Paid</span>
-                        <span>Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
+                    <?php 
+                        $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+                        $advance = $booking['total_amount'] * 0.5;
+                        $balance = $booking['total_amount'] * 0.5;
+                        
+                        $isPartiallyPaid = ($payStatus === 'partially_paid');
+                        $isFullyPaid = ($payStatus === 'paid');
+                    ?>
+
+                    <div class="price-row">
+                        <span>Advance (50% Online)</span>
+                        <span style="color: <?php echo ($isPartiallyPaid || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($advance, 2); ?>
+                            <?php if($isPartiallyPaid || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
                     </div>
 
-                    <?php if (in_array($displayStatus, ['pending', 'confirmed'])): ?>
-                        <div style="margin-top: 30px;">
+                    <div class="price-row">
+                        <span>Balance (50% Cash on Event Day)</span>
+                        <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($balance, 2); ?>
+                            <?php if($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
+                    </div>
+
+                    <div class="price-row total <?php echo ($isPartiallyPaid || $isFullyPaid) ? 'paid' : 'pending'; ?>" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                        <span>Current Status</span>
+                        <span>
+                            <?php 
+                                if($isFullyPaid) echo 'FULLY PAID';
+                                elseif($isPartiallyPaid) echo 'ADVANCE PAID';
+                                else echo 'PAYMENT PENDING';
+                            ?>
+                        </span>
+                    </div>
+
+                    <?php if ($payStatus === 'unpaid'): ?>
+                        <div style="margin-top: 20px;">
+                            <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=<?php echo $booking['id']; ?>" 
+                               class="btn-primary" 
+                               style="display: block; text-align: center; background: #246A55; color: white;">
+                                <i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="policy-note" style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
+                        <span style="font-size:12px; color:#0369a1; display:flex; gap:8px; line-height:1.4;">
+                            <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i> 
+                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer on the day of the event.</span>
+                        </span>
+                    </div>
+
+                    <?php 
+                        $isLocked = ($displayStatus === 'confirmed' && $payStatus !== 'unpaid');
+                        $canCancel = ($displayStatus === 'pending' || ($displayStatus === 'confirmed' && $payStatus === 'unpaid'));
+                    ?>
+
+                    <?php if ($canCancel): ?>
+                        <div style="margin-top: 15px;">
                             <form action="/EventManagementSystem/public/client/bookings/cancel" method="POST"
                                 style="margin:0;">
                                 <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
