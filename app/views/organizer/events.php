@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
 </head>
 <body>
@@ -29,9 +29,9 @@
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="icon-btn">🔔</button>
+                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
                     <div class="user-avatar-small">
-                        <img src="/EventManagementSystem/public/assets/images/avatar-placeholder.png" alt="Profile">
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
                     </div>
                 </div>
             </div>
@@ -101,9 +101,7 @@
                             <a href="/EventManagementSystem/public/organizer/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit" title="Edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <a href="/EventManagementSystem/public/organizer/events/view?id=<?php echo $event['id']; ?>" class="btn-action view" title="View">
-                                <i class="fas fa-eye"></i> View
-                            </a>
+
                             <a href="/EventManagementSystem/public/organizer/events/delete?id=<?php echo $event['id']; ?>" class="btn-action delete" title="Delete" onclick="return confirm('Are you sure you want to delete this event?')">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </a>

@@ -12,7 +12,7 @@
         <h1>Client Dashboard</h1>
         <p>Welcome, <?php echo htmlspecialchars($_SESSION['user_fullname']); ?>!</p>
         <p>This is your simple client dashboard.</p>
-        <a href="/EventManagementSystem/public/logout" class="logout-btn">Logout</a>
+
     </div>
 </body>
 </html>

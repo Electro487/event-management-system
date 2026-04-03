@@ -1,15 +1,52 @@
 <?php
 
-class OrganizerController {
-    public function dashboard() {
+class OrganizerController
+{
+    private function checkAuth()
+    {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id'])) {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
+
+        // FETCH CURRENT ROLE FROM DATABASE FOR REAL-TIME SYNC
+        require_once dirname(__DIR__) . '/models/User.php';
+        $userModel = new User();
+        $currentUser = $userModel->findById($_SESSION['user_id']);
+
+        if (!$currentUser || $currentUser['is_blocked']) {
+            session_destroy();
+            header('Location: /EventManagementSystem/public/login');
+            exit;
+        }
+
+        // Update session role if it changed in DB
+        $_SESSION['user_role'] = $currentUser['role'];
+        $role = $_SESSION['user_role'];
+
+        if ($role === 'admin') {
+            header('Location: /EventManagementSystem/public/admin/dashboard');
+            exit;
+        }
+
+        if ($role === 'client') {
+            header('Location: /EventManagementSystem/public/client/events');
+            exit;
+        }
+
+        if ($role !== 'organizer') {
+            header('Location: /EventManagementSystem/public/login');
+            exit;
+        }
+    }
+
+    public function dashboard()
+    {
+        $this->checkAuth();
 
         // Fetch Upcoming Events
         require_once dirname(__DIR__) . '/models/Event.php';
@@ -86,12 +123,13 @@ class OrganizerController {
         require_once dirname(__DIR__) . '/views/organizer/dashboard.php';
     }
 
-    public function events() {
+    public function events()
+    {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
@@ -104,12 +142,13 @@ class OrganizerController {
         require_once dirname(__DIR__) . '/views/organizer/events.php';
     }
 
-    public function createEvent() {
+    public function createEvent()
+    {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
@@ -117,12 +156,13 @@ class OrganizerController {
         require_once dirname(__DIR__) . '/views/organizer/create_event.php';
     }
 
-    public function storeEvent() {
+    public function storeEvent()
+    {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
             header('Location: /EventManagementSystem/public/login');
             exit;
         }
@@ -144,7 +184,8 @@ class OrganizerController {
         }
     }
 
-    public function viewEvent() {
+    public function viewEvent()
+    {
         $this->checkAuth();
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -164,7 +205,8 @@ class OrganizerController {
         require_once dirname(__DIR__) . '/views/organizer/view_event.php';
     }
 
-    public function editEvent() {
+    public function editEvent()
+    {
         $this->checkAuth();
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -185,11 +227,13 @@ class OrganizerController {
         require_once dirname(__DIR__) . '/views/organizer/create_event.php';
     }
 
-    public function updateEvent() {
+    public function updateEvent()
+    {
         $this->checkAuth();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'] ?? null;
-            if (!$id) exit;
+            if (!$id)
+                exit;
 
             require_once dirname(__DIR__) . '/models/Event.php';
             $eventModel = new Event();
@@ -200,7 +244,7 @@ class OrganizerController {
             }
 
             $data = $this->getEventDataFromPost();
-            
+
             // Handle image update
             $newImagePath = $this->handleImageUpload();
             $data['image_path'] = $newImagePath ?: $existingEvent['image_path'];
@@ -215,7 +259,8 @@ class OrganizerController {
         }
     }
 
-    public function deleteEvent() {
+    public function deleteEvent()
+    {
         $this->checkAuth();
         $id = $_GET['id'] ?? null;
         if ($id) {
@@ -233,17 +278,118 @@ class OrganizerController {
         exit;
     }
 
-    private function checkAuth() {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
+    public function bookings()
+    {
+        $this->checkAuth();
+
+        require_once dirname(__DIR__) . '/models/Booking.php';
+        $bookingModel = new Booking();
+
+        $bookings = $bookingModel->getByOrganizer($_SESSION['user_id']);
+
+        $totalBookings = count($bookings);
+        $confirmedCount = 0;
+        $pendingCount = 0;
+        $cancelledCount = 0;
+        $completedCount = 0;
+
+        $today = date('Y-m-d');
+        foreach ($bookings as &$b) {
+            $dateStr = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
+            $isPast = ($dateStr < $today);
+            
+            $displayStatus = strtolower($b['status']);
+            if ($displayStatus === 'confirmed' && $isPast) {
+                $displayStatus = 'completed';
+            }
+            $b['display_status'] = $displayStatus;
+
+            if ($displayStatus === 'confirmed') $confirmedCount++;
+            if ($displayStatus === 'pending') $pendingCount++;
+            if ($displayStatus === 'cancelled') $cancelledCount++;
+            if ($displayStatus === 'completed') $completedCount++;
         }
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        unset($b); // Important: break the reference to the last element
+
+        require_once dirname(__DIR__) . '/views/organizer/bookings.php';
     }
 
-    private function getEventDataFromPost() {
+    public function viewBooking()
+    {
+        $this->checkAuth();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /EventManagementSystem/public/organizer/bookings');
+            exit;
+        }
+
+        require_once dirname(__DIR__) . '/models/Booking.php';
+        $bookingModel = new Booking();
+        $booking = $bookingModel->getById($id);
+
+        if (!$booking || $booking['organizer_id'] != $_SESSION['user_id']) {
+            header('Location: /EventManagementSystem/public/organizer/bookings');
+            exit;
+        }
+
+        // Dynamic Status Logic: Past confirmed bookings reflect as 'completed'
+        $today = date('Y-m-d');
+        $dateStr = $booking['event_date'] ?: ($booking['event_start_date'] ?? '9999-12-31');
+        $isPast = ($dateStr < $today);
+        
+        $displayStatus = strtolower($booking['status']);
+        if ($displayStatus === 'confirmed' && $isPast) {
+            $displayStatus = 'completed';
+        }
+        $booking['display_status'] = $displayStatus;
+
+        require_once dirname(__DIR__) . '/views/organizer/booking_detail.php';
+    }
+
+    public function approveBooking()
+    {
+        $this->checkAuth();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['booking_id'] ?? null;
+            if ($id) {
+                require_once dirname(__DIR__) . '/models/Booking.php';
+                $bookingModel = new Booking();
+                $booking = $bookingModel->getById($id);
+
+                if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
+                    $bookingModel->updateStatus($id, 'confirmed');
+                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
+                    exit;
+                }
+            }
+        }
+        header('Location: /EventManagementSystem/public/organizer/bookings');
+        exit;
+    }
+
+    public function cancelBooking()
+    {
+        $this->checkAuth();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['booking_id'] ?? null;
+            if ($id) {
+                require_once dirname(__DIR__) . '/models/Booking.php';
+                $bookingModel = new Booking();
+                $booking = $bookingModel->getById($id);
+
+                if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
+                    $bookingModel->updateStatus($id, 'cancelled');
+                    header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
+                    exit;
+                }
+            }
+        }
+        header('Location: /EventManagementSystem/public/organizer/bookings');
+        exit;
+    }
+
+    private function getEventDataFromPost()
+    {
         return [
             'organizer_id' => $_SESSION['user_id'],
             'title' => $_POST['title'] ?? '',
@@ -257,7 +403,8 @@ class OrganizerController {
         ];
     }
 
-    private function handleImageUpload() {
+    private function handleImageUpload()
+    {
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = dirname(dirname(__DIR__)) . '/public/assets/images/events/';
             if (!file_exists($uploadDir)) {
@@ -272,5 +419,11 @@ class OrganizerController {
             }
         }
         return null;
+    }
+
+    public function messages()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/organizer/messages.php';
     }
 }

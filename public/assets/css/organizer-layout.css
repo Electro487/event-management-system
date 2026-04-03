@@ -1,23 +1,23 @@
 /* organizer-layout.css (Unified with dashboard layouts) */
 :root {
     /* Legacy organizer variables merged */
-    --primary-color: #0d5c3d;
+    --primary-color: #246A55;
     --bg-light: #f4f7f6;
     --text-dark: #333333;
     --sidebar-width: 250px;
 
     /* Dashboard Layout variables */
     --bg-color: #f4f7f6;
-    --sidebar-bg: #0d5c3d;
+    --sidebar-bg: #246A55;
     --sidebar-text: #a8cfba;
-    --sidebar-active-bg: #1b6c4b;
-    --sidebar-active-text: #ffffff;
+    --sidebar-active-bg: #246A55;
+    --sidebar-active-text: #FFC24A;
     --text-main: #333333;
     --text-muted: #7a8288;
-    --brand-color: #2d9460;
-    --accent-color: #ffb420;
+    --brand-color: #246A55;
+    --accent-color: #FFC24A;
     --danger-color: #e74c3c;
-    --success-color: #2ecc71;
+    --success-color: #246A55;
     --white: #ffffff;
     --border-color: #e5e9f2;
 }
@@ -40,12 +40,17 @@ body {
 /*  SIDEBAR STYLING                      */
 /* ------------------------------------- */
 .sidebar {
+    position: fixed;
+    height: 100vh;
+    top: 0;
+    left: 0;
     width: var(--sidebar-width);
     background-color: var(--sidebar-bg);
     color: var(--white);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    z-index: 1000;
 }
 
 .sidebar .brand {
@@ -127,11 +132,13 @@ body {
 /*  MAIN CONTENT                         */
 /* ------------------------------------- */
 .main-content {
+    margin-left: var(--sidebar-width);
     flex: 1;
     padding: 30px;
     display: flex;
     flex-direction: column;
     gap: 25px;
+    min-width: 0; /* Ensure it doesn't overflow */
 }
 
 /* Dashboard Header Options */
@@ -266,7 +273,7 @@ body {
     border-radius: 12px;
 }
 
-.stat-trend.up { background: #e6fcf0; color: #17a05e; }
+.stat-trend.up { background: #e6fcf0; color: #246A55; }
 .stat-trend.high { background: #feebeb; color: #e74c3c; }
 
 .stat-card p {
@@ -359,7 +366,7 @@ td {
     font-weight: 600;
 }
 
-.badge.confirmed { background: #e6fcf0; color: #17a05e; }
+.badge.confirmed { background: #e6fcf0; color: #246A55; }
 .badge.pending { background: #fff4e5; color: #e67e22; }
 .badge.cancelled { background: #feebeb; color: #e74c3c; }
 
@@ -560,12 +567,38 @@ td {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #e0e0e0;
+    background: transparent;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--sidebar-bg);
+}
+
+.user-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.up-text {
+    text-align: right;
+}
+
+.up-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
+}
+
+.up-role {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-top: 2px;
 }
 
 .user-avatar-small img {
@@ -577,6 +610,10 @@ td {
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;
+    }
+
+    .main-content {
+        margin-left: 70px;
     }
 
     .sidebar .brand,

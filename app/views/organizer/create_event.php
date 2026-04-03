@@ -7,14 +7,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
 </head>
 <body>
 
     <?php 
         $activePage = 'events';
-        include_once __DIR__ . '/partials/sidebar.php'; 
+        include_once dirname(__DIR__) . "/organizer/partials/sidebar.php"; 
         
         $isEdit = isset($isEdit) && $isEdit;
         $event = $event ?? [];
@@ -41,6 +41,7 @@
         <form action="<?php echo $formAction; ?>" method="POST" enctype="multipart/form-data" class="create-event-form" id="createEventForm">
             <?php if ($isEdit): ?>
                 <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
+                <input type="hidden" name="organizer_id" value="<?php echo $event['organizer_id']; ?>">
             <?php endif; ?>
             
             <!-- Event Identity -->
@@ -56,7 +57,8 @@
                     </div>
                     <div class="form-group">
                         <label>CATEGORY SELECTION</label>
-                        <select name="category">
+                        <select name="category" required>
+                            <option value="">-- Select Category --</option>
                             <?php 
                             $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
                             foreach ($categories as $cat): 
@@ -67,7 +69,7 @@
                     </div>
                     <div class="form-group">
                         <label>DESCRIPTION</label>
-                        <textarea name="description" placeholder="Describe the narrative and architectural vision..." rows="5"><?php echo htmlspecialchars($event['description'] ?? ''); ?></textarea>
+                        <textarea name="description" placeholder="Describe the narrative and architectural vision..." rows="5" required><?php echo htmlspecialchars($event['description'] ?? ''); ?></textarea>
                     </div>
                 </div>
             </div>
@@ -112,11 +114,11 @@
                     </div>
                     <div class="form-group">
                         <label>VENUE NAME</label>
-                        <input type="text" name="venue_name" placeholder="The Grand Altius Pavilion" value="<?php echo htmlspecialchars($event['venue_name'] ?? ''); ?>">
+                        <input type="text" name="venue_name" placeholder="The Grand Altius Pavilion" value="<?php echo htmlspecialchars($event['venue_name'] ?? ''); ?>" required>
                     </div>
                     <div class="form-group">
                         <label>VENUE LOCATION</label>
-                        <input type="text" name="venue_location" placeholder="e.g. Royal Exhibition Hall, Kathmandu" value="<?php echo htmlspecialchars($event['venue_location'] ?? ''); ?>">
+                        <input type="text" name="venue_location" placeholder="e.g. Royal Exhibition Hall, Kathmandu" value="<?php echo htmlspecialchars($event['venue_location'] ?? ''); ?>" required>
                     </div>
                 </div>
             </div>
@@ -136,7 +138,7 @@
                         $existingPackages = [
                             'basic' => [
                                 'description' => '',
-                                'price_range' => '',
+                                'price' => '',
                                 'items' => [
                                     ['title' => 'Venue Setup', 'description' => 'Standard seating and basic ambient lighting.'],
                                     ['title' => 'Essential Coordination', 'description' => 'On-the-day event management and support.']
@@ -144,7 +146,7 @@
                             ],
                             'standard' => [
                                 'description' => '',
-                                'price_range' => '',
+                                'price' => '',
                                 'items' => [
                                     ['title' => 'Decor Templates', 'description' => 'Choice of 5 thematic floral arrangements.'],
                                     ['title' => 'Entertainment Selection', 'description' => 'Live acoustic band or professional DJ.']
@@ -152,7 +154,7 @@
                             ],
                             'premium' => [
                                 'description' => '',
-                                'price_range' => '',
+                                'price' => '',
                                 'items' => [
                                     ['title' => 'Full Management', 'description' => 'End-to-end event concierge and coordination.'],
                                     ['title' => 'Exclusive Catering & Decor', 'description' => 'Premium 5-course meal and luxury imported floral arrangements.']
@@ -181,13 +183,13 @@
                             <button type="button" class="add-section-btn" data-tier="<?php echo $tierKey; ?>">+ Add Section</button>
                         </div>
                         <div class="package-body">
-                            <div class="form-group">
+                            <div class="form-group pkg-desc-group">
                                 <label>PACKAGE DESCRIPTION</label>
-                                <input type="text" name="packages[<?php echo $tierKey; ?>][description]" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package...">
+                                <input type="text" name="packages[<?php echo $tierKey; ?>][description]" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package..." required>
                             </div>
-                            <div class="form-group">
-                                <label>PRICE RANGE</label>
-                                <input type="text" name="packages[<?php echo $tierKey; ?>][price_range]" value="<?php echo htmlspecialchars($pkgData['price_range'] ?? ''); ?>" placeholder="e.g. Rs. 20,000 - Rs. 40,000">
+                            <div class="form-group pkg-price-group">
+                                <label>PRICE (NPR)</label>
+                                <input type="number" name="packages[<?php echo $tierKey; ?>][price]" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="0">
                             </div>
                             <div class="items-list" data-tier="<?php echo $tierKey; ?>">
                                 <?php foreach ($items as $idx => $item): ?>

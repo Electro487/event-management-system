@@ -9,10 +9,11 @@ class HomeController {
         // If logged in, redirect to dashboard
         if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
             $role = $_SESSION['user_role'];
-            if ($role === 'admin') {
-                $role = 'organizer';
+            if ($role === 'client') {
+                $redirect = '/EventManagementSystem/public/client/events';
+            } else {
+                $redirect = '/EventManagementSystem/public/' . $role . '/dashboard';
             }
-            $redirect = '/EventManagementSystem/public/' . $role . '/dashboard';
             header('Location: ' . $redirect);
             exit;
         }

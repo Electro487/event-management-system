@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Using FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
@@ -27,8 +27,8 @@
             </div>
             <div class="header-icons">
                 <i class="far fa-bell"></i>
-                <i class="far fa-question-circle"></i>
-                <img src="/EventManagementSystem/public/assets/images/default-avatar.png" alt="Profile" onerror="this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname']); ?>&background=0D8ABC&color=fff'">
+
+                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
             </div>
         </header>
 
@@ -181,7 +181,7 @@
                 <div class="upcoming-events">
                     <div class="section-header" style="margin-bottom: 25px;">
                         <h3>Upcoming Events</h3>
-                        <span style="background:#e6fcf0; color:#17a05e; padding:4px 10px; border-radius:12px; font-weight:600; font-size:12px;">
+                        <span style="background:#e6fcf0; color:#246A55; padding:4px 10px; border-radius:12px; font-weight:600; font-size:12px;">
                             <?php echo count($upcomingEvents); ?> Active
                         </span>
                     </div>

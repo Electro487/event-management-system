@@ -8,11 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-event.css">
 </head>
 <body>
-    <?php include 'partials/sidebar.php'; ?>
+    <?php 
+        include_once dirname(__DIR__) . "/organizer/partials/sidebar.php"; 
+    ?>
     
     <main class="main-content">
         <a href="/EventManagementSystem/public/organizer/events" class="btn-back">← Back to Dashboard</a>
@@ -48,8 +50,13 @@
             if (!empty($packages)): 
                 foreach ($packages as $pkg): ?>
                 <div class="package-card">
-                    <h3><?php echo htmlspecialchars($pkg['title']); ?></h3>
-                    <p><?php echo nl2br(htmlspecialchars($pkg['description'])); ?></p>
+                    <?php if (is_array($pkg)): ?>
+                        <h3><?php echo htmlspecialchars($pkg['title'] ?? 'Package'); ?></h3>
+                        <p><?php echo nl2br(htmlspecialchars($pkg['description'] ?? '')); ?></p>
+                    <?php else: ?>
+                        <h3>Package</h3>
+                        <p><?php echo nl2br(htmlspecialchars((string)$pkg)); ?></p>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; 
             else: ?>

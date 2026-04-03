@@ -1,0 +1,357 @@
+<?php ?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - e-Plan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css">
+    <!-- Base styles (navbar etc) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header class="header">
+        <a href="/EventManagementSystem/public/" class="logo">e-Plan</a>
+        <nav class="nav-links">
+            <a href="/EventManagementSystem/public/">Home</a>
+            <a href="/EventManagementSystem/public/client/events">Browse Events</a>
+            <a href="/EventManagementSystem/public/client/bookings" style="color: #1f6f59;">My Bookings</a>
+            <a href="#">About</a>
+        </nav>
+        <div class="nav-icons">
+            <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <div
+                    style="width: 32px; height: 32px; background: #1f6f59; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer;">
+                    <?php echo strtoupper(substr($_SESSION['user_fullname'], 0, 1)); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+
+        <!-- Header Row -->
+        <div class="page-header-row clearfix">
+            <a href="/EventManagementSystem/public/client/events" class="btn-browse-more">Browse More Events <i
+                    class="fa-solid fa-arrow-right"></i></a>
+            <div class="headings">
+                <h1 class="page-header-title">MY BOOKINGS</h1>
+                <p class="page-header-desc">Manage your upcoming and past event reservations. Keep track of invitations,
+                    payments, and schedules in one place.</p>
+            </div>
+        </div>
+
+        <!-- 4 Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <span class="stat-label">Total Bookings</span>
+                <span class="stat-value"><?php echo str_pad($totalBookings, 2, '0', STR_PAD_LEFT); ?></span>
+            </div>
+            <div class="stat-card confirmed">
+                <span class="stat-label">Confirmed</span>
+                <span class="stat-value"><?php echo str_pad($confirmedCount, 2, '0', STR_PAD_LEFT); ?></span>
+            </div>
+            <div class="stat-card pending">
+                <span class="stat-label">Pending</span>
+                <span class="stat-value"><?php echo str_pad($pendingCount, 2, '0', STR_PAD_LEFT); ?></span>
+            </div>
+            <div class="stat-card completed">
+                <span class="stat-label">Completed</span>
+                <span class="stat-value"><?php echo str_pad($completedCount, 2, '0', STR_PAD_LEFT); ?></span>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterBookings('all', this)">All
+                <span><?php echo $totalBookings; ?></span></div>
+            <div class="filter-tab" onclick="filterBookings('upcoming', this)">Upcoming
+                <span><?php echo $upcomingCount; ?></span></div>
+            <div class="filter-tab" onclick="filterBookings('completed', this)">Completed
+                <span><?php echo $completedCount; ?></span></div>
+            <div class="filter-tab" onclick="filterBookings('cancelled', this)">Cancelled
+                <span><?php echo $cancelledCount; ?></span></div>
+        </div>
+
+        <div class="main-layout">
+
+            <!-- Left: Bookings List -->
+            <div class="booking-list" id="bookingsList">
+                <?php if (empty($bookings)): ?>
+                    <div class="empty-state">No bookings found in this category.</div>
+                <?php else: ?>
+                    <?php foreach ($bookings as $index => $booking):
+                        $isUpcoming = in_array($booking['status'], ['pending', 'confirmed']) ? 'true' : 'false';
+                        $catStyle = $booking['event_category'] == 'Exhibition' || strtolower($booking['event_category']) == 'education' ? 'background: #e5e7eb; color: #4b5563;' : '';
+                        if (strtolower($booking['event_category']) == 'music') {
+                            $catStyle = 'background: #fef08a; color: #854d0e;';
+                        }
+                        ?>
+                        <div class="b-item" data-status="<?php echo $booking['status']; ?>"
+                            data-upcoming="<?php echo $isUpcoming; ?>" data-index="<?php echo $index; ?>"
+                            onclick="selectBooking(<?php echo $index; ?>, this)">
+
+                            <?php $image = !empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>
+                            <img src="<?php echo htmlspecialchars($image); ?>" alt="Event Cover" class="b-img">
+
+                            <div class="b-content">
+                                <div>
+                                    <div class="b-top">
+                                        <div class="b-title-wrap">
+                                            <h3 class="b-title"><?php echo htmlspecialchars($booking['event_title']); ?></h3>
+                                            <span class="b-cat-badge"
+                                                style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($booking['event_category'] ?: 'Event'); ?></span>
+                                        </div>
+                                        <span class="b-status-badge status-<?php echo htmlspecialchars($booking['status']); ?>">
+                                            <?php echo strtoupper($booking['status']); ?>
+                                        </span>
+                                    </div>
+                                    <div class="b-middle">
+                                        <span><i class="fa-solid fa-address-card"></i>
+                                            <?php echo ucfirst($booking['package_tier']); ?> Package</span>
+                                        <span><i class="fa-solid fa-user-group"></i>
+                                            <?php echo htmlspecialchars($booking['guest_count']); ?> Guests</span>
+                                        <span><i class="fa-regular fa-calendar"></i>
+                                            <?php echo date('M d, Y', strtotime($booking['event_date'])); ?></span>
+                                    </div>
+                                </div>
+                                <div class="b-bottom">
+                                    <div class="b-date-booked">Booked on:
+                                        <?php echo date('M d, Y', strtotime($booking['created_at'])); ?></div>
+                                    <div class="b-price-action">
+                                        <span class="b-price">Rs.
+                                            <?php echo number_format($booking['total_amount'], 2); ?></span>
+                                        <a href="/EventManagementSystem/public/client/bookings/view?id=<?php echo $booking['id']; ?>"
+                                            class="b-view-link">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <!-- Right: Sidebar -->
+            <div class="details-panel" id="sidebarPanel" style="<?php echo empty($bookings) ? 'display:none;' : ''; ?>">
+                <div class="dp-header">
+                    <h2 class="dp-title">Booking Details</h2>
+                    <span class="dp-id-badge" id="sb-id">BK-000</span>
+                </div>
+
+                <img src="/EventManagementSystem/public/assets/images/placeholder.jpg" id="sb-img" class="dp-img"
+                    alt="Event Image">
+
+                <div class="dp-status-row">
+                    <span class="b-status-badge status-confirmed" id="sb-status">CONFIRMED</span>
+                    <span class="dp-event-name" id="sb-event-title">Event Title</span>
+                </div>
+
+                <div class="dp-package-box">
+                    <div class="dp-pkg-top">
+                        <span class="dp-pkg-label">SELECTED PACKAGE</span>
+                        <span class="dp-pkg-price" id="sb-price">Rs. 0.00</span>
+                    </div>
+                    <h3 class="dp-pkg-name" id="sb-pkg-name">Premium Package</h3>
+                    <p class="dp-pkg-desc" id="sb-pkg-desc">Includes full access features.</p>
+                </div>
+
+                <div class="dp-info-list">
+                    <div class="dp-info-item">
+                        <div class="dp-ii-icon"><i class="fa-regular fa-user"></i></div>
+                        <div class="dp-ii-content">
+                            <span class="dp-ii-label">ORGANIZER</span>
+                            <span class="dp-ii-val" id="sb-org-name">Organizer Name</span>
+                            <span class="dp-ii-sub">Event Manager</span>
+                        </div>
+                    </div>
+                    <div class="dp-info-item">
+                        <div class="dp-ii-icon"><i class="fa-solid fa-location-dot"></i></div>
+                        <div class="dp-ii-content">
+                            <span class="dp-ii-label">LOCATION</span>
+                            <span class="dp-ii-val" id="sb-loc-name">Venue Name</span>
+                            <span class="dp-ii-sub" id="sb-loc-address">Address</span>
+                        </div>
+                    </div>
+                    <div class="dp-info-item">
+                        <div class="dp-ii-icon"><i class="fa-regular fa-clock"></i></div>
+                        <div class="dp-ii-content">
+                            <span class="dp-ii-label">CHECK-IN TIME</span>
+                            <span class="dp-ii-val" id="sb-time">08:00 AM</span>
+                            <span class="dp-ii-sub">Local time zone</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-send-msg" type="button"><i class="fa-regular fa-message"></i> Send
+                        Message</button>
+                    <form id="cancel-booking-form" action="/EventManagementSystem/public/client/bookings/cancel"
+                        method="POST" style="margin:0; display: none;">
+                        <input type="hidden" name="booking_id" id="cancel-booking-id" value="">
+                        <button class="btn-send-msg" type="submit" style="background: #fee2e2; color: #b91c1c;"
+                            onclick="return confirm('Are you sure you want to cancel this booking? This action cannot be undone.');">
+                            <i class="fa-solid fa-xmark"></i> Cancel Booking
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Pass PHP data to JS for dynamic sidebar
+        const bookingsData = <?php echo json_encode($bookings); ?>;
+
+        // Format date string to AM/PM Time
+        function formatTime(dateStr) {
+            if (!dateStr) return '08:00 AM';
+            const d = new Date(dateStr);
+            let hours = d.getHours();
+            let minutes = d.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        function selectBooking(index, element) {
+            // Highlight active card
+            document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
+            if (element) {
+                element.classList.add('active');
+            }
+
+            const data = bookingsData[index];
+            if (!data) return;
+
+            // Populate Sidebar
+            document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
+
+            let imgUrl = data.event_image ? data.event_image : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            document.getElementById('sb-img').src = imgUrl;
+
+            const statusEl = document.getElementById('sb-status');
+            statusEl.innerText = data.status.toUpperCase();
+            statusEl.className = 'b-status-badge status-' + data.status;
+
+            document.getElementById('sb-event-title').innerText = data.event_title;
+
+            document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+            // Derive package name
+            let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + ' Package';
+            let pDesc = 'Includes selected access & features.';
+
+            // Try getting exact package data from JSON decoded array
+            if (data.packages_data && data.packages_data[data.package_tier]) {
+                const storedPkg = data.packages_data[data.package_tier];
+                if (storedPkg.description) {
+                    pDesc = storedPkg.description;
+                }
+            }
+
+            document.getElementById('sb-pkg-name').innerText = pName;
+            document.getElementById('sb-pkg-desc').innerText = pDesc;
+
+            document.getElementById('sb-org-name').innerText = data.organizer_name || 'Event Organizer';
+
+            let locName = data.venue_name || 'Convention Center';
+            let locAddr = data.venue_location || 'Address TBD';
+            if (!data.venue_name && data.venue_location) {
+                locName = data.venue_location;
+                locAddr = "Local Venue";
+            }
+            document.getElementById('sb-loc-name').innerText = locName;
+            document.getElementById('sb-loc-address').innerText = locAddr;
+
+            document.getElementById('sb-time').innerText = formatTime(data.event_date);
+
+            // Handle Cancel Button
+            let cancelForm = document.getElementById('cancel-booking-form');
+            if (cancelForm) {
+                if (data.status === 'pending' || data.status === 'confirmed') {
+                    document.getElementById('cancel-booking-id').value = data.id;
+                    cancelForm.style.display = 'block';
+                } else {
+                    cancelForm.style.display = 'none';
+                }
+            }
+        }
+
+        function filterBookings(filterType, element) {
+            // Update Tabs
+            document.querySelectorAll('.filter-tab').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            // Filter List
+            const items = document.querySelectorAll('.b-item');
+            let visibleCount = 0;
+            let firstVisibleIdx = -1;
+            let firstVisibleEl = null;
+
+            items.forEach(item => {
+                const status = item.getAttribute('data-status');
+                const upcoming = item.getAttribute('data-upcoming');
+                const idx = item.getAttribute('data-index');
+
+                let show = false;
+
+                if (filterType === 'all') show = true;
+                else if (filterType === 'upcoming' && upcoming === 'true') show = true;
+                else if (status === filterType) show = true;
+
+                if (show) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                    if (firstVisibleIdx === -1) {
+                        firstVisibleIdx = idx;
+                        firstVisibleEl = item;
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            const noData = document.querySelector('.empty-state');
+            const sidebar = document.getElementById('sidebarPanel');
+
+            if (visibleCount === 0) {
+                if (!noData && document.getElementById('bookingsList')) {
+                    document.getElementById('bookingsList').innerHTML += '<div class="empty-state">No bookings found in this category.</div>';
+                } else if (noData) {
+                    noData.style.display = 'block';
+                }
+                sidebar.style.display = 'none';
+            } else {
+                if (noData) noData.style.display = 'none';
+                sidebar.style.display = 'block';
+
+                // Auto select first visible
+                if (firstVisibleIdx !== -1) {
+                    selectBooking(firstVisibleIdx, firstVisibleEl);
+                }
+            }
+        }
+
+        // Initialize first item on load
+        document.addEventListener("DOMContentLoaded", function () {
+            const firstItem = document.querySelector('.b-item');
+            if (firstItem) {
+                selectBooking(firstItem.getAttribute('data-index'), firstItem);
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

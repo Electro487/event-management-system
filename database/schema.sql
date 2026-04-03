@@ -1,6 +1,5 @@
 CREATE DATABASE IF NOT EXISTS event_management_system;
 USE event_management_system;
-DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `fullname` VARCHAR(100) NOT NULL,
@@ -28,4 +27,23 @@ CREATE TABLE IF NOT EXISTS `events` (
     `packages` JSON DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`organizer_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `bookings` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `event_id` INT NOT NULL,
+    `client_id` INT NOT NULL,
+    `package_tier` VARCHAR(50) NOT NULL,
+    `event_date` DATE NOT NULL,
+    `guest_count` INT NOT NULL,
+    `full_name` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(100) NOT NULL,
+    `phone` VARCHAR(20) NOT NULL,
+    `checkin_time` VARCHAR(20) DEFAULT '10:00 AM',
+    `total_amount` DECIMAL(10, 2) NOT NULL,
+    `status` ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+    `payment_status` ENUM('unpaid', 'paid') NOT NULL DEFAULT 'unpaid',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;

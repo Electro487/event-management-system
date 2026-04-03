@@ -2,6 +2,7 @@
 require_once dirname(__DIR__) . '/config/database.php';
 
 class Event {
+    /** @var PDO */
     private $db;
 
     public function __construct() {
@@ -65,6 +66,61 @@ class Event {
     }
 
     /**
+     * @return array
+     */
+    public function getAllActiveEvents($category = null, $search = null, $limit = 50, $offset = 0): array {
+        $sql = "SELECT * FROM events WHERE status = 'active'";
+        $params = [];
+
+        if ($category && $category !== 'All') {
+            $sql .= " AND category = :category";
+            $params[':category'] = $category;
+        }
+
+        if ($search) {
+            $sql .= " AND (title LIKE :search OR description LIKE :search OR venue_location LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($params as $key => &$val) {
+            $stmt->bindParam($key, $val);
+        }
+
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countActiveEvents($category = null, $search = null): int {
+        $sql = "SELECT COUNT(*) as count FROM events WHERE status = 'active'";
+        $params = [];
+
+        if ($category && $category !== 'All') {
+            $sql .= " AND category = :category";
+            $params[':category'] = $category;
+        }
+
+        if ($search) {
+            $sql .= " AND (title LIKE :search OR description LIKE :search OR venue_location LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => &$val) {
+            $stmt->bindParam($key, $val);
+        }
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    /**
      * @return array|false
      */
     public function getById($id) {
@@ -109,5 +165,34 @@ class Event {
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':id', $id);
         return $stmt->execute();
+    }
+
+    public function countAll() {
+        $sql = "SELECT COUNT(*) as count FROM events";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function getAll(): array {
+        $sql = "SELECT e.*, u.fullname as organizer_name 
+                FROM events e 
+                JOIN users u ON e.organizer_id = u.id 
+                ORDER BY e.created_at DESC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getUpcoming($limit = 5): array {
+        $sql = "SELECT e.id, e.title, e.category, e.image_path, e.event_date, u.fullname as organizer_name
+                FROM events e
+                JOIN users u ON e.organizer_id = u.id
+                WHERE e.event_date >= CURDATE()
+                ORDER BY e.event_date ASC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

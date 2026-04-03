@@ -130,7 +130,7 @@ body {
 /* Hero Section */
 .hero {
     position: relative;
-    background: url('/EventManagementSystem/public/assets/images/hero_bg.png') no-repeat center center;
+    background: url('/EventManagementSystem/public/assets/images/cool.jpeg') no-repeat center center;
     background-size: cover;
     min-height: 100vh;
     display: flex;
