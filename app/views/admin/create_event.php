@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
 </head>
@@ -30,7 +31,14 @@
                     <span class="current"><?php echo $isEdit ? 'Edit Event' : 'Create New Event'; ?></span>
                 </div>
             </div>
-            ...
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-avatar-small">
+                        <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <section class="page-title-section">
@@ -101,17 +109,7 @@
                     <p>Spatial and temporal parameters for the physical event.</p>
                 </div>
                 <div class="section-fields">
-                    <div class="form-group">
-                        <label>RECOMMENDED PLANNING LEAD TIME</label>
-                        <select name="lead_time">
-                            <?php 
-                            $leads = ["1 month" => "At least 1 month before", "3 months" => "At least 3 months before", "6 months" => "At least 6 months before"];
-                            foreach ($leads as $val => $label): 
-                            ?>
-                                <option value="<?php echo $val; ?>" <?php echo (isset($event['lead_time']) && $event['lead_time'] == $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+
                     <div class="form-group">
                         <label>VENUE NAME</label>
                         <input type="text" name="venue_name" placeholder="The Grand Altius Pavilion" value="<?php echo htmlspecialchars($event['venue_name'] ?? ''); ?>" required>

@@ -28,7 +28,7 @@
             <div class="header-icons">
                 <i class="far fa-bell"></i>
 
-                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
+                <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
         </header>
 
@@ -48,7 +48,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="far fa-calendar"></i></div>
-                    <span class="stat-trend up">+12% <i class="fas fa-arrow-trend-up"></i></span>
                 </div>
                 <p>Total Events</p>
                 <h3><?php echo number_format($totalEvents); ?></h3>
@@ -56,7 +55,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-mobile-alt"></i></div>
-                    <span class="stat-trend up">+5% <i class="fas fa-arrow-trend-up"></i></span>
                 </div>
                 <p>Total Bookings</p>
                 <h3><?php echo number_format($totalBookings); ?></h3>
@@ -64,7 +62,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="far fa-clipboard"></i></div>
-                    <span class="stat-trend high">High</span>
                 </div>
                 <p>Pending Requests</p>
                 <h3><?php echo number_format($pendingRequests); ?></h3>
@@ -72,7 +69,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="far fa-money-bill-alt"></i></div>
-                    <span class="stat-trend up">+24% <i class="fas fa-arrow-trend-up"></i></span>
                 </div>
                 <p>Revenue</p>
                 <h3>Rs. <?php echo number_format($revenue); ?></h3>
@@ -88,7 +84,7 @@
                 <div class="recent-bookings" style="margin-bottom: 25px;">
                     <div class="section-header">
                         <h3>Recent Bookings</h3>
-                        <a href="#">View All</a>
+                        <a href="/EventManagementSystem/public/organizer/bookings">View All</a>
                     </div>
                     <table>
                         <thead>
@@ -127,7 +123,7 @@
                                                 <?php echo ucfirst(htmlspecialchars($booking['status'])); ?>
                                             </span>
                                         </td>
-                                        <td><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                                        <td><a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $booking['id']; ?>" style="color: #246A55; font-weight: 600; text-decoration: none; font-size: 13px;">View</a></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

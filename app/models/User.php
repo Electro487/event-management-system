@@ -219,4 +219,14 @@ class User
         $stmt->bindParam(':id', $userId);
         return $stmt->execute();
     }
+
+    public function updateProfilePicture($userId, $path)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "UPDATE users SET profile_picture = :path WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':path', $path);
+        $stmt->bindParam(':id', $userId);
+        return $stmt->execute();
+    }
 }

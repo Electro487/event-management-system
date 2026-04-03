@@ -17,16 +17,4 @@
             </ul>
         </nav>
     </div>
-    <div class="sidebar-bottom">
-
-        <div class="user-profile">
-            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
-            <div class="info">
-                <h4>
-                    <?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?>
-                </h4>
-                <span>Event Organizer</span>
-            </div>
-        </div>
-    </div>
 </aside>

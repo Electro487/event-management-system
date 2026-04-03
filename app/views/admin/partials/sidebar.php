@@ -14,20 +14,7 @@
                             class="far fa-calendar-alt"></i> All Events</a></li>
                 <li><a href="/EventManagementSystem/public/admin/bookings" class="<?php echo ($activePage == 'bookings') ? 'active' : ''; ?>"><i
                             class="far fa-calendar-check"></i> All Bookings</a></li>
-
             </ul>
         </nav>
-    </div>
-    <div class="sidebar-bottom">
-
-        <div class="user-profile">
-            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
-            <div class="info">
-                <h4>
-                    <?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'Admin'); ?>
-                </h4>
-                <span>System Admin</span>
-            </div>
-        </div>
     </div>
 </aside>

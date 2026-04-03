@@ -44,12 +44,14 @@
 
     <main class="main-content">
         <header class="header">
-            <div class="breadcrumb" style="font-size: 14px; color: #64748b;">
-                Admin / <span style="color: #246A55; font-weight: 600;">User Management</span>
-            </div>
+            <form action="/EventManagementSystem/public/admin/events" method="GET" class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" placeholder="Search events, bookings, or users...">
+                <button type="submit" style="display:none;"></button>
+            </form>
             <div class="header-icons">
                 <i class="far fa-bell"></i>
-                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
+                <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
         </header>
 

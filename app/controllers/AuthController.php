@@ -106,7 +106,7 @@ class AuthController
 
                 if ($user) {
                     // Check if blocked
-                    if ($user['is_blocked']) {
+                    if (!empty($user['is_blocked'])) {
                         $error = 'Your account has been blocked. Please contact support.';
                     }
                     // Check if verified
@@ -129,6 +129,7 @@ class AuthController
                         $_SESSION['user_email'] = $user['email'];
                         $_SESSION['user_role'] = $user['role'];
                         $_SESSION['user_fullname'] = $user['fullname'];
+                        $_SESSION['user_profile_pic'] = $user['profile_picture'] ?? null;
 
                         // Redirect based on role
                         $role = $user['role'];

@@ -53,14 +53,17 @@ class Event {
     }
 
     public function getUpcomingEvents($organizer_id, $limit = 5) {
-        $sql = "SELECT id, title, category, image_path, event_date 
-                FROM events 
-                WHERE organizer_id = :organizer_id AND event_date >= CURDATE()
-                ORDER BY event_date ASC
+        $sql = "SELECT DISTINCT e.id, e.title, e.category, e.image_path, e.event_date 
+                FROM events e
+                JOIN bookings b ON e.id = b.event_id
+                WHERE e.organizer_id = :organizer_id 
+                AND (LOWER(b.status) = 'confirmed')
+                AND (e.event_date >= CURDATE() OR b.event_date >= CURDATE())
+                ORDER BY LEAST(IFNULL(e.event_date, '9999-12-31'), IFNULL(b.event_date, '9999-12-31')) ASC
                 LIMIT :limit";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':organizer_id', $organizer_id);
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -184,14 +187,29 @@ class Event {
     }
 
     public function getUpcoming($limit = 5): array {
-        $sql = "SELECT e.id, e.title, e.category, e.image_path, e.event_date, u.fullname as organizer_name
+        $sql = "SELECT DISTINCT e.id, e.title, e.category, e.image_path, e.event_date, u.fullname as organizer_name
                 FROM events e
-                JOIN users u ON e.organizer_id = u.id
-                WHERE e.event_date >= CURDATE()
-                ORDER BY e.event_date ASC
+                LEFT JOIN users u ON e.organizer_id = u.id
+                JOIN bookings b ON e.id = b.event_id
+                WHERE (LOWER(b.status) = 'confirmed') 
+                AND (e.event_date >= CURDATE() OR b.event_date >= CURDATE())
+                ORDER BY LEAST(IFNULL(e.event_date, '9999-12-31'), IFNULL(b.event_date, '9999-12-31')) ASC
                 LIMIT :limit";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function searchAll($query): array {
+        $sql = "SELECT e.*, u.fullname as organizer_name 
+                FROM events e 
+                LEFT JOIN users u ON e.organizer_id = u.id 
+                WHERE e.title LIKE :query OR e.description LIKE :query OR u.fullname LIKE :query
+                ORDER BY e.created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $q = "%$query%";
+        $stmt->bindParam(':query', $q);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

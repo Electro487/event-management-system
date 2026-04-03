@@ -18,7 +18,7 @@ class ClientController
         $userModel = new User();
         $currentUser = $userModel->findById($_SESSION['user_id']);
 
-        if (!$currentUser || $currentUser['is_blocked']) {
+        if (!$currentUser || !empty($currentUser['is_blocked'])) {
             session_destroy();
             header('Location: /EventManagementSystem/public/login');
             exit;
@@ -264,5 +264,85 @@ class ClientController
         $selectedPackage = $packages[$booking['package_tier']] ?? null;
 
         require_once dirname(__DIR__) . '/views/client/view_booking_details.php';
+    }
+
+    public function updateProfile()
+    {
+        $this->checkClientAuth();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) {
+            $userId = $_SESSION['user_id'];
+            $file = $_FILES['profile_picture'];
+            
+            if ($file['error'] === UPLOAD_ERR_OK) {
+                // Generate unique name
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $filename = 'profile_' . $userId . '_' . time() . '.' . $ext;
+                
+                // Allow only images
+                $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+                if (in_array(strtolower($ext), $allowed)) {
+                    $uploadPath = dirname(dirname(__DIR__)) . '/public/assets/images/profiles/' . $filename;
+                    
+                    if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                        require_once dirname(__DIR__) . '/models/User.php';
+                        $userModel = new User();
+                        $publicPath = '/EventManagementSystem/public/assets/images/profiles/' . $filename;
+                        
+                        // Delete old profile picture if exists
+                        $currentUser = $userModel->findById($userId);
+                        if (!empty($currentUser['profile_picture'])) {
+                            $oldPath = str_replace('/EventManagementSystem/public', dirname(dirname(__DIR__)) . '/public', $currentUser['profile_picture']);
+                            if (file_exists($oldPath) && is_file($oldPath)) {
+                                unlink($oldPath);
+                            }
+                        }
+
+                        $userModel->updateProfilePicture($userId, $publicPath);
+                        $_SESSION['user_profile_pic'] = $publicPath;
+                        
+                        // Send success JSON response
+                        header('Content-Type: application/json');
+                        echo json_encode(['success' => true, 'path' => $publicPath]);
+                        exit;
+                    }
+                }
+            }
+        }
+        
+        // Handle error JSON response
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Upload failed.']);
+        exit;
+    }
+
+    public function deleteProfilePicture()
+    {
+        $this->checkClientAuth();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_SESSION['user_id'];
+            require_once dirname(__DIR__) . '/models/User.php';
+            $userModel = new User();
+            
+            $currentUser = $userModel->findById($userId);
+            if (!empty($currentUser['profile_picture'])) {
+                $oldPath = str_replace('/EventManagementSystem/public', dirname(dirname(__DIR__)) . '/public', $currentUser['profile_picture']);
+                if (file_exists($oldPath) && is_file($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            $userModel->updateProfilePicture($userId, null);
+            $_SESSION['user_profile_pic'] = null;
+            
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+            exit;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false]);
+        exit;
     }
 }

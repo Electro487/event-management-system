@@ -30,6 +30,8 @@ $routes = [
     '/client/bookings' => 'ClientController@myBookings',
     '/client/bookings/cancel' => 'ClientController@cancelBooking',
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
+    '/client/profile/update' => 'ClientController@updateProfile',
+    '/client/profile/delete-picture' => 'ClientController@deleteProfilePicture',
 
     // Admin Routes
     '/admin/dashboard' => 'AdminController@dashboard',
@@ -49,4 +51,9 @@ $routes = [
     '/admin/bookings/view' => 'AdminController@viewBooking',
     '/admin/bookings/approve' => 'AdminController@approveBooking',
     '/admin/bookings/cancel' => 'AdminController@cancelBooking',
+    '/admin/profile/update' => 'AdminController@updateProfile',
+    '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
+    
+    '/organizer/profile/update' => 'OrganizerController@updateProfile',
+    '/organizer/profile/delete-picture' => 'OrganizerController@deleteProfilePicture',
 ];

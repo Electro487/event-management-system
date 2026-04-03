@@ -66,7 +66,7 @@ $steps = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking #EPLN-<?php echo str_pad($booking['id'], 5, '0', STR_PAD_LEFT); ?> - e-Plan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-booking-details.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-booking-details.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -83,9 +83,160 @@ $steps = [
         <div class="nav-icons">
             <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
             <?php if (isset($_SESSION['user_id'])): ?>
-                <div style="width: 32px; height: 32px; background: #1f6f59; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer;">
-                    <?php echo strtoupper(substr($_SESSION['user_fullname'], 0, 1)); ?>
+                <?php
+                    $initials = '';
+                    $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+                    foreach($nameParts as $p) {
+                        $initials .= strtoupper(substr($p, 0, 1));
+                    }
+                    if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+                ?>
+                <div style="position: relative;" id="profile-container">
+                    <div onclick="toggleProfileDropdown()" id="profile-icon" style="width: 32px; height: 32px; background: #1f6f59; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; overflow: hidden; border: 2px solid #1f6f59;">
+                        <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
+                        <?php else: ?>
+                            <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <!-- Dropdown Modal -->
+                    <div id="profile-dropdown" class="profile-dropdown">
+                        <div class="pd-top">
+                            <div class="pd-avatar-container">
+                                <div class="pd-avatar">
+                                    <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
+                                    <?php else: ?>
+                                        <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
+                                    <i class="fa-solid fa-pen"></i>
+                                </label>
+                                <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                    <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
+                            </div>
+                            <h3 class="pd-name"><?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?></h3>
+                            <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
+                            <span class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
+                        </div>
+                        <div class="pd-bottom">
+                            <?php 
+                                $firstName = $nameParts[0] ?? '';
+                                $lastName = count($nameParts) > 1 ? end($nameParts) : '';
+                            ?>
+                            <div class="pd-detail">
+                                <label>FIRST NAME</label>
+                                <div><?php echo htmlspecialchars($firstName); ?></div>
+                            </div>
+                            <div class="pd-detail">
+                                <label>LAST NAME</label>
+                                <div><?php echo htmlspecialchars($lastName); ?></div>
+                            </div>
+                            <div class="pd-detail">
+                                <label>EMAIL ADDRESS</label>
+                                <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
+                            </div>
+                            
+                            <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                            </a>
+                        </div>
+                    </div>
                 </div>
+                
+                <script>
+                function toggleProfileDropdown() {
+                    const dropdown = document.getElementById('profile-dropdown');
+                    dropdown.classList.toggle('show');
+                }
+                
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    const container = document.getElementById('profile-container');
+                    if (container && !container.contains(event.target)) {
+                        document.getElementById('profile-dropdown').classList.remove('show');
+                    }
+                });
+
+                function uploadProfilePicture(input) {
+                    if (input.files && input.files[0]) {
+                        const formData = new FormData();
+                        formData.append('profile_picture', input.files[0]);
+                        
+                        fetch('/EventManagementSystem/public/client/profile/update', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update header avatar
+                                let headerIcon = document.getElementById('profile-icon');
+                                headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                
+                                // Update dropdown avatar
+                                let dropdownAvatar = document.querySelector('.pd-avatar');
+                                dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+
+                                // Add delete icon if not exists
+                                if (!document.querySelector('.pd-delete-icon')) {
+                                    let avatarContainer = document.querySelector('.pd-avatar-container');
+                                    let deleteBtn = document.createElement('div');
+                                    deleteBtn.className = 'pd-delete-icon';
+                                    deleteBtn.title = 'Remove Photo';
+                                    deleteBtn.onclick = deleteProfilePicture;
+                                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                    avatarContainer.appendChild(deleteBtn);
+                                }
+                            } else {
+                                alert(data.message || 'Error uploading image.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred during upload.');
+                        });
+                    }
+                }
+
+                function deleteProfilePicture() {
+                    if (confirm('Are you sure you want to remove your profile picture?')) {
+                        fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                            method: 'POST'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                
+                                // Update header avatar
+                                let headerIcon = document.getElementById('profile-icon');
+                                headerIcon.innerHTML = initialsElement;
+                                
+                                // Update dropdown avatar
+                                let dropdownAvatar = document.querySelector('.pd-avatar');
+                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                
+                                // Remove delete icon if exists
+                                let deleteIcon = document.querySelector('.pd-delete-icon');
+                                if (deleteIcon) deleteIcon.remove();
+                            } else {
+                                alert('Error removing image.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred.');
+                        });
+                    }
+                }
+                </script>
             <?php endif; ?>
         </div>
     </header>

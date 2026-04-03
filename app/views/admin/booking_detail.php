@@ -120,7 +120,7 @@ $steps = [
                     <button class="icon-btn-plain"><i class="fa-regular fa-bell"></i></button>
                     <button class="icon-btn-plain"><i class="fa-solid fa-gear"></i></button>
                     <div class="user-avatar-circle">
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
+                        <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                     </div>
                 </div>
             </div>

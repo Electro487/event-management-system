@@ -23,14 +23,15 @@
     <main class="main-content">
         <!-- Header -->
         <header class="header">
-            <div class="search-bar">
+            <form action="/EventManagementSystem/public/admin/events" method="GET" class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search system-wide...">
-            </div>
+                <input type="text" name="search" placeholder="Search system-wide..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+                <button type="submit" style="display:none;"></button>
+            </form>
             <div class="header-icons">
                 <i class="far fa-bell"></i>
 
-                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
+                <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
         </header>
 
@@ -50,7 +51,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon" style="background: #eef2ff; color: #4338ca;"><i class="fas fa-users"></i></div>
-                    <span class="stat-trend">System</span>
                 </div>
                 <p>Total Users</p>
                 <h3><?php echo number_format($totalUsers ?? 0); ?></h3>
@@ -58,7 +58,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon" style="background: #fff7ed; color: #c2410c;"><i class="far fa-calendar-alt"></i></div>
-                    <span class="stat-trend">Global</span>
                 </div>
                 <p>Total Events</p>
                 <h3><?php echo number_format($totalEvents ?? 0); ?></h3>
@@ -66,7 +65,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon" style="background: #f0fdf4; color: #246A55;"><i class="fas fa-check-double"></i></div>
-                    <span class="stat-trend">Global</span>
                 </div>
                 <p>Total Bookings</p>
                 <h3><?php echo number_format($totalBookings ?? 0); ?></h3>
@@ -74,7 +72,6 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon" style="background: #fef2f2; color: #b91c1c;"><i class="fas fa-exclamation-circle"></i></div>
-                    <span class="stat-trend high">Attention</span>
                 </div>
                 <p>Pending Requests</p>
                 <h3><?php echo number_format($pendingRequests ?? 0); ?></h3>
@@ -120,9 +117,9 @@
                                                 <?php echo ucfirst(htmlspecialchars($booking['status'])); ?>
                                             </span>
                                         </td>
-                                        <td>
-                                            <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $booking['id']; ?>" class="action-btn" title="View Detail">
-                                                <i class="fas fa-eye"></i>
+                                         <td>
+                                            <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $booking['id']; ?>" style="color: #4338ca; font-weight: 600; text-decoration: none; font-size: 13px;">
+                                                View
                                             </a>
                                         </td>
                                     </tr>
@@ -151,7 +148,7 @@
                                         <h4><?php echo htmlspecialchars(strlen($event['title']) > 25 ? substr($event['title'],0,25).'...' : $event['title']); ?></h4>
                                         <div class="event-meta">
                                             <span class="category"><?php echo htmlspecialchars($event['category'] ?? 'Event'); ?></span>
-                                            <span class="organizer" style="font-size: 10px; color: #888;">by <?php echo htmlspecialchars($event['organizer_name']); ?></span>
+                                            <span class="organizer" style="font-size: 10px; color: #888;">by <?php echo htmlspecialchars($event['organizer_name'] ?? 'System'); ?></span>
                                         </div>
                                     </div>
                                     <i class="fas fa-chevron-right"></i>

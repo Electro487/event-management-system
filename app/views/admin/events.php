@@ -20,19 +20,15 @@
     ?>
 
     <main class="main-content">
-        <header class="content-header">
-            <div class="header-left">
-                <div class="breadcrumb" style="font-size: 14px; color: #64748b;">
-                    Admin / <span style="color: #246A55; font-weight: 600;">All Events</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-actions">
-                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
-                    <div class="user-avatar-small">
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
-                    </div>
-                </div>
+        <header class="header">
+            <form action="/EventManagementSystem/public/admin/events" method="GET" class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" placeholder="Search system-wide..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+                <button type="submit" style="display:none;"></button>
+            </form>
+            <div class="header-icons">
+                <i class="far fa-bell"></i>
+                <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
         </header>
 

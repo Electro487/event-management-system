@@ -44,7 +44,7 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.venue_location, e.venue_name, e.packages as event_packages, e.event_date as event_start_date,
-                       u.fullname as organizer_name
+                       e.organizer_id, u.fullname as organizer_name
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 JOIN users u ON e.organizer_id = u.id
@@ -62,7 +62,7 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.description as event_description, e.venue_location, e.venue_name, e.packages as event_packages, 
-                       e.event_date as event_start_date, u.fullname as organizer_name
+                       e.event_date as event_start_date, e.organizer_id, u.fullname as organizer_name
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 JOIN users u ON e.organizer_id = u.id
@@ -88,7 +88,7 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.venue_location, e.venue_name, e.packages as event_packages, e.event_date as event_start_date,
-                       c.fullname as client_user_name
+                       e.organizer_id, c.fullname as client_user_name
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 LEFT JOIN users c ON b.client_id = c.id
@@ -106,7 +106,7 @@ class Booking
     {
         $sql = "SELECT b.*, e.title as event_title, e.image_path as event_image, e.category as event_category, 
                        e.venue_location, e.venue_name, e.packages as event_packages, e.event_date as event_start_date,
-                       c.fullname as client_user_name
+                       e.organizer_id, c.fullname as client_user_name
                 FROM bookings b 
                 JOIN events e ON b.event_id = e.id 
                 LEFT JOIN users c ON b.client_id = c.id
@@ -157,6 +157,53 @@ class Booking
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countByOrganizer($organizer_id)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings b JOIN events e ON b.event_id = e.id WHERE e.organizer_id = :organizer_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function countByStatusForOrganizer($organizer_id, $status)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings b JOIN events e ON b.event_id = e.id WHERE e.organizer_id = :organizer_id AND b.status = :status";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->bindParam(':status', $status);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function getRecentByOrganizer($organizer_id, $limit = 5)
+    {
+        $sql = "SELECT b.*, e.title as event_name, b.package_tier as package_name, c.fullname as client_name
+                FROM bookings b
+                JOIN events e ON b.event_id = e.id
+                JOIN users c ON b.client_id = c.id
+                WHERE e.organizer_id = :organizer_id
+                ORDER BY b.created_at DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRevenueByOrganizer($organizer_id)
+    {
+        $sql = "SELECT SUM(b.total_amount) as total FROM bookings b JOIN events e ON b.event_id = e.id WHERE e.organizer_id = :organizer_id AND b.status = 'confirmed'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (float)($result['total'] ?? 0);
     }
 
     public function exists($event_id, $client_id)

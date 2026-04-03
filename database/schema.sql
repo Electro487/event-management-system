@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `password` VARCHAR(255) NOT NULL,
     `role` ENUM('admin', 'organizer', 'client') NOT NULL DEFAULT 'client',
     `is_verified` TINYINT(1) DEFAULT 0,
+    `is_blocked` TINYINT(1) DEFAULT 0,
     `otp_code` VARCHAR(6) DEFAULT NULL,
     `otp_expires_at` DATETIME DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP

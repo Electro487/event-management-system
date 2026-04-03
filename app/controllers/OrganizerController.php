@@ -18,7 +18,7 @@ class OrganizerController
         $userModel = new User();
         $currentUser = $userModel->findById($_SESSION['user_id']);
 
-        if (!$currentUser || $currentUser['is_blocked']) {
+        if (!$currentUser || !empty($currentUser['is_blocked'])) {
             session_destroy();
             header('Location: /EventManagementSystem/public/login');
             exit;
@@ -47,78 +47,32 @@ class OrganizerController
     public function dashboard()
     {
         $this->checkAuth();
+        $organizer_id = $_SESSION['user_id'];
 
-        // Fetch Upcoming Events
         require_once dirname(__DIR__) . '/models/Event.php';
-        $eventModel = new Event();
-        $totalEvents = 24; // Mock total events
-        
-        // Mock Upcomin Events Data
-        $upcomingEvents = [
-            [
-                'title' => 'The Royal Wedding',
-                'category' => 'Wedding',
-                'image_path' => null,
-                'event_date' => date('Y-m-d H:i:s', strtotime('+3 days'))
-            ],
-            [
-                'title' => 'Global Tech Expo',
-                'category' => 'Corporate',
-                'image_path' => null,
-                'event_date' => date('Y-m-d H:i:s', strtotime('+7 days'))
-            ],
-            [
-                'title' => 'Winter Charity Gala',
-                'category' => 'Gala',
-                'image_path' => null,
-                'event_date' => date('Y-m-d H:i:s', strtotime('+12 days'))
-            ],
-            [
-                'title' => 'Jazz on the Beach',
-                'category' => 'Concert',
-                'image_path' => null,
-                'event_date' => date('Y-m-d H:i:s', strtotime('+24 days'))
-            ]
-        ];
-        
-        // Dummy Booking Data 
-        $totalBookings = 87;
-        $pendingRequests = 14;
-        $revenue = 240000;
-        
-        $recentBookings = [
-            [
-                'client_name' => 'Sarah Miller', 
-                'event_name' => 'Winter Gala',
-                'package_name' => 'Premium',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-2 days')),
-                'status' => 'confirmed'
-            ],
-            [
-                'client_name' => 'Mark Ruffalo', 
-                'event_name' => 'Tech Summit',
-                'package_name' => 'Corporate',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-4 days')),
-                'status' => 'pending'
-            ],
-            [
-                'client_name' => 'Alia Bhatt', 
-                'event_name' => 'Mehndi Night',
-                'package_name' => 'Custom',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-5 days')),
-                'status' => 'confirmed'
-            ],
-            [
-                'client_name' => 'John Doe', 
-                'event_name' => 'Art Expo',
-                'package_name' => 'Basic',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-1 week')),
-                'status' => 'cancelled'
-            ]
-        ];
+        require_once dirname(__DIR__) . '/models/Booking.php';
 
-        // Fetch Status Summary
-        $statusSummary = ['confirmed' => 52, 'pending' => 14, 'cancelled' => 21];
+        $eventModel = new Event();
+        $bookingModel = new Booking();
+
+        // Fetch Real Statistics
+        $totalEvents = $eventModel->getTotalEvents($organizer_id);
+        $totalBookings = $bookingModel->countByOrganizer($organizer_id);
+        $pendingRequests = $bookingModel->countByStatusForOrganizer($organizer_id, 'pending');
+        $revenue = $bookingModel->getRevenueByOrganizer($organizer_id);
+
+        // Fetch Recent Bookings (Limit 5)
+        $recentBookings = $bookingModel->getRecentByOrganizer($organizer_id, 5);
+
+        // Fetch Upcoming Events with Confirmed Bookings (Limit 5)
+        $upcomingEvents = $eventModel->getUpcomingEvents($organizer_id, 5);
+
+        // Status Summary
+        $statusSummary = [
+            'confirmed' => $bookingModel->countByStatusForOrganizer($organizer_id, 'confirmed'),
+            'pending' => $pendingRequests,
+            'cancelled' => $bookingModel->countByStatusForOrganizer($organizer_id, 'cancelled')
+        ];
 
         require_once dirname(__DIR__) . '/views/organizer/dashboard.php';
     }
@@ -425,5 +379,84 @@ class OrganizerController
     {
         $this->checkAuth();
         require_once dirname(__DIR__) . '/views/organizer/messages.php';
+    }
+
+    public function updateProfile()
+    {
+        $this->checkAuth();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+                
+                $uploadDir = dirname(dirname(__DIR__)) . '/public/assets/images/profiles/';
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $fileExtension = pathinfo($_FILES['profile_picture']['name'], PATHINFO_EXTENSION);
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                
+                if (!in_array(strtolower($fileExtension), $allowedExtensions)) {
+                    echo json_encode(['success' => false, 'message' => 'Invalid file format.']);
+                    exit;
+                }
+
+                $fileName = 'profile_' . $_SESSION['user_id'] . '_' . time() . '.' . $fileExtension;
+                $targetPath = $uploadDir . $fileName;
+
+                if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $targetPath)) {
+                    $publicPath = '/EventManagementSystem/public/assets/images/profiles/' . $fileName;
+                    
+                    require_once dirname(__DIR__) . '/models/User.php';
+                    $userModel = new User();
+                    
+                    $oldProfilePath = $_SESSION['user_profile_pic'] ?? null;
+                    if ($userModel->updateProfilePicture($_SESSION['user_id'], $publicPath)) {
+                        
+                        if ($oldProfilePath) {
+                            $oldFilePath = dirname(dirname(__DIR__)) . str_replace('/EventManagementSystem', '', $oldProfilePath);
+                            if (file_exists($oldFilePath)) {
+                                unlink($oldFilePath);
+                            }
+                        }
+                        
+                        $_SESSION['user_profile_pic'] = $publicPath;
+                        echo json_encode(['success' => true, 'path' => $publicPath]);
+                    } else {
+                         echo json_encode(['success' => false, 'message' => 'Database update failed.']);
+                    }
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'File movement failed.']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No file or upload error.']);
+            }
+        }
+        exit;
+    }
+
+    public function deleteProfilePicture()
+    {
+        $this->checkAuth();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once dirname(__DIR__) . '/models/User.php';
+            $userModel = new User();
+            
+            $oldProfilePath = $_SESSION['user_profile_pic'] ?? null;
+            if ($userModel->updateProfilePicture($_SESSION['user_id'], null)) {
+                
+                if ($oldProfilePath) {
+                    $oldFilePath = dirname(dirname(__DIR__)) . str_replace('/EventManagementSystem', '', $oldProfilePath);
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
+                
+                $_SESSION['user_profile_pic'] = null;
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to remove from database.']);
+            }
+            exit;
+        }
     }
 }

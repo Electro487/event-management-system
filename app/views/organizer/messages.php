@@ -55,7 +55,7 @@
                 <div class="header-actions">
                     <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
                     <div class="user-avatar-small">
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_fullname'] ?? 'User'); ?>&background=0D8ABC&color=fff" alt="Profile" style="border-radius:50%; object-fit:cover;">
+                        <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                     </div>
                 </div>
             </div>
