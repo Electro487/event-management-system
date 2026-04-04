@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-bookings.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <style>
         .organizer-info { font-size: 11px; color: #64748b; margin-top: 4px; display: block; font-weight: 500; }
         .organizer-info i { color: #246A55; margin-right: 3px; }
@@ -33,7 +34,27 @@
                     <input type="text" id="topSearchInput" placeholder="Search across all organizers...">
                 </div>
                 <div class="header-actions">
-                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+                    <div class="notifications-wrapper">
+                        <div class="notification-bell-btn" id="notification-bell">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                        </div>
+                        <div class="notifications-dropdown" id="notifications-dropdown">
+                            <div class="nd-header">
+                                <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                                <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                            </div>
+                            <div class="nd-content" id="nd-list">
+                                <div class="nd-empty">
+                                    <i class="fa-regular fa-bell-slash"></i>
+                                    <p>No new notifications</p>
+                                </div>
+                            </div>
+                            <div class="nd-footer">
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="user-profile-info">
 
@@ -80,9 +101,11 @@
                 </div>
                 <div class="dropdown-menu">
                     <div class="dropdown-item active" data-value="all">All Events</div>
-                    <?php foreach ($uniqueEventTitles as $title): ?>
-                        <div class="dropdown-item" data-value="<?php echo strtolower(htmlspecialchars($title)); ?>"><?php echo htmlspecialchars($title); ?></div>
-                    <?php endforeach; ?>
+                    <div class="dropdown-item" data-value="weddings">Weddings</div>
+                    <div class="dropdown-item" data-value="meetings">Meetings</div>
+                    <div class="dropdown-item" data-value="cultural events">Cultural Events</div>
+                    <div class="dropdown-item" data-value="family functions">Family Functions</div>
+                    <div class="dropdown-item" data-value="other events and programs">Other Events and Programs</div>
                 </div>
             </div>
 
@@ -399,5 +422,6 @@
             applyFilters();
         });
     </script>
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

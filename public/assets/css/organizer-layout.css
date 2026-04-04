@@ -67,21 +67,30 @@ body {
     list-style: none;
 }
 
+.sidebar nav ul li {
+    margin: 4px 0;
+}
+
 .sidebar nav a {
     display: flex;
     align-items: center;
-    padding: 15px 25px;
+    padding: 12px 25px;
     color: var(--sidebar-text);
     text-decoration: none;
     font-weight: 500;
     transition: all 0.2s ease;
+    border-radius: 0 25px 25px 0;
+    margin-right: 15px;
 }
 
-.sidebar nav a:hover, .sidebar nav a.active {
+.sidebar nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--sidebar-active-text);
+}
+
+.sidebar nav a.active {
     background-color: var(--sidebar-active-bg);
     color: var(--sidebar-active-text);
-    border-radius: 0 20px 20px 0;
-    margin-right: 20px;
 }
 
 .sidebar nav a i {
@@ -177,10 +186,21 @@ body {
     gap: 20px;
 }
 
-.header-icons > i {
+.header-icons > i:not(.fa-bell) {
     font-size: 20px;
     color: var(--text-muted);
     cursor: pointer;
+}
+
+.fa-bell {
+    font-size: 20px;
+    color: #1f6f59 !important;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.fa-bell:hover {
+    color: #FFC24A !important;
 }
 
 .header-profile-icon {
@@ -428,9 +448,11 @@ td {
     gap: 15px;
     cursor: pointer;
     transition: all 0.2s ease;
+    padding: 8px;
+    border-radius: 8px;
 }
 
-.events-list:hover {
+.event-item:hover {
     background-color: #f4f7f6;
 }
 

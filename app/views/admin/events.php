@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
     <style>
         .organizer-tag { background: #f0fdf4; color: #246A55; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 5px; display: inline-block; }
@@ -28,7 +29,27 @@
                 <button type="submit" style="display:none;"></button>
             </form>
             <div class="header-icons">
-                <i class="far fa-bell"></i>
+                <div class="notifications-wrapper">
+                    <div class="notification-bell-btn" id="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                    </div>
+                    <div class="notifications-dropdown" id="notifications-dropdown">
+                        <div class="nd-header">
+                            <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                            <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                        </div>
+                        <div class="nd-content" id="nd-list">
+                            <div class="nd-empty">
+                                <i class="fa-regular fa-bell-slash"></i>
+                                <p>No new notifications</p>
+                            </div>
+                        </div>
+                        <div class="nd-footer">
+                            <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
                 <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
         </header>
@@ -149,5 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

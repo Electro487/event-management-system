@@ -8,6 +8,7 @@
     <!-- Using FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
@@ -27,7 +28,27 @@
                 <button type="submit" style="display:none;"></button>
             </form>
             <div class="header-icons">
-                <i class="far fa-bell"></i>
+                <div class="notifications-wrapper">
+                    <div class="notification-bell-btn" id="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                    </div>
+                    <div class="notifications-dropdown" id="notifications-dropdown">
+                        <div class="nd-header">
+                            <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 UNREAD</span></h3>
+                            <a href="#" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                        </div>
+                        <div class="nd-content" id="nd-list">
+                            <div class="nd-empty">
+                                <i class="fa-regular fa-bell-slash"></i>
+                                Loading notifications...
+                            </div>
+                        </div>
+                        <div class="nd-footer">
+                            <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
 
                 <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
@@ -131,8 +152,8 @@
                                             ?>
                                         </td>
                                         <td>
-                                            <span class="badge <?php echo htmlspecialchars($booking['status']); ?>">
-                                                <?php echo ucfirst(htmlspecialchars($booking['status'])); ?>
+                                            <span class="badge <?php echo htmlspecialchars($booking['display_status'] ?? $booking['status']); ?>">
+                                                <?php echo ucfirst(htmlspecialchars($booking['display_status'] ?? $booking['status'])); ?>
                                             </span>
                                         </td>
                                         <td><a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $booking['id']; ?>" style="color: #246A55; font-weight: 600; text-decoration: none; font-size: 13px;">View</a></td>
@@ -219,7 +240,10 @@
                                     }
                                 ?>
                                 <a href="/EventManagementSystem/public/organizer/events/view?id=<?php echo $event['id']; ?>" class="event-item" data-title="<?php echo strtolower(htmlspecialchars($event['title'] ?? '')); ?>" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; transition: all 0.2s ease;">
-                                    <img src="<?php echo htmlspecialchars($event['image_path'] ?? '/EventManagementSystem/public/assets/images/default-event.jpg'); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/default-event.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+                                    <?php 
+                                        $eventImg = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                    ?>
+                                    <img src="<?php echo htmlspecialchars($eventImg); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/placeholder.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
                                     <div class="event-info" style="flex: 1; min-width: 0;">
                                         <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($event['title']); ?></h4>
                                         <div class="event-meta" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -239,5 +263,6 @@
     </main>
 
 
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

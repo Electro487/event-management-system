@@ -64,6 +64,19 @@ class OrganizerController
         // Fetch Recent Bookings (Limit 5)
         $recentBookings = $bookingModel->getRecentByOrganizer($organizer_id, 5);
 
+        // Status logic for recent bookings
+        $today = date('Y-m-d');
+        foreach ($recentBookings as &$b) {
+            $dateStr = $b['event_date'] ?? null;
+            $isPast = ($dateStr && $dateStr < $today);
+            $displayStatus = strtolower($b['status']);
+            if ($displayStatus === 'confirmed' && $isPast) {
+                $displayStatus = 'completed';
+            }
+            $b['display_status'] = $displayStatus;
+        }
+        unset($b);
+
         // Fetch Upcoming Events with Confirmed Bookings (Limit 5)
         $upcomingEvents = $eventModel->getUpcomingEvents($organizer_id, 5);
 
@@ -128,7 +141,28 @@ class OrganizerController
             $data = $this->getEventDataFromPost();
             $data['image_path'] = $this->handleImageUpload();
 
-            if ($eventModel->create($data)) {
+            $eventId = $eventModel->create($data);
+            if ($eventId) {
+                // Notify Admins
+                require_once dirname(__DIR__) . '/models/User.php';
+                require_once dirname(__DIR__) . '/models/Notification.php';
+                $userModel = new User();
+                $notificationModel = new Notification();
+                $adminIds = $userModel->getAdmins();
+                $title = "New Event Campaign";
+                $message = "Organizer {$_SESSION['user_fullname']} has created a new event: {$data['title']}.";
+                foreach ($adminIds as $admin) {
+                    $notificationModel->create($admin['id'], $title, $message, 'event', $eventId);
+                }
+
+                // Notify All Clients
+                $clientIds = $userModel->getClients();
+                $clientTitle = "New Event Launched!";
+                $clientMessage = "A new event '{$data['title']}' has been created by {$_SESSION['user_fullname']}. Check it out!";
+                foreach ($clientIds as $client) {
+                    $notificationModel->create($client['id'], $clientTitle, $clientMessage, 'event', $eventId);
+                }
+
                 header('Location: /EventManagementSystem/public/organizer/events?success=1');
             } else {
                 $_SESSION['error'] = "Database insertion failed.";
@@ -203,7 +237,62 @@ class OrganizerController
             $newImagePath = $this->handleImageUpload();
             $data['image_path'] = $newImagePath ?: $existingEvent['image_path'];
 
+            // Identify changed fields for detailed notification
+            $changedFields = [];
+            $labels = [
+                'title' => 'Title',
+                'description' => 'Description',
+                'category' => 'Category',
+                'event_date' => 'Date',
+                'event_time' => 'Time',
+                'venue_name' => 'Venue Name',
+                'venue_location' => 'Venue Location',
+                'image_path' => 'Event Image'
+            ];
+            foreach ($labels as $key => $label) {
+                if (isset($data[$key]) && $data[$key] != $existingEvent[$key]) {
+                    $changedFields[] = $label;
+                }
+            }
+
+            // Specific package comparison
+            $oldPackages = json_decode($existingEvent['packages'] ?? '{}', true) ?: [];
+            $newPackages = $_POST['packages'] ?? [];
+            $packageMap = ['basic' => 'Basic Package', 'standard' => 'Standard Package', 'premium' => 'Premium Package'];
+            foreach ($packageMap as $pKey => $pLabel) {
+                $oldP = $oldPackages[$pKey] ?? null;
+                $newP = $newPackages[$pKey] ?? null;
+                if ($oldP != $newP) {
+                    $changedFields[] = $pLabel;
+                }
+            }
+
+            $diffText = !empty($changedFields) ? " (Fields updated: " . implode(', ', $changedFields) . ")" : "";
+
             if ($eventModel->update($id, $data)) {
+                // Notify ALL active clients about the event update
+                require_once dirname(__DIR__) . '/models/User.php';
+                require_once dirname(__DIR__) . '/models/Notification.php';
+                $userModel = new User();
+                $notificationModel = new Notification();
+                $allClients = $userModel->getClients();
+                $title = "Event Details Updated";
+                $message = "The organizer has updated the details for '{$existingEvent['title']}'." . $diffText . " Please review.";
+                foreach ($allClients as $client) {
+                    $notificationModel->create($client['id'], $title, $message, 'event_update', $id);
+                }
+
+                // Notify Admins
+                require_once dirname(__DIR__) . '/models/User.php';
+                $userModel = new User();
+                $allAdmins = $userModel->getAdmins();
+                $adminTitle = "Event Updated by Organizer";
+                $adminMsg = "Organizer {$_SESSION['user_fullname']} updated '{$existingEvent['title']}'." . $diffText;
+                foreach ($allAdmins as $admin) {
+                    if ($admin['id'] == ($_SESSION['user_id'] ?? 0)) continue; // Skip self
+                    $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'event_update', $id);
+                }
+
                 header('Location: /EventManagementSystem/public/organizer/events?updated=1');
             } else {
                 $_SESSION['error'] = "Update failed.";
@@ -223,9 +312,38 @@ class OrganizerController
             $event = $eventModel->getById($id);
 
             if ($event && $event['organizer_id'] == $_SESSION['user_id']) {
-                $eventModel->delete($id);
-                header('Location: /EventManagementSystem/public/organizer/events?deleted=1');
-                exit;
+                // Prepare notification and booking models to capture clients BEFORE deletion
+                require_once dirname(__DIR__) . '/models/User.php';
+                require_once dirname(__DIR__) . '/models/Notification.php';
+                require_once dirname(__DIR__) . '/models/Booking.php';
+
+                $userModel = new User();
+                $notificationModel = new Notification();
+                $bookingModel = new Booking();
+
+                $clientIds = $bookingModel->getClientsByEvent($id);
+
+                if ($eventModel->delete($id)) {
+                    // Update: Notify Admins
+                    $allAdmins = $userModel->getAdmins();
+                    $adminTitle = "Event Cancelled by Organizer";
+                    $adminMsg = "Organizer {$_SESSION['user_fullname']} cancelled '{$event['title']}'.";
+                    foreach ($allAdmins as $admin) {
+                        if ($admin['id'] == ($_SESSION['user_id'] ?? 0)) continue; // Skip self
+                        $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'event_delete', 0);
+                    }
+
+                    // Update: Notify Booked Clients with new refund wording
+                    if (!empty($clientIds)) {
+                         $clientTitle = "Event Cancelled by Organizer";
+                         $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the organizer. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
+                         foreach ($clientIds as $clientId) {
+                             $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
+                         }
+                    }
+                    header('Location: /EventManagementSystem/public/organizer/events?deleted=1');
+                    exit;
+                }
             }
         }
         header('Location: /EventManagementSystem/public/organizer/events?error=1');
@@ -251,17 +369,21 @@ class OrganizerController
         foreach ($bookings as &$b) {
             $dateStr = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
             $isPast = ($dateStr < $today);
-            
+
             $displayStatus = strtolower($b['status']);
             if ($displayStatus === 'confirmed' && $isPast) {
                 $displayStatus = 'completed';
             }
             $b['display_status'] = $displayStatus;
 
-            if ($displayStatus === 'confirmed') $confirmedCount++;
-            if ($displayStatus === 'pending') $pendingCount++;
-            if ($displayStatus === 'cancelled') $cancelledCount++;
-            if ($displayStatus === 'completed') $completedCount++;
+            if ($displayStatus === 'confirmed')
+                $confirmedCount++;
+            if ($displayStatus === 'pending')
+                $pendingCount++;
+            if ($displayStatus === 'cancelled')
+                $cancelledCount++;
+            if ($displayStatus === 'completed')
+                $completedCount++;
         }
         unset($b); // Important: break the reference to the last element
 
@@ -290,7 +412,7 @@ class OrganizerController
         $today = date('Y-m-d');
         $dateStr = $booking['event_date'] ?: ($booking['event_start_date'] ?? '9999-12-31');
         $isPast = ($dateStr < $today);
-        
+
         $displayStatus = strtolower($booking['status']);
         if ($displayStatus === 'confirmed' && $isPast) {
             $displayStatus = 'completed';
@@ -314,6 +436,14 @@ class OrganizerController
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
                     if ($payStatus === 'paid' || $payStatus === 'partially_paid') {
                         $bookingModel->updateStatus($id, 'confirmed');
+
+                        // Notify Client
+                        require_once dirname(__DIR__) . '/models/Notification.php';
+                        $notificationModel = new Notification();
+                        $clientTitle = "Booking Confirmed";
+                        $clientMessage = "Your '{$booking['event_name']}' booking has been confirmed by the venue manager.";
+                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking', $id);
+
                         header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
                         exit;
                     } else {
@@ -341,6 +471,14 @@ class OrganizerController
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
                     if ($payStatus !== 'paid') {
                         $bookingModel->updateStatus($id, 'cancelled');
+
+                        // Notify Client
+                        require_once dirname(__DIR__) . '/models/Notification.php';
+                        $notificationModel = new Notification();
+                        $clientTitle = "Booking Cancelled";
+                        $clientMessage = "Your '{$booking['event_name']}' booking has been cancelled by the organizer.";
+                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking', $id);
+
                         header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
                         exit;
                     }
@@ -395,15 +533,15 @@ class OrganizerController
         $this->checkAuth();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
-                
+
                 $uploadDir = dirname(dirname(__DIR__)) . '/public/assets/images/profiles/';
                 if (!file_exists($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
-                
+
                 $fileExtension = pathinfo($_FILES['profile_picture']['name'], PATHINFO_EXTENSION);
                 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-                
+
                 if (!in_array(strtolower($fileExtension), $allowedExtensions)) {
                     echo json_encode(['success' => false, 'message' => 'Invalid file format.']);
                     exit;
@@ -414,24 +552,24 @@ class OrganizerController
 
                 if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $targetPath)) {
                     $publicPath = '/EventManagementSystem/public/assets/images/profiles/' . $fileName;
-                    
+
                     require_once dirname(__DIR__) . '/models/User.php';
                     $userModel = new User();
-                    
+
                     $oldProfilePath = $_SESSION['user_profile_pic'] ?? null;
                     if ($userModel->updateProfilePicture($_SESSION['user_id'], $publicPath)) {
-                        
+
                         if ($oldProfilePath) {
                             $oldFilePath = dirname(dirname(__DIR__)) . str_replace('/EventManagementSystem', '', $oldProfilePath);
                             if (file_exists($oldFilePath)) {
                                 unlink($oldFilePath);
                             }
                         }
-                        
+
                         $_SESSION['user_profile_pic'] = $publicPath;
                         echo json_encode(['success' => true, 'path' => $publicPath]);
                     } else {
-                         echo json_encode(['success' => false, 'message' => 'Database update failed.']);
+                        echo json_encode(['success' => false, 'message' => 'Database update failed.']);
                     }
                 } else {
                     echo json_encode(['success' => false, 'message' => 'File movement failed.']);
@@ -449,17 +587,17 @@ class OrganizerController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once dirname(__DIR__) . '/models/User.php';
             $userModel = new User();
-            
+
             $oldProfilePath = $_SESSION['user_profile_pic'] ?? null;
             if ($userModel->updateProfilePicture($_SESSION['user_id'], null)) {
-                
+
                 if ($oldProfilePath) {
                     $oldFilePath = dirname(dirname(__DIR__)) . str_replace('/EventManagementSystem', '', $oldProfilePath);
                     if (file_exists($oldFilePath)) {
                         unlink($oldFilePath);
                     }
                 }
-                
+
                 $_SESSION['user_profile_pic'] = null;
                 echo json_encode(['success' => true]);
             } else {

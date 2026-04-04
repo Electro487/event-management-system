@@ -88,6 +88,15 @@
     color: #5c6c7b;
 }
 
+.icon-btn i.fa-bell {
+    color: #1f6f59 !important;
+    transition: color 0.2s ease;
+}
+
+.fa-bell:hover {
+    color: #FFC24A !important;
+}
+
 .user-profile-info {
     display: flex;
     align-items: center;

@@ -51,6 +51,7 @@ if (empty($items)) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 
 <body style="background-color: #f9fbf9;">
@@ -66,7 +67,28 @@ if (empty($items)) {
             <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
         </nav>
         <div class="nav-icons">
-            <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
+            <div class="notifications-wrapper">
+                <div class="notification-bell-btn" id="notification-bell">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                </div>
+                <!-- Notifications Dropdown -->
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="nd-header">
+                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                        <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                    </div>
+                    <div class="nd-content" id="nd-list">
+                        <div class="nd-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <p>No new notifications</p>
+                        </div>
+                    </div>
+                    <div class="nd-footer">
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php
                     $initials = '';
@@ -455,6 +477,7 @@ if (empty($items)) {
         </div>
     </footer>
 
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>

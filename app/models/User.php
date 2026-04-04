@@ -229,4 +229,20 @@ class User
         $stmt->bindParam(':id', $userId);
         return $stmt->execute();
     }
+
+    public function getAdmins()
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT id FROM users WHERE role = 'admin'";
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getClients()
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT id FROM users WHERE role = 'client' AND is_blocked = 0";
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

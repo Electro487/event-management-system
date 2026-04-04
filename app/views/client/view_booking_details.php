@@ -76,6 +76,7 @@ $steps = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-booking-details.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -91,22 +92,43 @@ $steps = [
             <a href="/EventManagementSystem/public/client/events#my-bookings" class="active">My Bookings</a>
         </nav>
         <div class="nav-icons">
-            <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
+            <div class="notifications-wrapper">
+                <div class="notification-bell-btn" id="notification-bell">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                </div>
+                <!-- Notifications Dropdown -->
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="nd-header">
+                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                        <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                    </div>
+                    <div class="nd-content" id="nd-list">
+                        <div class="nd-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <p>No new notifications</p>
+                        </div>
+                    </div>
+                    <div class="nd-footer">
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php
-                    $initials = '';
+                    $headerInitials = '';
                     $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
                     foreach($nameParts as $p) {
-                        $initials .= strtoupper(substr($p, 0, 1));
+                        $headerInitials .= strtoupper(substr($p, 0, 1));
                     }
-                    if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+                    if (strlen($headerInitials) > 2) $headerInitials = substr($headerInitials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if(!empty($_SESSION['user_profile_pic'])): ?>
                             <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
                         <?php else: ?>
-                            <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
+                            <span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>
                         <?php endif; ?>
                     </div>
                     
@@ -118,7 +140,7 @@ $steps = [
                                     <?php if(!empty($_SESSION['user_profile_pic'])): ?>
                                         <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
-                                        <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
+                                        <span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
@@ -223,7 +245,7 @@ $steps = [
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
                                 
                                 // Update header avatar
                                 let headerIcon = document.getElementById('profile-icon');
@@ -231,7 +253,7 @@ $steps = [
                                 
                                 // Update dropdown avatar
                                 let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
                                 
                                 // Remove delete icon if exists
                                 let deleteIcon = document.querySelector('.pd-delete-icon');
@@ -487,6 +509,7 @@ $steps = [
         </div>
     </footer>
 
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>
