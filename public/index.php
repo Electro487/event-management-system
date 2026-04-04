@@ -14,15 +14,14 @@ $base_path = '/EventManagementSystem'; // This might need to cover /public if th
 $request_uri = $_SERVER['REQUEST_URI'];
 
 // Clean up route path
-$route = str_replace($base_path . '/public', '', $request_uri);
+$path = parse_url($request_uri, PHP_URL_PATH);
+$route = str_replace($base_path . '/public', '', $path);
 $route = str_replace($base_path, '', $route); // Fallback
 
 $route = rtrim($route, '/');
 if (empty($route)) {
     $route = '/';
 }
-// Remove query string
-$route = explode('?', $route)[0];
 
 // Dispatch
 if (array_key_exists($route, $routes)) {

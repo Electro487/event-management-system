@@ -1,20 +1,20 @@
 <?php
 // Extracted exact variable logic mapping
-$initials = '';
+$headerInitials = '';
 $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
 foreach($nameParts as $p) {
     if(trim($p) !== '') {
-        $initials .= strtoupper(substr(trim($p), 0, 1));
+        $headerInitials .= strtoupper(substr(trim($p), 0, 1));
     }
 }
-if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+if (strlen($headerInitials) > 2) $headerInitials = substr($headerInitials, 0, 2);
 ?>
 <div style="position: relative;" id="profile-container">
     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
         <?php if(!empty($_SESSION['user_profile_pic'])): ?>
             <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar">
         <?php else: ?>
-            <span id="header-initials" style="font-size: 14px;"><?php echo htmlspecialchars($initials); ?></span>
+            <span id="header-initials" style="font-size: 14px;"><?php echo htmlspecialchars($headerInitials); ?></span>
         <?php endif; ?>
     </div>
     
@@ -26,7 +26,7 @@ if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
                     <?php if(!empty($_SESSION['user_profile_pic'])): ?>
                         <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                     <?php else: ?>
-                        <span id="dropdown-initials" style="font-size: 28px; color: white;"><?php echo htmlspecialchars($initials); ?></span>
+                        <span id="dropdown-initials" style="font-size: 28px; color: white;"><?php echo htmlspecialchars($headerInitials); ?></span>
                     <?php endif; ?>
                 </div>
                 <label for="header_profile_upload" class="pd-edit-icon" title="Change Photo">

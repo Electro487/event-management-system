@@ -223,15 +223,17 @@ body {
 .client-avatar-large {
     width: 68px;
     height: 68px;
-    background: #fbbd3c;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-main);
     font-size: 26px;
     font-weight: 800;
 }
+
+.client-avatar-large.basic-av { background: #fee2e2; color: #991b1b; }
+.client-avatar-large.standard-av { background: #fef3c7; color: #92400e; }
+.client-avatar-large.premium-av { background: #d1fae5; color: #065f46; }
 
 .client-details h3 {
     margin: 0 0 4px 0;
@@ -612,7 +614,7 @@ body {
 .header-icons-center {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
     border-left: 1px solid var(--border-color);
     padding-left: 20px;
 }
@@ -627,6 +629,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.icon-btn-plain i.fa-bell {
+    color: #1f6f59 !important;
 }
 
 .icon-btn-plain:hover {

@@ -1,4 +1,21 @@
 /* My Bookings Section Styles */
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.fa-bell {
+    font-size: 20px;
+    color: #1f6f59;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.fa-bell:hover {
+    color: #FFC24A;
+}
+
 .header-profile-icon {
     width: 40px;
     height: 40px;

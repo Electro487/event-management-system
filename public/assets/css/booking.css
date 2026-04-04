@@ -109,7 +109,18 @@ body {
 .nav-icons {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 20px;
+}
+
+.fa-bell {
+    font-size: 20px;
+    color: var(--primary-green);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.fa-bell:hover {
+    color: #FFC24A;
 }
 
 .container {

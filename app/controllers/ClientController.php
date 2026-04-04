@@ -200,8 +200,40 @@ class ClientController
             ];
 
             $bookingId = $bookingModel->create($data);
-
             if ($bookingId) {
+                // --- Notification Logic ---
+                require_once dirname(__DIR__) . '/models/Notification.php';
+                require_once dirname(__DIR__) . '/models/Event.php';
+                require_once dirname(__DIR__) . '/models/User.php';
+                
+                $notificationModel = new Notification();
+                $eventModel = new Event();
+                $userModel = new User();
+                
+                $event = $eventModel->getById($data['event_id']);
+                $clientName = $_SESSION['user_fullname'];
+                $eventTitle = $event['title'];
+                
+                // 1. Notify Admin(s)
+                $admins = $userModel->getAdmins();
+                $adminTitle = "Booking Received";
+                $adminMessage = "{$clientName} booked '{$eventTitle}'.\nPackage: {$data['package_tier']}\nDate: {$data['event_date']}, Check-in: {$data['checkin_time']}\nPayment: Pending";
+                foreach ($admins as $admin) {
+                    $notificationModel->create($admin['id'], $adminTitle, $adminMessage, 'booking', $bookingId);
+                }
+                
+                // 2. Notify Organizer
+                $organizerId = $event['organizer_id'];
+                $orgTitle = "New Booking for Your Event";
+                $orgMessage = "{$clientName} has booked '{$eventTitle}'. Please review the details.";
+                $notificationModel->create($organizerId, $orgTitle, $orgMessage, 'booking', $bookingId);
+                
+                // 3. Notify Client
+                $clientTitle = "Booking Request Received";
+                $clientMessage = "Your '{$eventTitle}' booking request has been received and is being reviewed.";
+                $notificationModel->create($_SESSION['user_id'], $clientTitle, $clientMessage, 'booking', $bookingId);
+                // --------------------------
+
                 // Redirect directly to My Bookings
                 header('Location: /EventManagementSystem/public/client/events#my-bookings');
                 exit;
@@ -229,7 +261,30 @@ class ClientController
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
             require_once dirname(__DIR__) . '/models/Booking.php';
             $bookingModel = new Booking();
-            $bookingModel->cancel($_POST['booking_id'], $_SESSION['user_id']);
+            $bookingId = $_POST['booking_id'];
+            
+            // Get details for notification before cancelling
+            $booking = $bookingModel->getById($bookingId);
+            
+            if ($booking && $booking['client_id'] == $_SESSION['user_id']) {
+                if ($bookingModel->cancel($bookingId, $_SESSION['user_id'])) {
+                    require_once dirname(__DIR__) . '/models/Notification.php';
+                    $notificationModel = new Notification();
+                    $title = "Booking Cancelled";
+                    $message = "{$_SESSION['user_fullname']} has cancelled their booking for '{$booking['event_title']}'.";
+                    
+                    // Notify Organizer
+                    $notificationModel->create($booking['organizer_id'], $title, $message, 'booking_cancel', $bookingId);
+                    
+                    // Notify Admins
+                    require_once dirname(__DIR__) . '/models/User.php';
+                    $userModel = new User();
+                    $admins = $userModel->getAdmins();
+                    foreach ($admins as $admin) {
+                        $notificationModel->create($admin['id'], $title, $message, 'booking_cancel', $bookingId);
+                    }
+                }
+            }
         }
 
         header('Location: /EventManagementSystem/public/client/events#my-bookings');

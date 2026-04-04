@@ -8,8 +8,8 @@ $id = $booking['id'];
 $status = strtolower($booking['status']);
 $displayStatus = $booking['display_status'] ?? $status;
 $fullName = $booking['full_name'] ?: 'Unknown Client';
-$initials = strtoupper(substr($fullName, 0, 1) . substr(strrchr($fullName, ' '), 1, 1));
-if (strlen($initials) < 2) $initials = strtoupper(substr($fullName, 0, 2));
+$clientInitials = strtoupper(substr($fullName, 0, 1) . substr(strrchr($fullName, ' '), 1, 1));
+if (strlen($clientInitials) < 2) $clientInitials = strtoupper(substr($fullName, 0, 2));
 
 $eventTitle = $booking['event_title'];
 $category = $booking['event_category'];
@@ -92,6 +92,7 @@ $steps = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking-detail.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
@@ -117,8 +118,27 @@ $steps = [
             <div class="header-right-actions">
                 <a href="/EventManagementSystem/public/admin/bookings" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Bookings</a>
                 <div class="header-icons-center">
-                    <button class="icon-btn-plain"><i class="fa-regular fa-bell"></i></button>
-                    <button class="icon-btn-plain"><i class="fa-solid fa-gear"></i></button>
+                    <div class="notifications-wrapper">
+                        <div class="notification-bell-btn" id="notification-bell">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                        </div>
+                        <div class="notifications-dropdown" id="notifications-dropdown">
+                            <div class="nd-header">
+                                <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                                <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                            </div>
+                            <div class="nd-content" id="nd-list">
+                                <div class="nd-empty">
+                                    <i class="fa-regular fa-bell-slash"></i>
+                                    <p>No new notifications</p>
+                                </div>
+                            </div>
+                            <div class="nd-footer">
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-avatar-circle">
                         <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                     </div>
@@ -135,11 +155,11 @@ $steps = [
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="client-info-main">
-                        <div class="client-avatar-large">
+                        <div class="client-avatar-large <?php echo $tierKey; ?>-av">
                             <?php if (!empty($booking['client_profile_pic'])): ?>
                                 <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
                             <?php else: ?>
-                                <?php echo $initials; ?>
+                                <?php echo $clientInitials; ?>
                             <?php endif; ?>
                         </div>
                         <div class="client-details">
@@ -297,5 +317,6 @@ $steps = [
         </div>
     </main>
 
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

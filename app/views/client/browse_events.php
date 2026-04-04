@@ -15,6 +15,7 @@ $searchQuery = $_GET['search'] ?? '';
     <!-- Load FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -34,7 +35,27 @@ $searchQuery = $_GET['search'] ?? '';
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
-            <i class="fa-regular fa-bell" style="font-size: 20px; color: #1f6f59; cursor: pointer;"></i>
+            <div class="notifications-wrapper">
+                <div class="notification-bell-btn" id="notification-bell">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                </div>
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="nd-header">
+                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 UNREAD</span></h3>
+                        <a href="#" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                    </div>
+                    <div class="nd-content" id="nd-list">
+                        <div class="nd-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            Loading notifications...
+                        </div>
+                    </div>
+                    <div class="nd-footer">
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php
                     $initials = '';
@@ -725,6 +746,7 @@ $searchQuery = $_GET['search'] ?? '';
         </div>
     </footer>
 
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>

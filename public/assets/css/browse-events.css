@@ -24,6 +24,17 @@ body {
     line-height: 1.6;
 }
 
+.fa-bell {
+    font-size: 20px;
+    color: #1f6f59 !important;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.fa-bell:hover {
+    color: #FFC24A !important;
+}
+
 /* Navbar */
 .header {
     background-color: var(--white);
@@ -297,6 +308,7 @@ body {
     color: var(--text-dark);
     display: -webkit-box;
     -webkit-line-clamp: 1;
+    line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

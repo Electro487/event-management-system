@@ -218,4 +218,13 @@ class Booking
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)$result['count'] > 0;
     }
+
+    public function getClientsByEvent($eventId)
+    {
+        $sql = "SELECT DISTINCT client_id FROM bookings WHERE event_id = :event_id AND status != 'cancelled'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':event_id', $eventId);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }

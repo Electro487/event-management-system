@@ -58,4 +58,16 @@ $routes = [
     
     '/organizer/profile/update' => 'OrganizerController@updateProfile',
     '/organizer/profile/delete-picture' => 'OrganizerController@deleteProfilePicture',
+
+    // Notification Routes
+    '/notifications' => 'NotificationController@index',
+    '/notifications/read' => 'NotificationController@markAsRead',
+    '/notifications/unread' => 'NotificationController@markAsUnread',
+    '/notifications/mark-all-read' => 'NotificationController@deleteAll',
+    '/notifications/mark-all-unread' => 'NotificationController@markAllAsUnread',
+    '/notifications/delete' => 'NotificationController@deleteOne',
+    '/notifications/clear-all' => 'NotificationController@clearAll',
+    '/notifications/all' => 'NotificationController@allNotifications',
+    '/notifications/all-json' => 'NotificationController@allNotificationsJson',
+    '/notifications/counts' => 'NotificationController@getCountsJson',
 ];

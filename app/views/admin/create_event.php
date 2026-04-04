@@ -33,7 +33,7 @@
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+                    <i class="fa-regular fa-bell"></i>
                     <div class="user-avatar-small">
                         <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                     </div>
