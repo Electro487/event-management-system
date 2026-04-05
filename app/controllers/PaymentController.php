@@ -105,9 +105,11 @@ class PaymentController
                 require_once dirname(__DIR__) . '/models/Booking.php';
                 require_once dirname(__DIR__) . '/models/Payment.php';
                 require_once dirname(__DIR__) . '/models/Event.php';
+                require_once dirname(__DIR__) . '/models/Notification.php';
                 
                 $bookingModel = new Booking();
                 $paymentModel = new Payment();
+                $notificationModel = new Notification();
                 
                 $booking = $bookingModel->getById($booking_id);
                 
@@ -128,6 +130,24 @@ class PaymentController
                     
                     // 2. Update Booking Status (Set to partially_paid for 50% advance)
                     $bookingModel->updatePaymentStatus($booking_id, 'partially_paid');
+
+                    // 3. Notify Client
+                    $notificationModel->create(
+                        $_SESSION['user_id'],
+                        'Payment Received',
+                        'We have received your 50% advance payment of NPR ' . number_format($session->amount_total / 100, 2) . ' for event: ' . $booking['event_title'] . '. Your booking is now pending organizer approval.',
+                        'payment',
+                        $booking_id
+                    );
+
+                    // 4. Notify Organizer
+                    $notificationModel->create(
+                        $booking['organizer_id'],
+                        'New Advance Payment',
+                        'A 50% advance payment of NPR ' . number_format($session->amount_total / 100, 2) . ' has been made by ' . $_SESSION['user_name'] . ' for your event: ' . $booking['event_title'] . '.',
+                        'payment_alert',
+                        $booking_id
+                    );
                 }
 
                 $transaction_id = $session->payment_intent;
