@@ -144,7 +144,7 @@ class PaymentController
                     $notificationModel->create(
                         $booking['organizer_id'],
                         'New Advance Payment',
-                        'A 50% advance payment of NPR ' . number_format($session->amount_total / 100, 2) . ' has been made by ' . $_SESSION['user_name'] . ' for your event: ' . $booking['event_title'] . '.',
+                        'A 50% advance payment of NPR ' . number_format($session->amount_total / 100, 2) . ' has been made by ' . $_SESSION['user_fullname'] . ' for your event: ' . $booking['event_title'] . '.',
                         'payment_alert',
                         $booking_id
                     );
