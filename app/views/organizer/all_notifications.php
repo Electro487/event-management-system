@@ -12,6 +12,7 @@ $eventCount = ($typeCounts['event'] ?? 0) + ($typeCounts['event_update'] ?? 0);
 $messageCount = ($typeCounts['message'] ?? 0);
 $approvedCount = ($typeCounts['booking_approve'] ?? 0);
 $cancelledCount = ($typeCounts['booking_cancel'] ?? 0);
+$paymentCount = ($typeCounts['payment_alert'] ?? 0);
 
 $activeFilter = $_GET['type'] ?? 'all';
 
@@ -65,6 +66,9 @@ $activePage = 'notifications';
                     <span><?php echo $totalCount; ?> Notification<?php echo $totalCount !== 1 ? 's' : ''; ?></span>
                 </div>
                 <?php if ($totalCount > 0): ?>
+                    <button class="np-unread-all-btn" onclick="confirmMarkAllUnread()">
+                        <i class="fa-solid fa-envelope-open"></i> Mark all as unread
+                    </button>
                     <button class="np-clear-all-btn" onclick="confirmClearAll()">
                         <i class="fa-solid fa-trash-can"></i> Clear All
                     </button>
@@ -109,6 +113,13 @@ $activePage = 'notifications';
                     <div class="np-stat-value" id="stat-message"><?php echo $messageCount; ?></div>
                 </div>
             </div>
+            <div class="np-stat-card">
+                <div class="np-stat-icon green"><i class="fa-solid fa-credit-card"></i></div>
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Payments</div>
+                    <div class="np-stat-value" id="stat-payment"><?php echo $paymentCount; ?></div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -137,6 +148,11 @@ $activePage = 'notifications';
                 class="np-filter-tab <?php echo ($activeFilter === 'message') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-message"></i> Messages
                 <span class="np-filter-count" id="count-message"><?php echo ($typeCounts['message'] ?? 0); ?></span>
+            </a>
+            <a href="/EventManagementSystem/public/notifications/all?type=payment_alert"
+                class="np-filter-tab <?php echo ($activeFilter === 'payment_alert') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-credit-card"></i> Payments
+                <span class="np-filter-count" id="count-payment"><?php echo $paymentCount; ?></span>
             </a>
         </div>
 
@@ -188,6 +204,8 @@ $activePage = 'notifications';
                                 'event_update' => 'fa-solid fa-pen-to-square',
                                 'event_delete' => 'fa-solid fa-trash-can',
                                 'message' => 'fa-solid fa-message',
+                                'payment' => 'fa-solid fa-credit-card',
+                                'payment_alert' => 'fa-solid fa-credit-card',
                                 'system' => 'fa-solid fa-gear',
                                 'info' => 'fa-solid fa-circle-info',
                             ];
@@ -264,6 +282,33 @@ $activePage = 'notifications';
                         if (data.success) location.reload();
                     });
             }
+        }
+
+        function confirmMarkAllUnread() {
+            fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // Instant UI update
+                        document.querySelectorAll('.np-item').forEach(item => {
+                            item.classList.add('unread');
+                            if (!item.querySelector('.np-unread-dot')) {
+                                const dot = document.createElement('div');
+                                dot.className = 'np-unread-dot';
+                                item.prepend(dot);
+                            }
+                            if (!item.querySelector('.np-new-badge')) {
+                                const title = item.querySelector('.np-item-title');
+                                const badge = document.createElement('span');
+                                badge.className = 'np-new-badge';
+                                badge.textContent = 'New';
+                                title.appendChild(badge);
+                            }
+                            const toggle = item.querySelector('.np-unread-toggle');
+                            if (toggle) toggle.remove();
+                        });
+                    }
+                });
         }
     </script>
 </body>

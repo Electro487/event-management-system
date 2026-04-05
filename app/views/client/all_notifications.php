@@ -12,6 +12,7 @@ $approvedCount = ($typeCounts['booking_approve'] ?? 0);
 $cancelledCount = ($typeCounts['booking_cancel'] ?? 0);
 $creationCount = ($typeCounts['event'] ?? 0);
 $updateCount = ($typeCounts['event_update'] ?? 0);
+$paymentCount = ($typeCounts['payment'] ?? 0);
 
 $activeFilter = $_GET['type'] ?? 'all';
 
@@ -123,6 +124,33 @@ if (strlen($initials) > 2)
                             if (d) d.classList.remove('show');
                         }
                     });
+
+                    function confirmMarkAllUnread() {
+                        fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Instant UI update
+                                    document.querySelectorAll('.np-item').forEach(item => {
+                                        item.classList.add('unread');
+                                        if (!item.querySelector('.np-unread-dot')) {
+                                            const dot = document.createElement('div');
+                                            dot.className = 'np-unread-dot';
+                                            item.prepend(dot);
+                                        }
+                                        if (!item.querySelector('.np-new-badge')) {
+                                            const title = item.querySelector('.np-item-title');
+                                            const badge = document.createElement('span');
+                                            badge.className = 'np-new-badge';
+                                            badge.textContent = 'New';
+                                            title.appendChild(badge);
+                                        }
+                                        const toggle = item.querySelector('.np-unread-toggle');
+                                        if (toggle) toggle.remove();
+                                    });
+                                }
+                            });
+                    }
                 </script>
             <?php endif; ?>
         </div>
@@ -146,6 +174,9 @@ if (strlen($initials) > 2)
                     <span><?php echo $totalCount; ?> Notification<?php echo $totalCount !== 1 ? 's' : ''; ?></span>
                 </div>
                 <?php if ($totalCount > 0): ?>
+                    <button class="np-unread-all-btn" onclick="confirmMarkAllUnread()">
+                        <i class="fa-solid fa-envelope-open"></i> Mark all as unread
+                    </button>
                     <button class="np-clear-all-btn" onclick="confirmClearAll()">
                         <i class="fa-solid fa-trash-can"></i> Clear All
                     </button>
@@ -197,6 +228,13 @@ if (strlen($initials) > 2)
                     <div class="np-stat-value" id="stat-update"><?php echo $updateCount; ?></div>
                 </div>
             </div>
+            <div class="np-stat-card">
+                <div class="np-stat-icon green"><i class="fa-solid fa-credit-card"></i></div>
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Payments</div>
+                    <div class="np-stat-value" id="stat-payment"><?php echo $paymentCount; ?></div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -230,6 +268,11 @@ if (strlen($initials) > 2)
                 class="np-filter-tab <?php echo ($activeFilter === 'event_update') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-pen-to-square"></i> Event Updates
                 <span class="np-filter-count" id="count-update"><?php echo $updateCount; ?></span>
+            </a>
+            <a href="/EventManagementSystem/public/notifications/all?type=payment"
+                class="np-filter-tab <?php echo ($activeFilter === 'payment') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-credit-card"></i> Payments
+                <span class="np-filter-count" id="count-payment"><?php echo $paymentCount; ?></span>
             </a>
         </div>
 
@@ -282,6 +325,8 @@ if (strlen($initials) > 2)
                             'booking_cancel' => 'fa-circle-xmark',
                             'event' => 'fa-calendar-day',
                             'event_update' => 'fa-pen-to-square',
+                            'payment' => 'fa-credit-card',
+                            'payment_alert' => 'fa-credit-card',
                             'message' => 'fa-message',
                             'system' => 'fa-gear',
                             'info' => 'fa-circle-info'
@@ -390,6 +435,8 @@ if (strlen($initials) > 2)
                     if (data.success) location.reload();
                 });
         }
+
+        // The markAllUnread functionality is now handled by the function at the top of this view.
     </script>
 </body>
 

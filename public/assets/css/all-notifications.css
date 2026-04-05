@@ -164,6 +164,27 @@ a { text-decoration: none; color: inherit; }
 }
 .np-clear-all-btn:hover { background: #c0392b; transform: translateY(-1px); }
 
+.np-unread-all-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all .2s;
+    backdrop-filter: blur(8px);
+}
+.np-unread-all-btn:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-1px);
+}
+
 /* ================================================================
    FILTER BAR
    ================================================================ */

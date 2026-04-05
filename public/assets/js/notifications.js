@@ -81,7 +81,7 @@ window.fetchNotifications = function () {
 
             if (_isFirstLoad) {
                 data.notifications.forEach(n => {
-                    if (n.is_read == 0) _seenIds.add(n.id);
+                    _seenIds.add(n.id); // Remember all existing notifications
                 });
                 _isFirstLoad = false;
             } else {

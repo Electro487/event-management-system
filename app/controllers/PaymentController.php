@@ -132,6 +132,7 @@ class PaymentController
                     $bookingModel->updatePaymentStatus($booking_id, 'partially_paid');
 
                     // 3. Notify Client
+                    $clientName = $_SESSION['user_fullname'] ?? $booking['full_name'];
                     $notificationModel->create(
                         $_SESSION['user_id'],
                         'Payment Received',
@@ -140,14 +141,28 @@ class PaymentController
                         $booking_id
                     );
 
-                    // 4. Notify Organizer
-                    $notificationModel->create(
-                        $booking['organizer_id'],
-                        'New Advance Payment',
-                        'A 50% advance payment of NPR ' . number_format($session->amount_total / 100, 2) . ' has been made by ' . $_SESSION['user_name'] . ' for your event: ' . $booking['event_title'] . '.',
-                        'payment_alert',
-                        $booking_id
-                    );
+                    // 4. Notify Organizer and Admins (with role-based routing)
+                    require_once dirname(__DIR__) . '/models/User.php';
+                    $userModel = new User();
+                    $organizer = $userModel->findById($booking['organizer_id']);
+                    $allAdmins = $userModel->getAdmins();
+                    
+                    $msg = 'A 50% advance payment of NPR ' . number_format($session->amount_total / 100, 2) . ' has been made by ' . $clientName . ' for your event: ' . $booking['event_title'] . '.';
+
+                    if ($organizer && $organizer['role'] === 'organizer') {
+                        // Notify the Organizer
+                        $notificationModel->create($booking['organizer_id'], 'New Advance Payment', $msg, 'payment_alert', $booking_id);
+                        
+                        // Also notify all Admins
+                        foreach ($allAdmins as $admin) {
+                            $notificationModel->create($admin['id'], 'New Advance Payment', $msg, 'payment_alert', $booking_id);
+                        }
+                    } else {
+                        // Event created by Admin: Notify only Admins
+                        foreach ($allAdmins as $admin) {
+                            $notificationModel->create($admin['id'], 'New Advance Payment', $msg, 'payment_alert', $booking_id);
+                        }
+                    }
                 }
 
                 $transaction_id = $session->payment_intent;
