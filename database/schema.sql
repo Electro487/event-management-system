@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     `checkin_time` VARCHAR(20) DEFAULT '10:00 AM',
     `total_amount` DECIMAL(10, 2) NOT NULL,
     `status` ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
-    `payment_status` ENUM('unpaid', 'paid') NOT NULL DEFAULT 'unpaid',
+    `payment_status` ENUM('unpaid', 'partially_paid', 'paid') NOT NULL DEFAULT 'unpaid',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
     `amount` DECIMAL(10, 2) NOT NULL,
     `payment_method` VARCHAR(50) DEFAULT 'card',
     `status` ENUM('succeeded', 'failed') NOT NULL DEFAULT 'succeeded',
+    `stripe_session_id` VARCHAR(255) DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`booking_id`) REFERENCES `bookings`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
