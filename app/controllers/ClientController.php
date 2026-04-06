@@ -47,6 +47,90 @@ class ClientController
     public function home()
     {
         $this->checkClientAuth();
+
+        $clientId = $_SESSION['user_id'];
+        $today    = date('Y-m-d');
+
+        // ── Load models ──────────────────────────────────────
+        require_once dirname(__DIR__) . '/models/Booking.php';
+        require_once dirname(__DIR__) . '/models/Event.php';
+        $bookingModel = new Booking();
+        $eventModel   = new Event();
+
+        // ── All client bookings (for stats + table) ───────────
+        $allBookings = $bookingModel->getByClient($clientId);
+
+        $totalBookings  = count($allBookings);
+        $upcomingCount  = 0;
+        $completedCount = 0;
+        $pendingCount   = 0;
+
+        foreach ($allBookings as &$b) {
+            $dateStr   = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
+            $isPast    = ($dateStr < $today);
+            $displayStatus = strtolower($b['status']);
+            if ($displayStatus === 'confirmed' && $isPast) {
+                $displayStatus = 'completed';
+            }
+            $b['display_status'] = $displayStatus;
+
+            if (in_array($displayStatus, ['pending', 'confirmed'])) $upcomingCount++;
+            if ($displayStatus === 'completed')                       $completedCount++;
+            if ($displayStatus === 'pending')                        $pendingCount++;
+        }
+        unset($b);
+
+        // ── Recent 4 bookings for table ───────────────────────
+        $recentBookings = array_slice($allBookings, 0, 4);
+
+        // ── Next upcoming booking (PRIORITY: Confirmed > Pending/Other) ─
+        $nextEvent = null;
+        $daysLeft  = null;
+
+        $confirmedUpcoming = [];
+        $otherUpcoming     = [];
+
+        foreach ($allBookings as $b) {
+            $bDate = $b['event_date'] ?: ($b['event_start_date'] ?? '');
+            if (!$bDate || $bDate < $today) continue;
+
+            $bStat = strtolower($b['status']);
+            // Skip cancelled/completed
+            if (in_array($bStat, ['cancelled', 'completed', 'rejected'])) continue;
+
+            if ($bStat === 'confirmed') {
+                $confirmedUpcoming[] = $b;
+            } else {
+                $otherUpcoming[] = $b;
+            }
+        }
+
+        // Sort by date ASC
+        $sortFn = function($a, $b) {
+            $ad = $a['event_date'] ?: ($a['event_start_date'] ?? '9999-12-31');
+            $bd = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
+            return strcmp($ad, $bd);
+        };
+        usort($confirmedUpcoming, $sortFn);
+        usort($otherUpcoming, $sortFn);
+
+        // Pick confirmed first, fallback to others
+        if (!empty($confirmedUpcoming)) {
+            $nextEvent = $confirmedUpcoming[0];
+        } elseif (!empty($otherUpcoming)) {
+            $nextEvent = $otherUpcoming[0];
+        }
+
+        if ($nextEvent) {
+            $bDate = $nextEvent['event_date'] ?: ($nextEvent['event_start_date'] ?? '');
+            $ts1 = strtotime($bDate);
+            $ts2 = strtotime($today);
+            $daysLeft = (int)(($ts1 - $ts2) / 86400);
+        }
+
+        // ── Featured active events (Randomized) ──────────────
+        $featuredEvents = $eventModel->getRandomActiveEvents(3);
+
         require_once dirname(__DIR__) . '/views/client/home.php';
     }
 
