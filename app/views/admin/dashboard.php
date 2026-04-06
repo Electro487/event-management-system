@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
-    <style>
-        .admin-badge { background: #e6fcf0; color: #246A55; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    </style>
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/admin-common.css?v=<?php echo time(); ?>">
 </head>
 <body>
 

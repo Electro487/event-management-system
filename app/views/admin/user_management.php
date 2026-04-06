@@ -9,33 +9,7 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
-    <style>
-        .user-table th { background: #f8fafc; color: #64748b; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .user-row:hover { background: #f1f5f9; }
-        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .role-client { background: #ecfdf5; color: #059669; }
-        .role-organizer { background: #fff7ed; color: #c2410c; }
-        .role-admin { background: #eef2ff; color: #4338ca; }
-        .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
-        .status-active::before { content: ""; width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
-        .status-blocked::before { content: ""; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; }
-        .action-btn-outline { background: white; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .action-btn-outline:hover { border-color: #cbd5e1; background: #f8fafc; }
-        .btn-block { color: #ef4444; border-color: #fecaca; }
-        .btn-block:hover { background: #fef2f2; border-color: #ef4444; }
-        .btn-unblock { color: #10b981; border-color: #a7f3d0; }
-        .btn-unblock:hover { background: #f0fdf4; border-color: #10b981; }
-        
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-card { background: white; padding: 30px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .modal-icon { font-size: 40px; color: #ef4444; margin-bottom: 20px; }
-        .modal-card h3 { margin-bottom: 10px; font-size: 18px; }
-        .modal-card p { color: #64748b; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-        .modal-btns { display: flex; gap: 12px; justify-content: center; }
-        .modal-btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
-        .btn-cancel { background: #f1f5f9; color: #475569; }
-        .btn-confirm-delete { background: #ef4444; color: white; }
-    </style>
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/user-management.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
