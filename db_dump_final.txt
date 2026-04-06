@@ -1,0 +1,61 @@
+Table: bookings
+  - id (int(11)) PRI auto_increment
+  - event_id (int(11)) MUL 
+  - client_id (int(11)) MUL 
+  - package_tier (varchar(50))  
+  - event_date (date)  
+  - guest_count (int(11))  
+  - full_name (varchar(100))  
+  - email (varchar(100))  
+  - phone (varchar(20))  
+  - checkin_time (varchar(20))  
+  - total_amount (decimal(10,2))  
+  - service_fee (decimal(10,2))  
+  - status (enum('pending','confirmed','cancelled'))  
+  - payment_status (enum('unpaid','partially_paid','paid'))  
+  - created_at (timestamp)  
+Table: events
+  - id (int(11)) PRI auto_increment
+  - organizer_id (int(11)) MUL 
+  - title (varchar(255))  
+  - description (text)  
+  - category (varchar(100))  
+  - status (enum('active','inactive','draft'))  
+  - image_path (varchar(255))  
+  - event_date (datetime)  
+  - venue_name (varchar(255))  
+  - venue_location (varchar(255))  
+  - bookings_count (int(11))  
+  - packages (longtext)  
+  - created_at (timestamp)  
+Table: notifications
+  - id (int(11))  
+  - user_id (int(11))  
+  - title (varchar(255))  
+  - message (text)  
+  - type (varchar(50))  
+  - related_id (int(11))  
+  - is_read (tinyint(1))  
+  - created_at (timestamp)  
+Table: payments
+  - id (int(11)) PRI auto_increment
+  - booking_id (int(11)) MUL 
+  - client_id (int(11)) MUL 
+  - transaction_id (varchar(100)) UNI 
+  - amount (decimal(10,2))  
+  - payment_method (varchar(50))  
+  - status (enum('succeeded','failed'))  
+  - stripe_session_id (varchar(255))  
+  - created_at (timestamp)  
+Table: users
+  - id (int(11)) PRI auto_increment
+  - fullname (varchar(100))  
+  - email (varchar(100)) UNI 
+  - password (varchar(255))  
+  - role (enum('admin','organizer','client'))  
+  - is_verified (tinyint(1))  
+  - is_blocked (tinyint(1))  
+  - otp_code (varchar(6))  
+  - otp_expires_at (datetime)  
+  - created_at (timestamp)  
+  - profile_picture (varchar(255))  

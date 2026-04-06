@@ -1,0 +1,6 @@
+Connected to database.
+Payments table created or already exists.
+Notifications table created or already exists.
+Bookings table payment_status updated.
+Events table packages updated to JSON.
+Migration completed successfully!

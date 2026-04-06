@@ -217,4 +217,15 @@ class Event {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Get random active events for featuring
+     */
+    public function getRandomActiveEvents($limit = 3): array {
+        $sql = "SELECT * FROM events WHERE status = 'active' ORDER BY RAND() LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
