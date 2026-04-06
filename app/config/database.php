@@ -4,6 +4,7 @@ class Database {
     private $user;
     private $pass;
     private $dbname;
+    private $port;
     private $pdo;
     private $error;
 
@@ -15,14 +16,16 @@ class Database {
             $this->user = $env['DB_USER'] ?? 'root';
             $this->pass = $env['DB_PASS'] ?? '';
             $this->dbname = $env['DB_NAME'] ?? 'event_management_system';
+            $this->port = $env['DB_PORT'] ?? '3307';
         } else {
             $this->host = 'localhost';
             $this->user = 'root';
             $this->pass = '';
             $this->dbname = 'event_management_system';
+            $this->port = '3307';
         }
 
-        $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
+        $dsn = 'mysql:host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbname;
         $options = array(
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION

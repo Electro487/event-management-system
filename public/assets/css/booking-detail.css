@@ -202,6 +202,11 @@ body {
     color: #991b1b;
 }
 
+.badge-status-lg.confirmed {
+    background: var(--primary-green);
+    color: white;
+}
+
 .badge-status-lg.completed {
     background: #e0e7ff;
     color: #3730a3;

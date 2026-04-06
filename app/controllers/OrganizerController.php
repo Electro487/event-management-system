@@ -289,7 +289,8 @@ class OrganizerController
                 $adminTitle = "Event Updated by Organizer";
                 $adminMsg = "Organizer {$_SESSION['user_fullname']} updated '{$existingEvent['title']}'." . $diffText;
                 foreach ($allAdmins as $admin) {
-                    if ($admin['id'] == ($_SESSION['user_id'] ?? 0)) continue; // Skip self
+                    if ($admin['id'] == ($_SESSION['user_id'] ?? 0))
+                        continue; // Skip self
                     $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'event_update', $id);
                 }
 
@@ -329,17 +330,18 @@ class OrganizerController
                     $adminTitle = "Event Cancelled by Organizer";
                     $adminMsg = "Organizer {$_SESSION['user_fullname']} cancelled '{$event['title']}'.";
                     foreach ($allAdmins as $admin) {
-                        if ($admin['id'] == ($_SESSION['user_id'] ?? 0)) continue; // Skip self
+                        if ($admin['id'] == ($_SESSION['user_id'] ?? 0))
+                            continue; // Skip self
                         $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'event_delete', 0);
                     }
 
                     // Update: Notify Booked Clients with new refund wording
                     if (!empty($clientIds)) {
-                         $clientTitle = "Event Cancelled by Organizer";
-                         $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the organizer. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
-                         foreach ($clientIds as $clientId) {
-                             $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
-                         }
+                        $clientTitle = "Event Cancelled by Organizer";
+                        $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the organizer. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
+                        foreach ($clientIds as $clientId) {
+                            $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
+                        }
                     }
                     header('Location: /EventManagementSystem/public/organizer/events?deleted=1');
                     exit;
@@ -441,8 +443,9 @@ class OrganizerController
                         require_once dirname(__DIR__) . '/models/Notification.php';
                         $notificationModel = new Notification();
                         $clientTitle = "Booking Confirmed";
-                        $clientMessage = "Your '{$booking['event_name']}' booking has been confirmed by the venue manager.";
-                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking', $id);
+                        $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+                        $clientMessage = "Your '{$eventTitle}' booking has been confirmed by the venue manager.";
+                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking_approve', $id);
 
                         header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
                         exit;
@@ -476,8 +479,9 @@ class OrganizerController
                         require_once dirname(__DIR__) . '/models/Notification.php';
                         $notificationModel = new Notification();
                         $clientTitle = "Booking Cancelled";
-                        $clientMessage = "Your '{$booking['event_name']}' booking has been cancelled by the organizer.";
-                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking', $id);
+                        $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+                        $clientMessage = "Your '{$eventTitle}' booking has been cancelled by the organizer.";
+                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking_cancel', $id);
 
                         header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
                         exit;
@@ -620,6 +624,30 @@ class OrganizerController
             if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
                 if (strtolower($booking['payment_status'] ?? 'unpaid') === 'partially_paid') {
                     $bookingModel->updatePaymentStatus($id, 'paid');
+
+                    // --- Notification Logic ---
+                    require_once dirname(__DIR__) . '/models/Notification.php';
+                    require_once dirname(__DIR__) . '/models/User.php';
+                    $notificationModel = new Notification();
+                    $userModel = new User();
+
+                    $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+                    $organizerName = $_SESSION['user_fullname'] ?? 'Organizer';
+
+                    // 1. Notify Client
+                    $clientTitle = "Payment Fully Paid (Cash)";
+                    $clientMsg = "Your payment for '{$eventTitle}' has been recorded as Fully Paid (Cash) by the venue manager. Thank you!";
+                    $notificationModel->create($booking['client_id'], $clientTitle, $clientMsg, 'payment', $id);
+
+                    // 2. Notify ALL Admins
+                    $admins = $userModel->getAdmins();
+                    $adminTitle = "Cash Payment Marked by Organizer";
+                    $adminMsg = "Organizer '{$organizerName}' has marked the booking for '{$eventTitle}' as Fully Paid (Cash).";
+                    foreach ($admins as $admin) {
+                        $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'payment_alert', $id);
+                    }
+                    // --------------------------
+
                     header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&paid=1');
                     exit;
                 }

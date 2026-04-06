@@ -613,6 +613,29 @@ class AdminController
             $booking = $bookingModel->getById($id);
             if ($booking && strtolower($booking['payment_status'] ?? 'unpaid') === 'partially_paid') {
                 $bookingModel->updatePaymentStatus($id, 'paid');
+
+                // --- Notification Logic ---
+                require_once dirname(__DIR__) . '/models/Notification.php';
+                require_once dirname(__DIR__) . '/models/User.php';
+                $notificationModel = new Notification();
+                $userModel = new User();
+
+                $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+
+                // 1. Notify Client
+                $clientTitle = "Payment Fully Paid (Cash)";
+                $clientMsg = "Your payment for '{$eventTitle}' has been recorded as Fully Paid (Cash). Thank you!";
+                $notificationModel->create($booking['client_id'], $clientTitle, $clientMsg, 'payment', $id);
+
+                // 2. Notify Organizer (Only if NOT an admin event)
+                $organizer = $userModel->findById($booking['organizer_id']);
+                if ($organizer && $organizer['role'] !== 'admin') {
+                    $orgTitle = "Cash Payment Received";
+                    $orgMsg = "An administrator has marked the booking for '{$eventTitle}' as Fully Paid (Cash).";
+                    $notificationModel->create($booking['organizer_id'], $orgTitle, $orgMsg, 'payment_alert', $id);
+                }
+                // --------------------------
+
                 header('Location: /EventManagementSystem/public/admin/bookings/view?id=' . $id . '&paid=1');
                 exit;
             }

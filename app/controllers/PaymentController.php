@@ -114,7 +114,7 @@ class PaymentController
                 $booking = $bookingModel->getById($booking_id);
                 
                 // Double check if already paid to avoid duplicate records
-                if ($booking && $booking['payment_status'] === 'unpaid') {
+                if ($booking && ($booking['payment_status'] === 'unpaid' || empty($booking['payment_status']))) {
                     // 1. Create Payment Record
                     $paymentData = [
                         'booking_id' => $booking_id,
@@ -163,6 +163,20 @@ class PaymentController
                             $notificationModel->create($admin['id'], 'New Advance Payment', $msg, 'payment_alert', $booking_id);
                         }
                     }
+                    
+                    // 5. Update any existing "Booking Received" notifications (Admin) to "Payment: Paid"
+                    $adminTitle = "Booking Received";
+                    $clientName = $_SESSION['user_fullname'] ?? $booking['full_name'];
+                    $eventTitle = $booking['event_title'];
+                    $pTier = $booking['package_tier'];
+                    $eDate = $booking['event_date'];
+                    $cTime = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
+                    if (preg_match('/^\d{2}:\d{2}$/', $cTime)) {
+                        $cTime = date('h:i A', strtotime($cTime));
+                    }
+                    
+                    $updatedAdminMsg = "{$clientName} booked '{$eventTitle}'.\nPackage: {$pTier}\nDate: {$eDate}, Check-in: {$cTime}\nPayment: Paid";
+                    $notificationModel->updateMessageByRelatedIdAndTitle($booking_id, 'booking', $adminTitle, $updatedAdminMsg);
                 }
 
                 $transaction_id = $session->payment_intent;
