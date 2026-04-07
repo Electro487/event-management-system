@@ -36,9 +36,7 @@ body {
     min-height: 100vh;
 }
 
-/* ------------------------------------- */
-/*  SIDEBAR STYLING                      */
-/* ------------------------------------- */
+
 .sidebar {
     position: fixed;
     height: 100vh;
@@ -137,9 +135,7 @@ body {
     margin-right: 15px;
 }
 
-/* ------------------------------------- */
-/*  MAIN CONTENT                         */
-/* ------------------------------------- */
+
 .main-content {
     margin-left: var(--sidebar-width);
     flex: 1;
@@ -552,9 +548,7 @@ td {
 .progress-bar .fill.cancelled { background: var(--danger-color); }
 
 
-/* ------------------------------------- */
-/*  ORGANIZER SPECIFIC CONTENT           */
-/* ------------------------------------- */
+
 
 /* Content Header (for Events index) */
 .content-header {
@@ -1028,4 +1022,4 @@ td {
 .custom-premium-dropdown.small .dropdown-item {
     padding: 8px 12px;
     font-size: 12px;
-}
+}

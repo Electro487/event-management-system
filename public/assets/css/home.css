@@ -311,7 +311,7 @@ body {
     padding: 100px 80px;
     text-align: center;
     background: #f6f8f6;
-    /* Exactly matches screenshot off-white */
+    
 }
 
 .about-section h2 {
@@ -335,7 +335,7 @@ body {
     margin: 0 auto;
     background: #ffffff;
     border: 2px solid #fce8b6;
-    /* Exact gold border match from screenshot */
+    
     border-radius: 20px;
     padding: 30px;
     display: flex;
@@ -399,7 +399,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    /* Align exactly to the bottom as in screenshot */
+    
     gap: 40px;
     flex-wrap: wrap;
 }

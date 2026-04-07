@@ -1,8 +1,4 @@
-/* =============================================
-   Notification System - Global Helper Functions
-   Defined OUTSIDE DOMContentLoaded so PHP-rendered
-   onclick="window.markAsRead(id)" always works.
-   ============================================= */
+
 
 // ---- Shared State ----
 let _seenIds = new Set();
@@ -422,9 +418,7 @@ function _timeAgo(date) {
     return Math.floor(seconds) + ' seconds ago';
 }
 
-/* =============================================
-   Dropdown-specific setup (requires bell button)
-   ============================================= */
+
 document.addEventListener('DOMContentLoaded', function () {
     const bellBtn = document.getElementById('notification-bell');
     const dropdown = document.getElementById('notifications-dropdown');

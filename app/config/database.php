@@ -16,13 +16,13 @@ class Database {
             $this->user = $env['DB_USER'] ?? 'root';
             $this->pass = $env['DB_PASS'] ?? '';
             $this->dbname = $env['DB_NAME'] ?? 'event_management_system';
-            $this->port = $env['DB_PORT'] ?? '3307';
+            $this->port = $env['DB_PORT'] ?? '3306';
         } else {
             $this->host = 'localhost';
             $this->user = 'root';
             $this->pass = '';
             $this->dbname = 'event_management_system';
-            $this->port = '3307';
+            $this->port = '3306';
         }
 
         $dsn = 'mysql:host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbname;

@@ -18,8 +18,24 @@ class AuthController
         }
     }
 
+    private function redirectIfLoggedIn()
+    {
+        if (isset($_SESSION['user_id'])) {
+            $role = $_SESSION['user_role'] ?? 'client';
+            if ($role === 'admin') {
+                header('Location: /EventManagementSystem/public/admin/dashboard');
+            } elseif ($role === 'organizer') {
+                header('Location: /EventManagementSystem/public/organizer/dashboard');
+            } else {
+                header('Location: /EventManagementSystem/public/client/home');
+            }
+            exit;
+        }
+    }
+
     public function register()
     {
+        $this->redirectIfLoggedIn();
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Init data
@@ -93,6 +109,7 @@ class AuthController
 
     public function login()
     {
+        $this->redirectIfLoggedIn();
         $error = '';
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {

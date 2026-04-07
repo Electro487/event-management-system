@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,12 +11,13 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
+
 <body>
 
     <!-- Sidebar -->
-    <?php 
-        $activePage = 'dashboard';
-        include_once __DIR__ . '/partials/sidebar.php'; 
+    <?php
+    $activePage = 'dashboard';
+    include_once __DIR__ . '/partials/sidebar.php';
     ?>
 
     <!-- Main Content -->
@@ -57,7 +59,8 @@
         <!-- Welcome Banner -->
         <div class="welcome-banner">
             <div>
-                <h2>Welcome back, <?php $firstName = explode(' ', trim($_SESSION['user_fullname']))[1]; echo htmlspecialchars($firstName); ?>! 👋</h2>
+                <h2>Welcome back, <?php $firstName = explode(' ', trim($_SESSION['user_fullname']))[1];
+                                    echo htmlspecialchars($firstName); ?>! 👋</h2>
                 <p>You have <?php echo number_format($pendingRequests ?? 0); ?> pending requests that need your attention today.</p>
             </div>
         </div>
@@ -87,16 +90,16 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon"><i class="far fa-money-bill-alt"></i></div>
+                    <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
-                <p>Revenue</p>
-                <h3>Rs. <?php echo number_format($revenue); ?></h3>
+                <p>Confirmed Bookings</p>
+                <h3><?php echo number_format($statusSummary['confirmed'] ?? 0); ?></h3>
             </div>
         </div>
 
         <!-- Bottom Grid Section -->
         <div class="bottom-grid">
-            
+
             <!-- Left Column -->
             <div class="left-col">
                 <!-- Recent Bookings Table -->
@@ -118,7 +121,9 @@
                         </thead>
                         <tbody>
                             <?php if (empty($recentBookings)): ?>
-                                <tr><td colspan="6" style="text-align:center;">No recent bookings found.</td></tr>
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">No recent bookings found.</td>
+                                </tr>
                             <?php else: ?>
                                 <?php foreach ($recentBookings as $booking): ?>
                                     <tr class="booking-row" data-client="<?php echo strtolower(htmlspecialchars($booking['client_name'])); ?>" data-event="<?php echo strtolower(htmlspecialchars($booking['event_name'])); ?>">
@@ -128,10 +133,10 @@
                                                     <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                                                 <?php else: ?>
                                                     <div style="width: 32px; height: 32px; background: #f0f7f3; color: #246A55; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">
-                                                        <?php 
-                                                            $nameArr = explode(' ', $booking['client_name']);
-                                                            $init = strtoupper(substr($nameArr[0], 0, 1) . (isset($nameArr[1]) ? substr($nameArr[1], 0, 1) : ''));
-                                                            echo $init ?: '??';
+                                                        <?php
+                                                        $nameArr = explode(' ', $booking['client_name']);
+                                                        $init = strtoupper(substr($nameArr[0], 0, 1) . (isset($nameArr[1]) ? substr($nameArr[1], 0, 1) : ''));
+                                                        echo $init ?: '??';
                                                         ?>
                                                     </div>
                                                 <?php endif; ?>
@@ -145,10 +150,10 @@
                                         </td>
                                         <td><?php echo htmlspecialchars($booking['package_name']); ?></td>
                                         <td>
-                                            <?php 
+                                            <?php
                                             // Format date
                                             $date = new DateTime($booking['created_at']);
-                                            echo $date->format('M d, Y'); 
+                                            echo $date->format('M d, Y');
                                             ?>
                                         </td>
                                         <td>
@@ -166,13 +171,13 @@
 
                 <!-- Status Summary -->
                 <div class="status-summary">
-                    <?php 
-                        $totalConfirmedAndPendingAndCancelled = array_sum($statusSummary);
-                        $confirmedPct = $totalConfirmedAndPendingAndCancelled ? ($statusSummary['confirmed'] / $totalConfirmedAndPendingAndCancelled) * 100 : 0;
-                        $pendingPct = $totalConfirmedAndPendingAndCancelled ? ($statusSummary['pending'] / $totalConfirmedAndPendingAndCancelled) * 100 : 0;
-                        $cancelledPct = $totalConfirmedAndPendingAndCancelled ? ($statusSummary['cancelled'] / $totalConfirmedAndPendingAndCancelled) * 100 : 0;
+                    <?php
+                    $totalConfirmedAndPendingAndCancelled = array_sum($statusSummary);
+                    $confirmedPct = $totalConfirmedAndPendingAndCancelled ? ($statusSummary['confirmed'] / $totalConfirmedAndPendingAndCancelled) * 100 : 0;
+                    $pendingPct = $totalConfirmedAndPendingAndCancelled ? ($statusSummary['pending'] / $totalConfirmedAndPendingAndCancelled) * 100 : 0;
+                    $cancelledPct = $totalConfirmedAndPendingAndCancelled ? ($statusSummary['cancelled'] / $totalConfirmedAndPendingAndCancelled) * 100 : 0;
                     ?>
-                    
+
                     <div class="status-card">
                         <div class="status-card-header">
                             <h4>Confirmed</h4>
@@ -222,26 +227,26 @@
                         <?php else: ?>
                             <?php foreach ($upcomingEvents as $event): ?>
                                 <?php
-                                    if (empty($event['event_date'])) {
+                                if (empty($event['event_date'])) {
+                                    $daysText = "Ongoing";
+                                } else {
+                                    $eventDate = new DateTime($event['event_date']);
+                                    $now = new DateTime();
+                                    $diff = $now->diff($eventDate);
+                                    $daysLeft = $diff->days;
+
+                                    if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
+                                        $daysText = "Today";
+                                    } elseif ($diff->invert) {
                                         $daysText = "Ongoing";
                                     } else {
-                                        $eventDate = new DateTime($event['event_date']);
-                                        $now = new DateTime();
-                                        $diff = $now->diff($eventDate);
-                                        $daysLeft = $diff->days;
-                                        
-                                        if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
-                                            $daysText = "Today";
-                                        } elseif ($diff->invert) {
-                                            $daysText = "Ongoing";
-                                        } else {
-                                            $daysText = "in {$daysLeft} days";
-                                        }
+                                        $daysText = "in {$daysLeft} days";
                                     }
+                                }
                                 ?>
                                 <a href="/EventManagementSystem/public/organizer/events/view?id=<?php echo $event['id']; ?>" class="event-item" data-title="<?php echo strtolower(htmlspecialchars($event['title'] ?? '')); ?>" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; transition: all 0.2s ease;">
-                                    <?php 
-                                        $eventImg = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                    <?php
+                                    $eventImg = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
                                     ?>
                                     <img src="<?php echo htmlspecialchars($eventImg); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/placeholder.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
                                     <div class="event-info" style="flex: 1; min-width: 0;">
@@ -265,4 +270,5 @@
 
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
+
 </html>

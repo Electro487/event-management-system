@@ -143,13 +143,13 @@ body {
 /* Hero Section */
 .hero {
     background-color: #1f6f59;
-    /* Matching the screenshot's dark green/teal */
     padding: 60px 20px;
     text-align: center;
     color: var(--white);
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    margin: 10px 40px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 1160px;
+    margin: 20px auto 10px;
 }
 
 .hero h1 {

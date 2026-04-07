@@ -11,7 +11,7 @@
     border-radius: 50%;
     transition: all 0.2s;
     color: #1f6f59;
-    /* Matching the theme color from client side */
+    
     font-size: 1.2rem;
     box-shadow: none !important;
 }

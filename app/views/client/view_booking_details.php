@@ -116,28 +116,28 @@ $steps = [
             </div>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php
-                    $headerInitials = '';
-                    $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
-                    foreach($nameParts as $p) {
-                        $headerInitials .= strtoupper(substr($p, 0, 1));
-                    }
-                    if (strlen($headerInitials) > 2) $headerInitials = substr($headerInitials, 0, 2);
+                $headerInitials = '';
+                $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+                foreach ($nameParts as $p) {
+                    $headerInitials .= strtoupper(substr($p, 0, 1));
+                }
+                if (strlen($headerInitials) > 2) $headerInitials = substr($headerInitials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
-                        <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                        <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                             <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
                         <?php else: ?>
                             <span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>
                         <?php endif; ?>
                     </div>
-                    
+
                     <!-- Dropdown Modal -->
                     <div id="profile-dropdown" class="profile-dropdown">
                         <div class="pd-top">
                             <div class="pd-avatar-container">
                                 <div class="pd-avatar">
-                                    <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                    <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                                         <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
                                         <span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>
@@ -146,7 +146,7 @@ $steps = [
                                 <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
                                     <i class="fa-solid fa-pen"></i>
                                 </label>
-                                <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                                     <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
                                         <i class="fa-solid fa-trash"></i>
                                     </div>
@@ -158,9 +158,9 @@ $steps = [
                             <span class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
-                            <?php 
-                                $firstName = $nameParts[0] ?? '';
-                                $lastName = count($nameParts) > 1 ? end($nameParts) : '';
+                            <?php
+                            $firstName = $nameParts[0] ?? '';
+                            $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                             ?>
                             <div class="pd-detail">
                                 <label>FIRST NAME</label>
@@ -174,100 +174,100 @@ $steps = [
                                 <label>EMAIL ADDRESS</label>
                                 <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
                             </div>
-                            
+
                             <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
                         </div>
                     </div>
                 </div>
-                
+
                 <script>
-                function toggleProfileDropdown() {
-                    const dropdown = document.getElementById('profile-dropdown');
-                    dropdown.classList.toggle('show');
-                }
-                
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(event) {
-                    const container = document.getElementById('profile-container');
-                    if (container && !container.contains(event.target)) {
-                        document.getElementById('profile-dropdown').classList.remove('show');
+                    function toggleProfileDropdown() {
+                        const dropdown = document.getElementById('profile-dropdown');
+                        dropdown.classList.toggle('show');
                     }
-                });
 
-                function uploadProfilePicture(input) {
-                    if (input.files && input.files[0]) {
-                        const formData = new FormData();
-                        formData.append('profile_picture', input.files[0]);
-                        
-                        fetch('/EventManagementSystem/public/client/profile/update', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                    // Hide dropdown when clicking outside
+                    document.addEventListener('click', function(event) {
+                        const container = document.getElementById('profile-container');
+                        if (container && !container.contains(event.target)) {
+                            document.getElementById('profile-dropdown').classList.remove('show');
+                        }
+                    });
 
-                                // Add delete icon if not exists
-                                if (!document.querySelector('.pd-delete-icon')) {
-                                    let avatarContainer = document.querySelector('.pd-avatar-container');
-                                    let deleteBtn = document.createElement('div');
-                                    deleteBtn.className = 'pd-delete-icon';
-                                    deleteBtn.title = 'Remove Photo';
-                                    deleteBtn.onclick = deleteProfilePicture;
-                                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                    avatarContainer.appendChild(deleteBtn);
-                                }
-                            } else {
-                                alert(data.message || 'Error uploading image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred during upload.');
-                        });
+                    function uploadProfilePicture(input) {
+                        if (input.files && input.files[0]) {
+                            const formData = new FormData();
+                            formData.append('profile_picture', input.files[0]);
+
+                            fetch('/EventManagementSystem/public/client/profile/update', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Update header avatar
+                                        let headerIcon = document.getElementById('profile-icon');
+                                        headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+
+                                        // Update dropdown avatar
+                                        let dropdownAvatar = document.querySelector('.pd-avatar');
+                                        dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+
+                                        // Add delete icon if not exists
+                                        if (!document.querySelector('.pd-delete-icon')) {
+                                            let avatarContainer = document.querySelector('.pd-avatar-container');
+                                            let deleteBtn = document.createElement('div');
+                                            deleteBtn.className = 'pd-delete-icon';
+                                            deleteBtn.title = 'Remove Photo';
+                                            deleteBtn.onclick = deleteProfilePicture;
+                                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                            avatarContainer.appendChild(deleteBtn);
+                                        }
+                                    } else {
+                                        alert(data.message || 'Error uploading image.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('An error occurred during upload.');
+                                });
+                        }
                     }
-                }
 
-                function deleteProfilePicture() {
-                    if (confirm('Are you sure you want to remove your profile picture?')) {
-                        fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                            method: 'POST'
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
-                                
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = initialsElement;
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
-                                
-                                // Remove delete icon if exists
-                                let deleteIcon = document.querySelector('.pd-delete-icon');
-                                if (deleteIcon) deleteIcon.remove();
-                            } else {
-                                alert('Error removing image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred.');
-                        });
+                    function deleteProfilePicture() {
+                        if (confirm('Are you sure you want to remove your profile picture?')) {
+                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                    method: 'POST'
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
+
+                                        // Update header avatar
+                                        let headerIcon = document.getElementById('profile-icon');
+                                        headerIcon.innerHTML = initialsElement;
+
+                                        // Update dropdown avatar
+                                        let dropdownAvatar = document.querySelector('.pd-avatar');
+                                        dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
+
+                                        // Remove delete icon if exists
+                                        let deleteIcon = document.querySelector('.pd-delete-icon');
+                                        if (deleteIcon) deleteIcon.remove();
+                                    } else {
+                                        alert('Error removing image.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('An error occurred.');
+                                });
+                        }
                     }
-                }
                 </script>
             <?php endif; ?>
         </div>
@@ -319,14 +319,14 @@ $steps = [
                         <div class="info-item">
                             <span class="info-label">Check-in Time</span>
                             <span class="info-val"><?php
-                            $time = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
-                            // If it's in 24hr format from input (HH:mm), convert to AM/PM
-                            if (preg_match('/^\d{2}:\d{2}$/', $time)) {
-                                echo date('h:i A', strtotime($time));
-                            } else {
-                                echo htmlspecialchars($time);
-                            }
-                            ?></span>
+                                                    $time = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
+                                                    // If it's in 24hr format from input (HH:mm), convert to AM/PM
+                                                    if (preg_match('/^\d{2}:\d{2}$/', $time)) {
+                                                        echo date('h:i A', strtotime($time));
+                                                    } else {
+                                                        echo htmlspecialchars($time);
+                                                    }
+                                                    ?></span>
                             <i class="fa-regular fa-clock info-icon"></i>
                         </div>
                         <div class="info-item">
@@ -392,7 +392,7 @@ $steps = [
                     <div class="timeline">
                         <?php foreach ($steps as $step):
                             $cls = getStepClass($step['key'], $displayStatus, $currentDate, $eventDate);
-                            ?>
+                        ?>
                             <div class="timeline-item <?php echo $cls; ?>">
                                 <div class="tl-dot">
                                     <div class="dot-inner"><i class="fa-solid fa-check"></i></div>
@@ -414,20 +414,29 @@ $steps = [
                         <span>Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
                     </div>
 
-                    <?php 
-                        $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                        $advance = $booking['total_amount'] * 0.5;
-                        $balance = $booking['total_amount'] * 0.5;
-                        
-                        $isPartiallyPaid = ($payStatus === 'partially_paid');
-                        $isFullyPaid = ($payStatus === 'paid');
+                    <?php
+                    $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+                    $advance = $advanceTarget;
+                    $balance = $booking['total_amount'] * 0.5;
+                    $hasAnyAdvancePaid = ($paidAdvance > 0.009);
+                    $isAdvanceComplete = ($remainingAdvance <= 0.009);
+
+                    $isPartiallyPaid = ($payStatus === 'partially_paid');
+                    $isFullyPaid = ($payStatus === 'paid');
                     ?>
 
                     <div class="price-row">
                         <span>Advance (50% Online)</span>
-                        <span style="color: <?php echo ($isPartiallyPaid || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
-                            Rs. <?php echo number_format($advance, 2); ?>
-                            <?php if($isPartiallyPaid || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        <span style="color: <?php echo ($isAdvanceComplete || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($paidAdvance, 2); ?> / <?php echo number_format($advance, 2); ?>
+                            <?php if ($isAdvanceComplete || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
+                    </div>
+
+                    <div class="price-row">
+                        <span>Remaining Online Advance</span>
+                        <span style="color: <?php echo $isAdvanceComplete ? '#10b981' : '#ef4444'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($remainingAdvance, 2); ?>
                         </span>
                     </div>
 
@@ -435,41 +444,42 @@ $steps = [
                         <span>Balance (50% Cash on Event Day)</span>
                         <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
                             Rs. <?php echo number_format($balance, 2); ?>
-                            <?php if($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                            <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
                         </span>
                     </div>
 
                     <div class="price-row total <?php echo ($isPartiallyPaid || $isFullyPaid) ? 'paid' : 'pending'; ?>" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
                         <span>Current Status</span>
                         <span>
-                            <?php 
-                                if($isFullyPaid) echo 'FULLY PAID';
-                                elseif($isPartiallyPaid) echo 'ADVANCE PAID';
-                                else echo 'PAYMENT PENDING';
+                            <?php
+                            if ($isFullyPaid) echo 'FULLY PAID';
+                            elseif ($isAdvanceComplete) echo 'ADVANCE COMPLETE';
+                            elseif ($hasAnyAdvancePaid) echo 'ADVANCE PARTIALLY PAID';
+                            else echo 'PAYMENT PENDING';
                             ?>
                         </span>
                     </div>
 
-                    <?php if ($payStatus === 'unpaid'): ?>
+                    <?php if (!$isFullyPaid && !$isAdvanceComplete): ?>
                         <div style="margin-top: 20px;">
-                            <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=<?php echo $booking['id']; ?>" 
-                               class="btn-primary" 
-                               style="display: block; text-align: center; background: #246A55; color: white;">
-                                <i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online
+                            <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=<?php echo $booking['id']; ?>"
+                                class="btn-primary"
+                                style="display: block; text-align: center; background: #246A55; color: white;">
+                                <i class="fa-solid fa-credit-card"></i> Pay Next Installment (Rs. <?php echo number_format($nextInstallmentAmount, 2); ?>)
                             </a>
                         </div>
                     <?php endif; ?>
 
                     <div class="policy-note" style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
                         <span style="font-size:12px; color:#0369a1; display:flex; gap:8px; line-height:1.4;">
-                            <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i> 
+                            <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i>
                             <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer on the day of the event.</span>
                         </span>
                     </div>
 
-                    <?php 
-                        $isLocked = ($displayStatus === 'confirmed' && $payStatus !== 'unpaid');
-                        $canCancel = ($displayStatus === 'pending' || ($displayStatus === 'confirmed' && $payStatus === 'unpaid'));
+                    <?php
+                    $isLocked = ($displayStatus === 'confirmed' && $payStatus !== 'unpaid');
+                    $canCancel = ($displayStatus === 'pending' || ($displayStatus === 'confirmed' && $payStatus === 'unpaid'));
                     ?>
 
                     <?php if ($canCancel): ?>
