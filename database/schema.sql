@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `notifications` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `user_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `message` text NOT NULL,
