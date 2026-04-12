@@ -34,7 +34,7 @@ class OrganizerController
         }
 
         if ($role === 'client') {
-            header('Location: /EventManagementSystem/public/client/events');
+            header('Location: /EventManagementSystem/public/client/home');
             exit;
         }
 
@@ -59,7 +59,6 @@ class OrganizerController
         $totalEvents = $eventModel->getTotalEvents($organizer_id);
         $totalBookings = $bookingModel->countByOrganizer($organizer_id);
         $pendingRequests = $bookingModel->countByStatusForOrganizer($organizer_id, 'pending');
-        $revenue = $bookingModel->getRevenueByOrganizer($organizer_id);
 
         // Fetch Recent Bookings (Limit 5)
         $recentBookings = $bookingModel->getRecentByOrganizer($organizer_id, 5);
@@ -92,14 +91,7 @@ class OrganizerController
 
     public function events()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkAuth();
 
         require_once dirname(__DIR__) . '/models/Event.php';
         /** @var \Event $eventModel */
@@ -111,34 +103,26 @@ class OrganizerController
 
     public function createEvent()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkAuth();
 
         require_once dirname(__DIR__) . '/views/organizer/create_event.php';
     }
 
     public function storeEvent()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'organizer') {
-            header('Location: /EventManagementSystem/public/login');
-            exit;
-        }
+        $this->checkAuth();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once dirname(__DIR__) . '/models/Event.php';
             $eventModel = new Event();
 
-            $data = $this->getEventDataFromPost();
+            try {
+                $data = $this->getEventDataFromPost();
+            } catch (\InvalidArgumentException $e) {
+                $_SESSION['error'] = $e->getMessage();
+                header('Location: /EventManagementSystem/public/organizer/events/create');
+                exit;
+            }
             $data['image_path'] = $this->handleImageUpload();
 
             $eventId = $eventModel->create($data);
@@ -231,7 +215,13 @@ class OrganizerController
                 exit("Unauthorized");
             }
 
-            $data = $this->getEventDataFromPost();
+            try {
+                $data = $this->getEventDataFromPost();
+            } catch (\InvalidArgumentException $e) {
+                $_SESSION['error'] = $e->getMessage();
+                header('Location: /EventManagementSystem/public/organizer/events/edit?id=' . urlencode((string) $id));
+                exit;
+            }
 
             // Handle image update
             $newImagePath = $this->handleImageUpload();
@@ -289,7 +279,8 @@ class OrganizerController
                 $adminTitle = "Event Updated by Organizer";
                 $adminMsg = "Organizer {$_SESSION['user_fullname']} updated '{$existingEvent['title']}'." . $diffText;
                 foreach ($allAdmins as $admin) {
-                    if ($admin['id'] == ($_SESSION['user_id'] ?? 0)) continue; // Skip self
+                    if ($admin['id'] == ($_SESSION['user_id'] ?? 0))
+                        continue; // Skip self
                     $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'event_update', $id);
                 }
 
@@ -329,17 +320,18 @@ class OrganizerController
                     $adminTitle = "Event Cancelled by Organizer";
                     $adminMsg = "Organizer {$_SESSION['user_fullname']} cancelled '{$event['title']}'.";
                     foreach ($allAdmins as $admin) {
-                        if ($admin['id'] == ($_SESSION['user_id'] ?? 0)) continue; // Skip self
+                        if ($admin['id'] == ($_SESSION['user_id'] ?? 0))
+                            continue; // Skip self
                         $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'event_delete', 0);
                     }
 
                     // Update: Notify Booked Clients with new refund wording
                     if (!empty($clientIds)) {
-                         $clientTitle = "Event Cancelled by Organizer";
-                         $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the organizer. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
-                         foreach ($clientIds as $clientId) {
-                             $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
-                         }
+                        $clientTitle = "Event Cancelled by Organizer";
+                        $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the organizer. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
+                        foreach ($clientIds as $clientId) {
+                            $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
+                        }
                     }
                     header('Location: /EventManagementSystem/public/organizer/events?deleted=1');
                     exit;
@@ -441,8 +433,9 @@ class OrganizerController
                         require_once dirname(__DIR__) . '/models/Notification.php';
                         $notificationModel = new Notification();
                         $clientTitle = "Booking Confirmed";
-                        $clientMessage = "Your '{$booking['event_name']}' booking has been confirmed by the venue manager.";
-                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking', $id);
+                        $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+                        $clientMessage = "Your '{$eventTitle}' booking has been confirmed by the venue manager.";
+                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking_approve', $id);
 
                         header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&approved=1');
                         exit;
@@ -476,8 +469,9 @@ class OrganizerController
                         require_once dirname(__DIR__) . '/models/Notification.php';
                         $notificationModel = new Notification();
                         $clientTitle = "Booking Cancelled";
-                        $clientMessage = "Your '{$booking['event_name']}' booking has been cancelled by the organizer.";
-                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking', $id);
+                        $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+                        $clientMessage = "Your '{$eventTitle}' booking has been cancelled by the organizer.";
+                        $notificationModel->create($booking['client_id'], $clientTitle, $clientMessage, 'booking_cancel', $id);
 
                         header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&cancelled=1');
                         exit;
@@ -491,6 +485,8 @@ class OrganizerController
 
     private function getEventDataFromPost()
     {
+        $validatedPackages = $this->validatePackagePricing($_POST['packages'] ?? []);
+
         return [
             'organizer_id' => $_SESSION['user_id'],
             'title' => $_POST['title'] ?? '',
@@ -500,8 +496,56 @@ class OrganizerController
             'event_date' => null,
             'venue_name' => $_POST['venue_name'] ?? '',
             'venue_location' => $_POST['venue_location'] ?? '',
-            'packages' => json_encode($_POST['packages'] ?? [])
+            'packages' => json_encode($validatedPackages)
         ];
+    }
+
+    private function validatePackagePricing($packages)
+    {
+        if (!is_array($packages)) {
+            throw new \InvalidArgumentException('Invalid package data submitted.');
+        }
+
+        $maxAmount = 20000000;
+        $tiers = ['basic', 'standard', 'premium'];
+        $prices = [];
+
+        foreach ($tiers as $tier) {
+            if (!isset($packages[$tier]) || !is_array($packages[$tier])) {
+                throw new \InvalidArgumentException('Please provide all package tiers: basic, standard, and premium.');
+            }
+
+            $rawPrice = $packages[$tier]['price'] ?? null;
+            if ($rawPrice === null || $rawPrice === '') {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price is required.');
+            }
+
+            if (!preg_match('/^\d+$/', (string) $rawPrice)) {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price must be a whole number only.');
+            }
+
+            $price = (int) $rawPrice;
+            if ($price <= 0) {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price must be greater than 0.');
+            }
+
+            if ($price > $maxAmount) {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price cannot exceed NPR 2,00,00,000.');
+            }
+
+            if (($tier === 'basic' || $tier === 'standard') && $price >= $maxAmount) {
+                throw new \InvalidArgumentException('Only premium package can be set to NPR 2,00,00,000. Basic and standard must be lower.');
+            }
+
+            $prices[$tier] = $price;
+            $packages[$tier]['price'] = $price;
+        }
+
+        if (!($prices['basic'] < $prices['standard'] && $prices['standard'] < $prices['premium'])) {
+            throw new \InvalidArgumentException('Price order must be: Basic < Standard < Premium.');
+        }
+
+        return $packages;
     }
 
     private function handleImageUpload()
@@ -613,13 +657,52 @@ class OrganizerController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
             require_once dirname(__DIR__) . '/models/Booking.php';
+            require_once dirname(__DIR__) . '/models/Payment.php';
             $bookingModel = new Booking();
+            $paymentModel = new Payment();
             $id = $_POST['booking_id'];
 
             $booking = $bookingModel->getById($id);
             if ($booking && $booking['organizer_id'] == $_SESSION['user_id']) {
                 if (strtolower($booking['payment_status'] ?? 'unpaid') === 'partially_paid') {
+                    $paidSoFar = $paymentModel->getSucceededTotalByBookingId($id);
+                    $cashAmount = max(0, (float) $booking['total_amount'] - $paidSoFar);
+
+                    if ($cashAmount > 0.009) {
+                        $paymentModel->create([
+                            'booking_id' => $id,
+                            'client_id' => $booking['client_id'],
+                            'transaction_id' => str_replace('.', '_', uniqid('cash_org_' . $id . '_', true)),
+                            'amount' => $cashAmount,
+                            'payment_method' => 'cash',
+                            'status' => 'succeeded',
+                            'stripe_session_id' => null,
+                        ]);
+                    }
+
                     $bookingModel->updatePaymentStatus($id, 'paid');
+
+                    // --- Notification Logic ---
+                    require_once dirname(__DIR__) . '/models/Notification.php';
+                    require_once dirname(__DIR__) . '/models/User.php';
+                    $notificationModel = new Notification();
+                    $userModel = new User();
+
+                    $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+                    $organizerName = $_SESSION['user_fullname'] ?? 'Organizer';
+
+                    // 1. Notify Client
+                    $clientTitle = "Payment Fully Paid (Cash)";
+                    $clientMsg = "Your payment for '{$eventTitle}' has been recorded as Fully Paid (Cash) by the venue manager. Thank you!";
+                    $notificationModel->create($booking['client_id'], $clientTitle, $clientMsg, 'payment', $id);
+
+                    // 2. Notify ALL Admins
+                    $admins = $userModel->getAdmins();
+                    $adminTitle = "Cash Payment Marked by Organizer";
+                    $adminMsg = "Organizer '{$organizerName}' has marked the booking for '{$eventTitle}' as Fully Paid (Cash).";
+                    foreach ($admins as $admin) {
+                        $notificationModel->create($admin['id'], $adminTitle, $adminMsg, 'payment_alert', $id);
+                    }
                     header('Location: /EventManagementSystem/public/organizer/bookings/view?id=' . $id . '&paid=1');
                     exit;
                 }

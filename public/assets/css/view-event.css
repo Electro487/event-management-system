@@ -1,16 +1,16 @@
 /* View Event CSS */
 :root {
     --primary-color: #0c3b2e;
-    /* Very dark green */
+    
     --primary-light: #246A55;
-    /* Lighter teal-green */
+    
     --secondary-color: #ffc247;
-    /* Yellow/Gold */
+    
     --secondary-hover: #FFC24A;
     --text-dark: #1a1e23;
     --text-gray: #6b7280;
     --bg-light: #f6f8f6;
-    /* Off-white matching screenshot */
+    
     --white: #ffffff;
     --border-color: #e5e7eb;
 }
@@ -107,7 +107,7 @@ body {
     cursor: pointer;
     overflow: hidden;
     border: 2px solid var(--white, #ffffff);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
 }
 
@@ -249,8 +249,9 @@ body {
     gap: 12px;
     font-size: 13px;
     font-weight: 700;
-    color: #246A55; /* Contrast Text on White chip */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    color: #246A55;
+    
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .included-item i {
@@ -290,7 +291,7 @@ body {
 
 .detail-col p.status-open {
     color: #bfa15f;
-    /* matching the screenshot gold color */
+    
 }
 
 /* Right Column - Packages */
@@ -314,8 +315,10 @@ body {
     padding: 25px;
     margin-bottom: 20px;
     position: relative;
-    background: #246A55; /* Global Primary Green */
-    color: white; /* Contrast Text */
+    background: #246A55;
+    
+    color: white;
+    /* Contrast Text */
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
     box-shadow: 0 4px 15px rgba(36, 106, 85, 0.1);
@@ -335,7 +338,8 @@ body {
 .tier-price {
     font-size: 18px;
     font-weight: 800;
-    color: #FFC24A; /* Accent Gold for price visibility on Green */
+    color: #FFC24A;
+    /* Accent Gold for price visibility on Green */
 }
 
 .tier-desc {
@@ -397,25 +401,6 @@ body {
     color: var(--text-gray);
     text-align: center;
     margin-top: 15px;
-}
-
-/* Trust Badges */
-.trust-badges {
-    display: flex;
-    justify-content: space-between;
-    background-color: #e9eceb;
-    /* light gray context */
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-gray);
-    text-transform: uppercase;
-}
-
-.trust-badges i {
-    margin-right: 5px;
 }
 
 @media (max-width: 992px) {

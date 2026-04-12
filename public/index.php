@@ -43,5 +43,5 @@ if (array_key_exists($route, $routes)) {
     }
 } else {
     http_response_code(404);
-    echo "404 - Route Not Found for path: " . htmlspecialchars($route);
+    require_once dirname(__DIR__) . '/app/views/errors/404.php';
 }

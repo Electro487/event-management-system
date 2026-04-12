@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,22 +8,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/auth-otp.css">
 </head>
+
 <body>
     <div class="container">
         <h1>Verify Your Identity</h1>
         <?php
-            $email = $_SESSION['otp_email'] ?? 'your email';
-            $parts = explode('@', $email);
-            $masked_email = substr($parts[0], 0, 2) . '***@' . ($parts[1] ?? '');
+        $email = $_SESSION['otp_email'] ?? 'your email';
+        $parts = explode('@', $email);
+        $masked_email = substr($parts[0], 0, 2) . '***@' . ($parts[1] ?? '');
         ?>
         <p>We've sent a 6-digit verification code to <span class="email-preview"><?php echo $masked_email; ?></span>. Please enter it below to secure your account.</p>
-        
+
         <?php if (!empty($error)): ?>
             <div class="error"><?php echo $error; ?></div>
         <?php endif; ?>
-        
+
         <?php if (!empty($_SESSION['error'])): ?>
-            <div class="error"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
+            <div class="error"><?php echo $_SESSION['error'];
+                                unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
         <form action="/EventManagementSystem/public/verify-otp" method="POST" id="otp-form">
@@ -58,11 +61,10 @@
                 });
             });
 
-            // Very basic timer for visual effect matching screenshot
             let timeLeft = 165;
             const timerDisplay = document.getElementById('timer');
             const resendBtn = document.getElementById('resend-btn');
-            
+
             const countdown = setInterval(() => {
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
@@ -78,4 +80,5 @@
         </script>
     </div>
 </body>
+
 </html>

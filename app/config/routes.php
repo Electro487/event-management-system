@@ -9,11 +9,12 @@ $routes = [
     '/forgot-password' => 'AuthController@forgotPassword',
     '/verify-otp' => 'AuthController@verifyOtp',
     '/reset-password' => 'AuthController@resetPassword',
-    '/client/dashboard' => 'ClientController@dashboard',
+    '/client/dashboard' => 'ClientController@home',
     '/client/home' => 'ClientController@home',
     '/client/events' => 'ClientController@browseEvents',
     '/client/browse-events' => 'ClientController@browseEvents',
     '/client/events/view' => 'ClientController@viewEvent',
+    '/organizer' => 'OrganizerController@dashboard',
     '/organizer/dashboard' => 'OrganizerController@dashboard',
     '/organizer/events' => 'OrganizerController@events',
     '/organizer/events/create' => 'OrganizerController@createEvent',
@@ -35,19 +36,21 @@ $routes = [
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
     '/client/profile/update' => 'ClientController@updateProfile',
     '/client/profile/delete-picture' => 'ClientController@deleteProfilePicture',
-    
+
     // Payment Routes
     '/client/payment/checkout' => 'PaymentController@checkout',
     '/client/payment/process' => 'PaymentController@process',
     '/client/payment/success' => 'PaymentController@success',
     '/client/payment/cancel' => 'PaymentController@cancel',
+    '/client/payment/error' => 'PaymentController@error',
 
     // Admin Routes
+    '/admin' => 'AdminController@dashboard',
     '/admin/dashboard' => 'AdminController@dashboard',
     '/admin/users' => 'AdminController@users',
     '/admin/users/update-role' => 'AdminController@updateUserRole',
     '/admin/users/toggle-block' => 'AdminController@toggleUserBlock',
-    
+
     '/admin/events' => 'AdminController@events',
     '/admin/events/create' => 'AdminController@createEvent',
     '/admin/events/store' => 'AdminController@storeEvent',
@@ -65,7 +68,7 @@ $routes = [
 
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
-    
+
     '/organizer/profile/update' => 'OrganizerController@updateProfile',
     '/organizer/profile/delete-picture' => 'OrganizerController@deleteProfilePicture',
 

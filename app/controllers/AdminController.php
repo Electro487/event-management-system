@@ -61,8 +61,7 @@ class AdminController
         $totalUsers = $userModel->countAll();
         $pendingRequests = $bookingModel->countByStatus('pending');
 
-        // Mock Revenue for now
-        $revenue = 580000;
+        $revenue = $bookingModel->getTotalSystemRevenue();
 
         $recentBookings = $bookingModel->getRecent(5);
         $upcomingEvents = $eventModel->getUpcoming(5);
@@ -218,7 +217,13 @@ class AdminController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once dirname(__DIR__) . '/models/Event.php';
             $eventModel = new Event();
-            $data = $this->getEventDataFromPost();
+            try {
+                $data = $this->getEventDataFromPost();
+            } catch (\InvalidArgumentException $e) {
+                $_SESSION['error'] = $e->getMessage();
+                header('Location: /EventManagementSystem/public/admin/events/create');
+                exit;
+            }
             $data['image_path'] = $this->handleImageUpload();
 
             $eventId = $eventModel->create($data);
@@ -227,7 +232,7 @@ class AdminController
                 require_once dirname(__DIR__) . '/models/Notification.php';
                 $userModel = new User();
                 $notificationModel = new Notification();
-                
+
                 $clientIds = $userModel->getClients();
                 $clientTitle = "New Event Launched by Admin!";
                 $clientMsg = "A new official event '{$data['title']}' has been created. Register now!";
@@ -291,7 +296,13 @@ class AdminController
             if (!$existingEvent)
                 exit("Not found");
 
-            $data = $this->getEventDataFromPost();
+            try {
+                $data = $this->getEventDataFromPost();
+            } catch (\InvalidArgumentException $e) {
+                $_SESSION['error'] = $e->getMessage();
+                header('Location: /EventManagementSystem/public/admin/events/edit?id=' . urlencode((string) $id));
+                exit;
+            }
             $newImagePath = $this->handleImageUpload();
             $data['image_path'] = $newImagePath ?: $existingEvent['image_path'];
 
@@ -342,13 +353,13 @@ class AdminController
                 $userModel = new User();
                 $allClients = $userModel->getClients();
                 if (!empty($allClients)) {
-                     require_once dirname(__DIR__) . '/models/Notification.php';
-                     $notificationModel = $notificationModel ?? new Notification();
-                     $clientTitle = "Event Details Updated by Admin";
-                     $clientMsg = "The administration has updated the details for '{$existingEvent['title']}'." . $diffText . " Please review.";
-                     foreach ($allClients as $client) {
-                         $notificationModel->create($client['id'], $clientTitle, $clientMsg, 'event_update', $id);
-                     }
+                    require_once dirname(__DIR__) . '/models/Notification.php';
+                    $notificationModel = $notificationModel ?? new Notification();
+                    $clientTitle = "Event Details Updated by Admin";
+                    $clientMsg = "The administration has updated the details for '{$existingEvent['title']}'." . $diffText . " Please review.";
+                    foreach ($allClients as $client) {
+                        $notificationModel->create($client['id'], $clientTitle, $clientMsg, 'event_update', $id);
+                    }
                 }
 
                 header('Location: /EventManagementSystem/public/admin/events?updated=1');
@@ -385,11 +396,11 @@ class AdminController
 
                     // Update: Notify Booked Clients with new refund wording
                     if (!empty($clientIds)) {
-                         $clientTitle = "Event Cancelled by Administration";
-                         $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the administration. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
-                         foreach ($clientIds as $clientId) {
-                             $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
-                         }
+                        $clientTitle = "Event Cancelled by Administration";
+                        $clientMsg = "Sorry, the event '{$event['title']}' has been removed by the administration. we will refund your money as soon as possible as the event is cancelled and you already booked the event.";
+                        foreach ($clientIds as $clientId) {
+                            $notificationModel->create($clientId, $clientTitle, $clientMsg, 'event_delete', 0);
+                        }
                     }
                     header('Location: /EventManagementSystem/public/admin/events?deleted=1');
                     exit;
@@ -470,7 +481,7 @@ class AdminController
                 $booking = $bookingModel->getById($id);
                 if ($booking) {
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                    
+
                     if ($payStatus !== 'paid') {
                         $bookingModel->updateStatus($id, 'cancelled');
 
@@ -494,6 +505,8 @@ class AdminController
 
     private function getEventDataFromPost()
     {
+        $validatedPackages = $this->validatePackagePricing($_POST['packages'] ?? []);
+
         return [
             'organizer_id' => $_POST['organizer_id'] ?? $_SESSION['user_id'],
             'title' => $_POST['title'] ?? '',
@@ -503,8 +516,56 @@ class AdminController
             'event_date' => null,
             'venue_name' => $_POST['venue_name'] ?? '',
             'venue_location' => $_POST['venue_location'] ?? '',
-            'packages' => json_encode($_POST['packages'] ?? [])
+            'packages' => json_encode($validatedPackages)
         ];
+    }
+
+    private function validatePackagePricing($packages)
+    {
+        if (!is_array($packages)) {
+            throw new \InvalidArgumentException('Invalid package data submitted.');
+        }
+
+        $maxAmount = 20000000;
+        $tiers = ['basic', 'standard', 'premium'];
+        $prices = [];
+
+        foreach ($tiers as $tier) {
+            if (!isset($packages[$tier]) || !is_array($packages[$tier])) {
+                throw new \InvalidArgumentException('Please provide all package tiers: basic, standard, and premium.');
+            }
+
+            $rawPrice = $packages[$tier]['price'] ?? null;
+            if ($rawPrice === null || $rawPrice === '') {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price is required.');
+            }
+
+            if (!preg_match('/^\d+$/', (string) $rawPrice)) {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price must be a whole number only.');
+            }
+
+            $price = (int) $rawPrice;
+            if ($price <= 0) {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price must be greater than 0.');
+            }
+
+            if ($price > $maxAmount) {
+                throw new \InvalidArgumentException(ucfirst($tier) . ' package price cannot exceed NPR 2,00,00,000.');
+            }
+
+            if (($tier === 'basic' || $tier === 'standard') && $price >= $maxAmount) {
+                throw new \InvalidArgumentException('Only premium package can be set to NPR 2,00,00,000. Basic and standard must be lower.');
+            }
+
+            $prices[$tier] = $price;
+            $packages[$tier]['price'] = $price;
+        }
+
+        if (!($prices['basic'] < $prices['standard'] && $prices['standard'] < $prices['premium'])) {
+            throw new \InvalidArgumentException('Price order must be: Basic < Standard < Premium.');
+        }
+
+        return $packages;
     }
 
     private function handleImageUpload()
@@ -607,12 +668,50 @@ class AdminController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
             require_once dirname(__DIR__) . '/models/Booking.php';
+            require_once dirname(__DIR__) . '/models/Payment.php';
             $bookingModel = new Booking();
+            $paymentModel = new Payment();
             $id = $_POST['booking_id'];
 
             $booking = $bookingModel->getById($id);
             if ($booking && strtolower($booking['payment_status'] ?? 'unpaid') === 'partially_paid') {
+                $paidSoFar = $paymentModel->getSucceededTotalByBookingId($id);
+                $cashAmount = max(0, (float) $booking['total_amount'] - $paidSoFar);
+
+                if ($cashAmount > 0.009) {
+                    $paymentModel->create([
+                        'booking_id' => $id,
+                        'client_id' => $booking['client_id'],
+                        'transaction_id' => str_replace('.', '_', uniqid('cash_admin_' . $id . '_', true)),
+                        'amount' => $cashAmount,
+                        'payment_method' => 'cash',
+                        'status' => 'succeeded',
+                        'stripe_session_id' => null,
+                    ]);
+                }
+
                 $bookingModel->updatePaymentStatus($id, 'paid');
+
+                // --- Notification Logic ---
+                require_once dirname(__DIR__) . '/models/Notification.php';
+                require_once dirname(__DIR__) . '/models/User.php';
+                $notificationModel = new Notification();
+                $userModel = new User();
+
+                $eventTitle = $booking['event_title'] ?? ($booking['event_name'] ?? 'your event');
+
+                // 1. Notify Client
+                $clientTitle = "Payment Fully Paid (Cash)";
+                $clientMsg = "Your payment for '{$eventTitle}' has been recorded as Fully Paid (Cash). Thank you!";
+                $notificationModel->create($booking['client_id'], $clientTitle, $clientMsg, 'payment', $id);
+
+                // 2. Notify Organizer (Only if NOT an admin event)
+                $organizer = $userModel->findById($booking['organizer_id']);
+                if ($organizer && $organizer['role'] !== 'admin') {
+                    $orgTitle = "Cash Payment Received";
+                    $orgMsg = "An administrator has marked the booking for '{$eventTitle}' as Fully Paid (Cash).";
+                    $notificationModel->create($booking['organizer_id'], $orgTitle, $orgMsg, 'payment_alert', $id);
+                }
                 header('Location: /EventManagementSystem/public/admin/bookings/view?id=' . $id . '&paid=1');
                 exit;
             }

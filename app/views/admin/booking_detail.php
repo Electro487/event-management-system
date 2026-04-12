@@ -257,7 +257,8 @@ $steps = [
 
                 <!-- Manage Status -->
                 <?php 
-                    $hasButtons = ($displayStatus === 'pending' || $displayStatus === 'confirmed');
+                    $pStat = strtolower($booking['payment_status'] ?? 'unpaid');
+                    $hasButtons = ($displayStatus === 'pending' || ($displayStatus === 'confirmed' && $pStat !== 'paid'));
                 ?>
                 <div class="card <?php echo (!$hasButtons) ? 'card-status-empty' : ''; ?>">
                     <?php if (!$hasButtons): ?>
@@ -272,7 +273,6 @@ $steps = [
                         </div>
                         
                         <?php 
-                            $pStat = strtolower($booking['payment_status'] ?? 'unpaid');
                             $canConfirm = ($pStat === 'paid' || $pStat === 'partially_paid');
                         ?>
                         

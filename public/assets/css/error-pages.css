@@ -1,0 +1,120 @@
+:root {
+    --primary: #1F6F59;
+    --primary-light: #268a6f;
+    --accent: #ffc247;
+    --text-dark: #1a1e23;
+    --text-gray: #6b7280;
+    --bg-light: #f7f8fa;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-light);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dark);
+    overflow: hidden;
+}
+
+.container {
+    text-align: center;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.error-code {
+    font-size: 160px;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    letter-spacing: -5px;
+    animation: fadeInDown 1s ease-out;
+}
+
+.error-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.error-message {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    color: var(--text-gray);
+    margin-bottom: 40px;
+    line-height: 1.6;
+    animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--primary);
+    color: white;
+    padding: 16px 40px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 20px rgba(45, 90, 39, 0.25);
+    animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.back-btn:hover {
+    transform: translateY(-3px);
+    background-color: var(--primary-light);
+    box-shadow: 0 15px 30px rgba(45, 90, 39, 0.35);
+}
+
+.back-btn i {
+    font-size: 14px;
+}
+
+/* Abstract shapes */
+.shape {
+    position: absolute;
+    background-color: var(--primary);
+    opacity: 0.03;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.s1 { width: 300px; height: 300px; top: -150px; right: -150px; }
+.s2 { width: 400px; height: 400px; bottom: -200px; left: -200px; }
+.s3 { width: 150px; height: 150px; top: 10%; left: 10%; background-color: var(--accent); opacity: 0.05; }
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+    .error-code { font-size: 100px; }
+    .error-title { font-size: 24px; }
+    .error-message { font-size: 16px; }
+    .container { padding: 20px; }
+}

@@ -77,7 +77,7 @@ body {
 .btn-submit {
     width: 100%;
     padding: 14px;
-    background-color: #fac245; /* Yellow/Orange from screenshot */
+    background-color: #fac245; 
     color: #212529; /* Dark text for contrast */
     border: none;
     border-radius: 6px;

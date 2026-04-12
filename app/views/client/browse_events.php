@@ -58,28 +58,28 @@ $searchQuery = $_GET['search'] ?? '';
             </div>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php
-                    $initials = '';
-                    $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
-                    foreach($nameParts as $p) {
-                        $initials .= strtoupper(substr($p, 0, 1));
-                    }
-                    if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+                $initials = '';
+                $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+                foreach ($nameParts as $p) {
+                    $initials .= strtoupper(substr($p, 0, 1));
+                }
+                if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
-                        <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                        <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                             <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar">
                         <?php else: ?>
                             <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
                         <?php endif; ?>
                     </div>
-                    
+
                     <!-- Dropdown Modal -->
                     <div id="profile-dropdown" class="profile-dropdown">
                         <div class="pd-top">
                             <div class="pd-avatar-container">
                                 <div class="pd-avatar">
-                                    <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                    <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                                         <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
                                         <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
@@ -88,7 +88,7 @@ $searchQuery = $_GET['search'] ?? '';
                                 <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
                                     <i class="fa-solid fa-pen"></i>
                                 </label>
-                                <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                                     <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
                                         <i class="fa-solid fa-trash"></i>
                                     </div>
@@ -100,9 +100,9 @@ $searchQuery = $_GET['search'] ?? '';
                             <span class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
-                            <?php 
-                                $firstName = $nameParts[0] ?? '';
-                                $lastName = count($nameParts) > 1 ? end($nameParts) : '';
+                            <?php
+                            $firstName = $nameParts[0] ?? '';
+                            $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                             ?>
                             <div class="pd-detail">
                                 <label>FIRST NAME</label>
@@ -116,100 +116,100 @@ $searchQuery = $_GET['search'] ?? '';
                                 <label>EMAIL ADDRESS</label>
                                 <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
                             </div>
-                            
+
                             <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
                         </div>
                     </div>
                 </div>
-                
+
                 <script>
-                function toggleProfileDropdown() {
-                    const dropdown = document.getElementById('profile-dropdown');
-                    dropdown.classList.toggle('show');
-                }
-                
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(event) {
-                    const container = document.getElementById('profile-container');
-                    if (container && !container.contains(event.target)) {
-                        document.getElementById('profile-dropdown').classList.remove('show');
+                    function toggleProfileDropdown() {
+                        const dropdown = document.getElementById('profile-dropdown');
+                        dropdown.classList.toggle('show');
                     }
-                });
 
-                function uploadProfilePicture(input) {
-                    if (input.files && input.files[0]) {
-                        const formData = new FormData();
-                        formData.append('profile_picture', input.files[0]);
-                        
-                        fetch('/EventManagementSystem/public/client/profile/update', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                    // Hide dropdown when clicking outside
+                    document.addEventListener('click', function(event) {
+                        const container = document.getElementById('profile-container');
+                        if (container && !container.contains(event.target)) {
+                            document.getElementById('profile-dropdown').classList.remove('show');
+                        }
+                    });
 
-                                // Add delete icon if not exists
-                                if (!document.querySelector('.pd-delete-icon')) {
-                                    let avatarContainer = document.querySelector('.pd-avatar-container');
-                                    let deleteBtn = document.createElement('div');
-                                    deleteBtn.className = 'pd-delete-icon';
-                                    deleteBtn.title = 'Remove Photo';
-                                    deleteBtn.onclick = deleteProfilePicture;
-                                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                    avatarContainer.appendChild(deleteBtn);
-                                }
-                            } else {
-                                alert(data.message || 'Error uploading image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred during upload.');
-                        });
+                    function uploadProfilePicture(input) {
+                        if (input.files && input.files[0]) {
+                            const formData = new FormData();
+                            formData.append('profile_picture', input.files[0]);
+
+                            fetch('/EventManagementSystem/public/client/profile/update', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Update header avatar
+                                        let headerIcon = document.getElementById('profile-icon');
+                                        headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+
+                                        // Update dropdown avatar
+                                        let dropdownAvatar = document.querySelector('.pd-avatar');
+                                        dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+
+                                        // Add delete icon if not exists
+                                        if (!document.querySelector('.pd-delete-icon')) {
+                                            let avatarContainer = document.querySelector('.pd-avatar-container');
+                                            let deleteBtn = document.createElement('div');
+                                            deleteBtn.className = 'pd-delete-icon';
+                                            deleteBtn.title = 'Remove Photo';
+                                            deleteBtn.onclick = deleteProfilePicture;
+                                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                            avatarContainer.appendChild(deleteBtn);
+                                        }
+                                    } else {
+                                        alert(data.message || 'Error uploading image.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('An error occurred during upload.');
+                                });
+                        }
                     }
-                }
 
-                function deleteProfilePicture() {
-                    if (confirm('Are you sure you want to remove your profile picture?')) {
-                        fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                            method: 'POST'
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = initialsElement;
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                
-                                // Remove delete icon if exists
-                                let deleteIcon = document.querySelector('.pd-delete-icon');
-                                if (deleteIcon) deleteIcon.remove();
-                            } else {
-                                alert('Error removing image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred.');
-                        });
+                    function deleteProfilePicture() {
+                        if (confirm('Are you sure you want to remove your profile picture?')) {
+                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                    method: 'POST'
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+
+                                        // Update header avatar
+                                        let headerIcon = document.getElementById('profile-icon');
+                                        headerIcon.innerHTML = initialsElement;
+
+                                        // Update dropdown avatar
+                                        let dropdownAvatar = document.querySelector('.pd-avatar');
+                                        dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+
+                                        // Remove delete icon if exists
+                                        let deleteIcon = document.querySelector('.pd-delete-icon');
+                                        if (deleteIcon) deleteIcon.remove();
+                                    } else {
+                                        alert('Error removing image.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('An error occurred.');
+                                });
+                        }
                     }
-                }
                 </script>
             <?php else: ?>
                 <a href="/EventManagementSystem/public/login"
@@ -385,13 +385,17 @@ $searchQuery = $_GET['search'] ?? '';
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <div class="filter-tab active-tab" onclick="filterBookings('all', this)">All
-                    <span><?php echo $totalBookings; ?></span></div>
+                    <span><?php echo $totalBookings; ?></span>
+                </div>
                 <div class="filter-tab" onclick="filterBookings('upcoming', this)">Upcoming
-                    <span><?php echo $upcomingCount; ?></span></div>
+                    <span><?php echo $upcomingCount; ?></span>
+                </div>
                 <div class="filter-tab" onclick="filterBookings('completed', this)">Completed
-                    <span><?php echo $completedCount; ?></span></div>
+                    <span><?php echo $completedCount; ?></span>
+                </div>
                 <div class="filter-tab" onclick="filterBookings('cancelled', this)">Cancelled
-                    <span><?php echo $cancelledCount; ?></span></div>
+                    <span><?php echo $cancelledCount; ?></span>
+                </div>
             </div>
 
             <div class="main-layout">
@@ -407,7 +411,7 @@ $searchQuery = $_GET['search'] ?? '';
                             if (strtolower($booking['event_category']) == 'music') {
                                 $catStyle = 'background: #fef08a; color: #854d0e;';
                             }
-                            ?>
+                        ?>
                             <div class="b-item" data-status="<?php echo $dispStatus; ?>" data-upcoming="<?php echo $isUpcoming; ?>"
                                 data-index="<?php echo $index; ?>" onclick="selectBooking(<?php echo $index; ?>, this)">
 
@@ -516,6 +520,7 @@ $searchQuery = $_GET['search'] ?? '';
                         </form>
                     </div>
                 </div>
+
             </div>
         </div>
     <?php endif; ?>
@@ -580,7 +585,9 @@ $searchQuery = $_GET['search'] ?? '';
 
         function selectBooking(index, element) {
             document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
-            if (element) { element.classList.add('active'); }
+            if (element) {
+                element.classList.add('active');
+            }
 
             const data = bookingsData[index];
             if (!data) return;
@@ -594,7 +601,9 @@ $searchQuery = $_GET['search'] ?? '';
             statusEl.className = 'b-status-badge status-' + dispStatus;
 
             document.getElementById('sb-event-title').innerText = data.event_title;
-            document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, {
+                minimumFractionDigits: 2
+            });
 
             let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + ' Package';
             let pDesc = 'Includes selected access & features.';
@@ -608,7 +617,10 @@ $searchQuery = $_GET['search'] ?? '';
 
             let locName = data.venue_name || 'Convention Center';
             let locAddr = data.venue_location || 'Address TBD';
-            if (!data.venue_name && data.venue_location) { locName = data.venue_location; locAddr = "Local Venue"; }
+            if (!data.venue_name && data.venue_location) {
+                locName = data.venue_location;
+                locAddr = "Local Venue";
+            }
             document.getElementById('sb-loc-name').innerText = locName;
             document.getElementById('sb-loc-address').innerText = locAddr;
             document.getElementById('sb-time').innerText = formatCheckinTime(data.checkin_time);
@@ -618,12 +630,12 @@ $searchQuery = $_GET['search'] ?? '';
             if (cancelForm) {
                 const bStatus = (data.status || '').toLowerCase();
                 const payStatus = (data.payment_status || 'unpaid').toLowerCase();
-                
+
                 // Rule: HIDE only if (Confirmed AND (Partially Paid or Paid))
                 // Also hide if already cancelled or completed
                 const isLocked = (bStatus === 'confirmed' && payStatus !== 'unpaid');
                 const isActive = (bStatus === 'pending' || bStatus === 'confirmed');
-                
+
                 if (isActive && !isLocked) {
                     document.getElementById('cancel-booking-id').value = data.id;
                     cancelForm.style.display = 'block';
@@ -676,11 +688,11 @@ $searchQuery = $_GET['search'] ?? '';
                 } else if (noData) {
                     noData.style.display = 'block';
                 }
-                sidebar.style.display = 'none';
+                if (sidebar) sidebar.style.display = 'none';
                 if (paginationContainer) paginationContainer.innerHTML = '';
             } else {
                 if (noData) noData.style.display = 'none';
-                sidebar.style.display = 'block';
+                if (sidebar) sidebar.style.display = 'block';
                 if (pageItems.length > 0) {
                     const firstVisibleIdx = pageItems[0].getAttribute('data-index');
                     selectBooking(firstVisibleIdx, pageItems[0]);
@@ -701,21 +713,40 @@ $searchQuery = $_GET['search'] ?? '';
             const prevBtn = document.createElement('button');
             prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
             prevBtn.disabled = currentPage === 1;
-            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyPagination(); window.scrollTo(0, 0); } };
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    applyPagination();
+                    window.scrollTo(0, 0);
+                }
+            };
             container.appendChild(prevBtn);
 
             for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.innerText = i;
                 if (i === currentPage) pageBtn.classList.add('active');
-                pageBtn.onclick = () => { currentPage = i; applyPagination(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    applyPagination();
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                };
                 container.appendChild(pageBtn);
             }
 
             const nextBtn = document.createElement('button');
             nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
             nextBtn.disabled = currentPage === totalPages;
-            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; applyPagination(); window.scrollTo(0, 0); } };
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    applyPagination();
+                    window.scrollTo(0, 0);
+                }
+            };
             container.appendChild(nextBtn);
         }
 
@@ -729,7 +760,7 @@ $searchQuery = $_GET['search'] ?? '';
             applyPagination();
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             applyPagination();
 
             if (window.location.hash === '#my-bookings') {

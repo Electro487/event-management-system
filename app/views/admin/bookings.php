@@ -9,10 +9,7 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-bookings.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
-    <style>
-        .organizer-info { font-size: 11px; color: #64748b; margin-top: 4px; display: block; font-weight: 500; }
-        .organizer-info i { color: #246A55; margin-right: 3px; }
-    </style>
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/admin-bookings-extra.css?v=<?php echo time(); ?>">
 </head>
 <body>
 

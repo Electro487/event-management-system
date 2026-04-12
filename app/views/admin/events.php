@@ -10,9 +10,7 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
-    <style>
-        .organizer-tag { background: #f0fdf4; color: #246A55; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 5px; display: inline-block; }
-    </style>
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/admin-common.css?v=<?php echo time(); ?>">
 </head>
 <body>
 

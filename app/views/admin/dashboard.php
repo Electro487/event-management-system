@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,16 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
-    <style>
-        .admin-badge { background: #e6fcf0; color: #246A55; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    </style>
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/admin-common.css?v=<?php echo time(); ?>">
 </head>
+
 <body>
 
     <!-- Sidebar -->
-    <?php 
-        $activePage = 'dashboard';
-        include_once __DIR__ . '/partials/sidebar.php'; 
+    <?php
+    $activePage = 'dashboard';
+    include_once __DIR__ . '/partials/sidebar.php';
     ?>
 
     <!-- Main Content -->
@@ -92,16 +92,16 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon" style="background: #e6fcf0; color: #246A55;"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="stat-icon" style="background: #e6fcf0; color: #246A55;"><i class="far fa-money-bill-alt"></i></div>
                 </div>
-                <p>Pending Requests</p>
-                <h3><?php echo number_format($pendingRequests ?? 0); ?></h3>
+                <p>Revenue</p>
+                <h3>Rs. <?php echo number_format($revenue ?? 0, 2); ?></h3>
             </div>
         </div>
 
         <!-- Bottom Grid Section -->
         <div class="bottom-grid">
-            
+
             <!-- Left Column -->
             <div class="left-col">
                 <!-- Recent Bookings Table -->
@@ -122,7 +122,9 @@
                         </thead>
                         <tbody>
                             <?php if (empty($recentBookings)): ?>
-                                <tr><td colspan="5" style="text-align:center;">No recent bookings found.</td></tr>
+                                <tr>
+                                    <td colspan="5" style="text-align:center;">No recent bookings found.</td>
+                                </tr>
                             <?php else: ?>
                                 <?php foreach ($recentBookings as $booking): ?>
                                     <tr>
@@ -132,12 +134,12 @@
                                                     <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                                                 <?php else: ?>
                                                     <div style="width: 32px; height: 32px; background: #f0f7f3; color: #246A55; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">
-                                                        <?php 
-                                                            $nameArr = explode(' ', $booking['client_name']);
-                                                            $initArr = array_filter($nameArr);
-                                                            $init = '';
-                                                            foreach(array_slice($initArr, 0, 2) as $n) $init .= strtoupper(substr($n, 0, 1));
-                                                            echo $init ?: '??';
+                                                        <?php
+                                                        $nameArr = explode(' ', $booking['client_name']);
+                                                        $initArr = array_filter($nameArr);
+                                                        $init = '';
+                                                        foreach (array_slice($initArr, 0, 2) as $n) $init .= strtoupper(substr($n, 0, 1));
+                                                        echo $init ?: '??';
                                                         ?>
                                                     </div>
                                                 <?php endif; ?>
@@ -151,7 +153,7 @@
                                                 <?php echo ucfirst(htmlspecialchars($booking['display_status'] ?? $booking['status'])); ?>
                                             </span>
                                         </td>
-                                         <td>
+                                        <td>
                                             <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $booking['id']; ?>" style="color: #246A55; font-weight: 700; text-decoration: none; font-size: 13px;">
                                                 View
                                             </a>
@@ -181,26 +183,26 @@
                         <?php else: ?>
                             <?php foreach ($upcomingEvents as $event): ?>
                                 <?php
-                                    if (empty($event['event_date'])) {
+                                if (empty($event['event_date'])) {
+                                    $daysText = "Ongoing";
+                                } else {
+                                    $eventDate = new DateTime($event['event_date']);
+                                    $now = new DateTime();
+                                    $diff = $now->diff($eventDate);
+                                    $daysLeft = $diff->days;
+
+                                    if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
+                                        $daysText = "Today";
+                                    } elseif ($diff->invert) {
                                         $daysText = "Ongoing";
                                     } else {
-                                        $eventDate = new DateTime($event['event_date']);
-                                        $now = new DateTime();
-                                        $diff = $now->diff($eventDate);
-                                        $daysLeft = $diff->days;
-                                        
-                                        if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
-                                            $daysText = "Today";
-                                        } elseif ($diff->invert) {
-                                            $daysText = "Ongoing";
-                                        } else {
-                                            $daysText = "in {$daysLeft} days";
-                                        }
+                                        $daysText = "in {$daysLeft} days";
                                     }
+                                }
                                 ?>
                                 <a href="/EventManagementSystem/public/admin/events/view?id=<?php echo $event['id']; ?>" class="event-item" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 15px;">
-                                    <?php 
-                                        $eventImg = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                    <?php
+                                    $eventImg = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
                                     ?>
                                     <img src="<?php echo htmlspecialchars($eventImg); ?>" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/placeholder.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
                                     <div class="event-info" style="flex: 1; min-width: 0;">
@@ -225,4 +227,5 @@
 
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
+
 </html>

@@ -73,5 +73,6 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `type` varchar(50) DEFAULT 'info',
   `related_id` int(11) DEFAULT NULL,
   `is_read` tinyint(1) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;

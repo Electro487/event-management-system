@@ -47,13 +47,91 @@ class ClientController
     public function home()
     {
         $this->checkClientAuth();
-        require_once dirname(__DIR__) . '/views/client/home.php';
-    }
 
-    public function dashboard()
-    {
-        $this->checkClientAuth();
-        require_once dirname(__DIR__) . '/views/client/dashboard.php';
+        $clientId = $_SESSION['user_id'];
+        $today    = date('Y-m-d');
+
+        // ── Load models ──────────────────────────────────────
+        require_once dirname(__DIR__) . '/models/Booking.php';
+        require_once dirname(__DIR__) . '/models/Event.php';
+        $bookingModel = new Booking();
+        $eventModel   = new Event();
+
+        // ── All client bookings (for stats + table) ───────────
+        $allBookings = $bookingModel->getByClient($clientId);
+
+        $totalBookings  = count($allBookings);
+        $upcomingCount  = 0;
+        $completedCount = 0;
+        $pendingCount   = 0;
+
+        foreach ($allBookings as &$b) {
+            $dateStr   = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
+            $isPast    = ($dateStr < $today);
+            $displayStatus = strtolower($b['status']);
+            if ($displayStatus === 'confirmed' && $isPast) {
+                $displayStatus = 'completed';
+            }
+            $b['display_status'] = $displayStatus;
+
+            if (in_array($displayStatus, ['pending', 'confirmed'])) $upcomingCount++;
+            if ($displayStatus === 'completed')                       $completedCount++;
+            if ($displayStatus === 'pending')                        $pendingCount++;
+        }
+        unset($b);
+
+        // ── Recent 4 bookings for table ───────────────────────
+        $recentBookings = array_slice($allBookings, 0, 4);
+
+        // ── Next upcoming booking (PRIORITY: Confirmed > Pending/Other) ─
+        $nextEvent = null;
+        $daysLeft  = null;
+
+        $confirmedUpcoming = [];
+        $otherUpcoming     = [];
+
+        foreach ($allBookings as $b) {
+            $bDate = $b['event_date'] ?: ($b['event_start_date'] ?? '');
+            if (!$bDate || $bDate < $today) continue;
+
+            $bStat = strtolower($b['status']);
+            // Skip cancelled/completed
+            if (in_array($bStat, ['cancelled', 'completed', 'rejected'])) continue;
+
+            if ($bStat === 'confirmed') {
+                $confirmedUpcoming[] = $b;
+            } else {
+                $otherUpcoming[] = $b;
+            }
+        }
+
+        // Sort by date ASC
+        $sortFn = function ($a, $b) {
+            $ad = $a['event_date'] ?: ($a['event_start_date'] ?? '9999-12-31');
+            $bd = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
+            return strcmp($ad, $bd);
+        };
+        usort($confirmedUpcoming, $sortFn);
+        usort($otherUpcoming, $sortFn);
+
+        // Pick confirmed first, fallback to others
+        if (!empty($confirmedUpcoming)) {
+            $nextEvent = $confirmedUpcoming[0];
+        } elseif (!empty($otherUpcoming)) {
+            $nextEvent = $otherUpcoming[0];
+        }
+
+        if ($nextEvent) {
+            $bDate = $nextEvent['event_date'] ?: ($nextEvent['event_start_date'] ?? '');
+            $ts1 = strtotime($bDate);
+            $ts2 = strtotime($today);
+            $daysLeft = (int)(($ts1 - $ts2) / 86400);
+        }
+
+        // ── Featured active events (Randomized) ──────────────
+        $featuredEvents = $eventModel->getRandomActiveEvents(3);
+
+        require_once dirname(__DIR__) . '/views/client/home.php';
     }
 
     public function browseEvents()
@@ -74,7 +152,7 @@ class ClientController
 
         $totalActiveEvents = $eventModel->countActiveEvents($category, $search);
         $totalPages = ceil($totalActiveEvents / $limit);
-        
+
         $events = $eventModel->getAllActiveEvents($category, $search, $limit, $offset);
 
         // Fetch bookings for the dynamic tab view
@@ -96,7 +174,7 @@ class ClientController
             $today = date('Y-m-d');
             foreach ($bookings as &$b) {
                 $isPast = ($b['event_date'] < $today);
-                
+
                 // Dynamic Status Logic: Past confirmed bookings reflect as 'completed'
                 $displayStatus = $b['status'];
                 if ($b['status'] === 'confirmed' && $isPast) {
@@ -108,7 +186,7 @@ class ClientController
                 if ($displayStatus === 'pending') $pendingCount++;
                 if ($displayStatus === 'completed') $completedCount++;
                 if ($displayStatus === 'cancelled') $cancelledCount++;
-                
+
                 if (in_array($displayStatus, ['pending', 'confirmed'])) {
                     $upcomingCount++;
                 }
@@ -130,7 +208,7 @@ class ClientController
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            header('Location: /EventManagementSystem/public/client/events');
+            header('Location: /EventManagementSystem/public/client/home');
             exit;
         }
 
@@ -139,7 +217,7 @@ class ClientController
         $event = $eventModel->getById($id);
 
         if (!$event || $event['status'] !== 'active') {
-            header('Location: /EventManagementSystem/public/client/events');
+            header('Location: /EventManagementSystem/public/client/home');
             exit;
         }
 
@@ -154,7 +232,7 @@ class ClientController
         $packageTier = $_GET['package'] ?? null;
 
         if (!$event_id || !$packageTier) {
-            header('Location: /EventManagementSystem/public/client/events');
+            header('Location: /EventManagementSystem/public/client/home');
             exit;
         }
 
@@ -163,7 +241,7 @@ class ClientController
         $event = $eventModel->getById($event_id);
 
         if (!$event || $event['status'] !== 'active') {
-            header('Location: /EventManagementSystem/public/client/events');
+            header('Location: /EventManagementSystem/public/client/home');
             exit;
         }
 
@@ -205,15 +283,15 @@ class ClientController
                 require_once dirname(__DIR__) . '/models/Notification.php';
                 require_once dirname(__DIR__) . '/models/Event.php';
                 require_once dirname(__DIR__) . '/models/User.php';
-                
+
                 $notificationModel = new Notification();
                 $eventModel = new Event();
                 $userModel = new User();
-                
+
                 $event = $eventModel->getById($data['event_id']);
                 $clientName = $_SESSION['user_fullname'] ?? 'A client';
                 $eventTitle = $event['title'] ?? 'an event';
-                
+
                 // 1. Notify Admin(s)
                 $admins = $userModel->getAdmins();
                 $adminTitle = "Booking Received";
@@ -221,19 +299,17 @@ class ClientController
                 foreach ($admins as $admin) {
                     $notificationModel->create($admin['id'], $adminTitle, $adminMessage, 'booking', $bookingId);
                 }
-                
+
                 // 2. Notify Organizer
                 $organizerId = $event['organizer_id'];
                 $orgTitle = "New Booking for Your Event";
                 $orgMessage = "{$clientName} has booked '{$eventTitle}'. Please review the details.";
                 $notificationModel->create($organizerId, $orgTitle, $orgMessage, 'booking', $bookingId);
-                
+
                 // 3. Notify Client
                 $clientTitle = "Booking Request Received";
                 $clientMessage = "Your '{$eventTitle}' booking request has been received and is being reviewed.";
                 $notificationModel->create($_SESSION['user_id'], $clientTitle, $clientMessage, 'booking', $bookingId);
-                // --------------------------
-
                 // If Pay Later was selected, redirect to my-bookings
                 if (isset($_POST['pay_later']) && $_POST['pay_later'] == '1') {
                     header('Location: /EventManagementSystem/public/client/events?booking_success=1#my-bookings');
@@ -267,26 +343,26 @@ class ClientController
             require_once dirname(__DIR__) . '/models/Booking.php';
             $bookingModel = new Booking();
             $id = $_POST['booking_id'];
-            
+
             // SECURITY: Check if booking is locked before allowing cancellation
             $booking = $bookingModel->getById($id);
             if ($booking && $booking['client_id'] == $_SESSION['user_id']) {
                 $bStatus = strtolower($booking['status'] ?? 'pending');
                 $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                
+
                 // Cut-off: Confirmed AND (Partially Paid or Paid) = NO CANCEL
                 $isLocked = ($bStatus === 'confirmed' && $payStatus !== 'unpaid');
-                
+
                 if (!$isLocked) {
                     if ($bookingModel->cancel($id, $_SESSION['user_id'])) {
                         require_once dirname(__DIR__) . '/models/Notification.php';
                         $notificationModel = new Notification();
                         $title = "Booking Cancelled";
                         $message = ($_SESSION['user_fullname'] ?? 'A user') . " has cancelled their booking for '{$booking['event_title']}'.";
-                        
+
                         // Notify Organizer
                         $notificationModel->create($booking['organizer_id'], $title, $message, 'booking_cancel', $id);
-                        
+
                         // Notify Admins
                         require_once dirname(__DIR__) . '/models/User.php';
                         $userModel = new User();
@@ -326,7 +402,7 @@ class ClientController
         $today = date('Y-m-d');
         $dateStr = $booking['event_date'] ?: ($booking['event_start_date'] ?? '9999-12-31');
         $isPast = ($dateStr < $today);
-        
+
         $displayStatus = strtolower($booking['status']);
         if ($displayStatus === 'confirmed' && $isPast) {
             $displayStatus = 'completed';
@@ -335,6 +411,14 @@ class ClientController
 
         $packages = !empty($booking['event_packages']) ? json_decode($booking['event_packages'], true) : [];
         $selectedPackage = $packages[$booking['package_tier']] ?? null;
+
+        require_once dirname(__DIR__) . '/models/Payment.php';
+        $paymentModel = new Payment();
+        $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking_id);
+        $advanceTarget = (float) $booking['total_amount'] * 0.50;
+        $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
+        $maxStripeCheckoutNpr = 999999.99;
+        $nextInstallmentAmount = min($remainingAdvance, $maxStripeCheckoutNpr);
 
         require_once dirname(__DIR__) . '/views/client/view_booking_details.php';
     }
@@ -346,12 +430,12 @@ class ClientController
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) {
             $userId = $_SESSION['user_id'];
             $file = $_FILES['profile_picture'];
-            
+
             if ($file['error'] === UPLOAD_ERR_OK) {
                 // Generate unique name
                 $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
                 $filename = 'profile_' . $userId . '_' . time() . '.' . $ext;
-                
+
                 // Allow only images
                 $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                 if (in_array(strtolower($ext), $allowed)) {
@@ -360,12 +444,12 @@ class ClientController
                         mkdir($uploadDir, 0777, true);
                     }
                     $uploadPath = $uploadDir . $filename;
-                    
+
                     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
                         require_once dirname(__DIR__) . '/models/User.php';
                         $userModel = new User();
                         $publicPath = '/EventManagementSystem/public/assets/images/profiles/' . $filename;
-                        
+
                         // Delete old profile picture if exists
                         $currentUser = $userModel->findById($userId);
                         if (!empty($currentUser['profile_picture'])) {
@@ -377,7 +461,7 @@ class ClientController
 
                         $userModel->updateProfilePicture($userId, $publicPath);
                         $_SESSION['user_profile_pic'] = $publicPath;
-                        
+
                         // Send success JSON response
                         header('Content-Type: application/json');
                         echo json_encode(['success' => true, 'path' => $publicPath]);
@@ -386,7 +470,7 @@ class ClientController
                 }
             }
         }
-        
+
         // Handle error JSON response
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Upload failed.']);
@@ -401,7 +485,7 @@ class ClientController
             $userId = $_SESSION['user_id'];
             require_once dirname(__DIR__) . '/models/User.php';
             $userModel = new User();
-            
+
             $currentUser = $userModel->findById($userId);
             if (!empty($currentUser['profile_picture'])) {
                 $oldPath = str_replace('/EventManagementSystem/public', dirname(dirname(__DIR__)) . '/public', $currentUser['profile_picture']);
@@ -412,7 +496,7 @@ class ClientController
 
             $userModel->updateProfilePicture($userId, null);
             $_SESSION['user_profile_pic'] = null;
-            
+
             header('Content-Type: application/json');
             echo json_encode(['success' => true]);
             exit;

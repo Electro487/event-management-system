@@ -6,17 +6,8 @@ class Notification
 
     public function __construct()
     {
-        $host = 'localhost';
-        $user = 'root';
-        $pass = '';
-        $dbname = 'event_management_system';
-
-        try {
-            $this->db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
-            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("Database connection failed: " . $e->getMessage());
-        }
+        $database = new Database();
+        $this->db = $database->getConnection();
     }
 
     public function create($userId, $title, $message, $type = 'info', $relatedId = null)
@@ -91,5 +82,11 @@ class Notification
     {
         $stmt = $this->db->prepare("DELETE FROM notifications WHERE user_id = ?");
         return $stmt->execute([$userId]);
+    }
+
+    public function updateMessageByRelatedIdAndTitle($relatedId, $type, $title, $newMessage)
+    {
+        $stmt = $this->db->prepare("UPDATE notifications SET message = ? WHERE related_id = ? AND type = ? AND title = ?");
+        return $stmt->execute([$newMessage, $relatedId, $type, $title]);
     }
 }

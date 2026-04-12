@@ -18,6 +18,7 @@ $creationCount = ($typeCounts['event'] ?? 0);
 $updateCount = ($typeCounts['event_update'] ?? 0) + ($typeCounts['event_delete'] ?? 0);
 $messageCount = ($typeCounts['message'] ?? 0);
 $actionCount = ($typeCounts['booking_approve'] ?? 0) + ($typeCounts['booking_cancel'] ?? 0);
+$paymentCount = ($typeCounts['payment_alert'] ?? 0);
 
 // Active type filter from URL
 $activeFilter = $_GET['type'] ?? 'all';
@@ -72,6 +73,9 @@ $activeFilter = $_GET['type'] ?? 'all';
                     <span><?php echo $totalCount; ?> Total Alerts</span>
                 </div>
                 <?php if ($totalCount > 0): ?>
+                    <button class="np-unread-all-btn" onclick="confirmMarkAllUnread()">
+                        <i class="fa-solid fa-envelope-open"></i> Mark all as unread
+                    </button>
                     <button class="np-clear-all-btn" onclick="confirmClearAll()">
                         <i class="fa-solid fa-trash-can"></i> Clear All
                     </button>
@@ -124,6 +128,13 @@ $activeFilter = $_GET['type'] ?? 'all';
                     <div class="np-stat-value" id="stat-update"><?php echo $updateCount; ?></div>
                 </div>
             </div>
+            <div class="np-stat-card">
+                <div class="np-stat-icon green"><i class="fa-solid fa-credit-card"></i></div>
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Payments</div>
+                    <div class="np-stat-value" id="stat-payment"><?php echo $paymentCount; ?></div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -158,6 +169,11 @@ $activeFilter = $_GET['type'] ?? 'all';
                 <i class="fa-solid fa-circle-xmark"></i> Cancellations
                 <span class="np-filter-count"
                     id="count-cancel"><?php echo ($typeCounts['booking_cancel'] ?? 0); ?></span>
+            </a>
+            <a href="/EventManagementSystem/public/notifications/all?type=payment_alert"
+                class="np-filter-tab <?php echo ($activeFilter === 'payment_alert') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-credit-card"></i> Payments
+                <span class="np-filter-count" id="count-payment"><?php echo $paymentCount; ?></span>
             </a>
         </div>
 
@@ -209,6 +225,8 @@ $activeFilter = $_GET['type'] ?? 'all';
                                 'event_update' => 'fa-solid fa-pen-to-square',
                                 'event_delete' => 'fa-solid fa-trash-can',
                                 'message' => 'fa-solid fa-message',
+                                'payment' => 'fa-solid fa-credit-card',
+                                'payment_alert' => 'fa-solid fa-credit-card',
                                 'system' => 'fa-solid fa-shield-halved',
                                 'info' => 'fa-solid fa-circle-info',
                             ];
@@ -281,6 +299,34 @@ $activeFilter = $_GET['type'] ?? 'all';
                         }
                     });
             }
+        }
+
+        function confirmMarkAllUnread() {
+            fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // Instant UI update: mark everything as unread locally
+                        document.querySelectorAll('.np-item').forEach(item => {
+                            item.classList.add('unread');
+                            if (!item.querySelector('.np-unread-dot')) {
+                                const dot = document.createElement('div');
+                                dot.className = 'np-unread-dot';
+                                item.prepend(dot);
+                            }
+                            if (!item.querySelector('.np-new-badge')) {
+                                const title = item.querySelector('.np-item-title');
+                                const badge = document.createElement('span');
+                                badge.className = 'np-new-badge';
+                                badge.textContent = 'New';
+                                title.appendChild(badge);
+                            }
+                            // Also remove the "mark as unread" toggle button if it exists
+                            const toggle = item.querySelector('.np-unread-toggle');
+                            if (toggle) toggle.remove();
+                        });
+                    }
+                });
         }
     </script>
 </body>

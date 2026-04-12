@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,23 +12,24 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
 </head>
+
 <body>
 
-    <?php 
-        $activePage = 'events';
-        include_once dirname(__DIR__) . "/admin/partials/sidebar.php"; 
-        
-        $isEdit = isset($isEdit) && $isEdit;
-        $event = $event ?? [];
-        $formAction = $isEdit ? "/EventManagementSystem/public/admin/events/update" : "/EventManagementSystem/public/admin/events/store";
+    <?php
+    $activePage = 'events';
+    include_once dirname(__DIR__) . "/admin/partials/sidebar.php";
+
+    $isEdit = isset($isEdit) && $isEdit;
+    $event = $event ?? [];
+    $formAction = $isEdit ? "/EventManagementSystem/public/admin/events/update" : "/EventManagementSystem/public/admin/events/store";
     ?>
 
     <main class="main-content">
         <header class="content-header">
             <div class="header-left">
                 <div class="breadcrumb">
-                    <a href="/EventManagementSystem/public/admin/events">Events</a> 
-                    <span class="separator">›</span> 
+                    <a href="/EventManagementSystem/public/admin/events">Events</a>
+                    <span class="separator">›</span>
                     <span class="current"><?php echo $isEdit ? 'Edit Event' : 'Create New Event'; ?></span>
                 </div>
             </div>
@@ -46,12 +48,19 @@
             <p><?php echo $isEdit ? 'Modify the details and curation of your existing event.' : 'Set up the structural foundation for your next event. Define identity, schedule, and curate package structures for your clients.'; ?></p>
         </section>
 
+        <?php if (isset($_SESSION['error'])): ?>
+            <div style="margin: 0 0 18px; padding: 12px 14px; border-radius: 10px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; font-weight: 600;">
+                <?php echo htmlspecialchars($_SESSION['error']);
+                unset($_SESSION['error']); ?>
+            </div>
+        <?php endif; ?>
+
         <form action="<?php echo $formAction; ?>" method="POST" enctype="multipart/form-data" class="create-event-form" id="createEventForm">
             <?php if ($isEdit): ?>
                 <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
                 <input type="hidden" name="organizer_id" value="<?php echo $event['organizer_id']; ?>">
             <?php endif; ?>
-            
+
             <!-- Event Identity -->
             <div class="form-section">
                 <div class="section-info">
@@ -67,9 +76,9 @@
                         <label>CATEGORY SELECTION</label>
                         <select name="category" required>
                             <option value="">-- Select Category --</option>
-                            <?php 
+                            <?php
                             $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
-                            foreach ($categories as $cat): 
+                            foreach ($categories as $cat):
                             ?>
                                 <option value="<?php echo $cat; ?>" <?php echo (isset($event['category']) && $event['category'] == $cat) ? 'selected' : ''; ?>><?php echo $cat; ?></option>
                             <?php endforeach; ?>
@@ -128,7 +137,7 @@
                     <p>Curate the foundational service structures for each tier.</p>
                 </div>
                 <div class="section-fields packages-list">
-                    <?php 
+                    <?php
                     $existingPackages = [];
                     if ($isEdit && !empty($event['packages'])) {
                         $existingPackages = json_decode($event['packages'], true);
@@ -170,46 +179,46 @@
                         $pkgData = $existingPackages[$tierKey] ?? [];
                         $items = $pkgData['items'] ?? [];
                     ?>
-                    <!-- <?php echo $tierInfo['name']; ?> -->
-                    <div class="package-card <?php echo $tierInfo['class']; ?>" data-tier="<?php echo $tierKey; ?>">
-                        <div class="package-header">
-                            <div class="tier-icon-box <?php echo 'tier-'.$tierKey; ?>">
-                                <i class="<?php echo $tierInfo['icon']; ?>"></i>
-                            </div>
-                            <div class="tier-info">
-                                <h3><?php echo $tierInfo['name']; ?></h3>
-                                <p><?php echo $tierInfo['subtitle']; ?></p>
-                            </div>
-                            <button type="button" class="add-section-btn" data-tier="<?php echo $tierKey; ?>">+ Add Section</button>
-                        </div>
-                        <div class="package-body">
-                            <div class="form-group pkg-desc-group">
-                                <label>PACKAGE DESCRIPTION</label>
-                                <input type="text" name="packages[<?php echo $tierKey; ?>][description]" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package..." required>
-                            </div>
-                            <div class="form-group pkg-price-group">
-                                <label>PRICE (NPR)</label>
-                                <input type="number" name="packages[<?php echo $tierKey; ?>][price]" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="0">
-                            </div>
-                            <div class="items-list" data-tier="<?php echo $tierKey; ?>">
-                                <?php foreach ($items as $idx => $item): ?>
-                                <div class="item-row">
-                                    <span class="drag-handle">⠿</span>
-                                    <div class="item-content">
-                                        <strong><?php echo htmlspecialchars($item['title']); ?></strong>
-                                        <p><?php echo htmlspecialchars($item['description']); ?></p>
-                                        <input type="hidden" name="packages[<?php echo $tierKey; ?>][items][<?php echo $idx; ?>][title]" value="<?php echo htmlspecialchars($item['title']); ?>">
-                                        <input type="hidden" name="packages[<?php echo $tierKey; ?>][items][<?php echo $idx; ?>][description]" value="<?php echo htmlspecialchars($item['description']); ?>">
-                                    </div>
-                                    <div class="item-actions">
-                                        <button type="button" class="icon-action-btn edit-item-btn" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                                        <button type="button" class="icon-action-btn delete-item-btn" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
-                                    </div>
+                        <!-- <?php echo $tierInfo['name']; ?> -->
+                        <div class="package-card <?php echo $tierInfo['class']; ?>" data-tier="<?php echo $tierKey; ?>">
+                            <div class="package-header">
+                                <div class="tier-icon-box <?php echo 'tier-' . $tierKey; ?>">
+                                    <i class="<?php echo $tierInfo['icon']; ?>"></i>
                                 </div>
-                                <?php endforeach; ?>
+                                <div class="tier-info">
+                                    <h3><?php echo $tierInfo['name']; ?></h3>
+                                    <p><?php echo $tierInfo['subtitle']; ?></p>
+                                </div>
+                                <button type="button" class="add-section-btn" data-tier="<?php echo $tierKey; ?>">+ Add Section</button>
+                            </div>
+                            <div class="package-body">
+                                <div class="form-group pkg-desc-group">
+                                    <label>PACKAGE DESCRIPTION</label>
+                                    <input type="text" name="packages[<?php echo $tierKey; ?>][description]" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package..." required>
+                                </div>
+                                <div class="form-group pkg-price-group">
+                                    <label>PRICE (NPR)</label>
+                                    <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
+                                </div>
+                                <div class="items-list" data-tier="<?php echo $tierKey; ?>">
+                                    <?php foreach ($items as $idx => $item): ?>
+                                        <div class="item-row">
+                                            <span class="drag-handle">⠿</span>
+                                            <div class="item-content">
+                                                <strong><?php echo htmlspecialchars($item['title']); ?></strong>
+                                                <p><?php echo htmlspecialchars($item['description']); ?></p>
+                                                <input type="hidden" name="packages[<?php echo $tierKey; ?>][items][<?php echo $idx; ?>][title]" value="<?php echo htmlspecialchars($item['title']); ?>">
+                                                <input type="hidden" name="packages[<?php echo $tierKey; ?>][items][<?php echo $idx; ?>][description]" value="<?php echo htmlspecialchars($item['description']); ?>">
+                                            </div>
+                                            <div class="item-actions">
+                                                <button type="button" class="icon-action-btn edit-item-btn" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                <button type="button" class="icon-action-btn delete-item-btn" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -264,93 +273,99 @@
         </div>
     </main>
 
-<script>
-// ─────────────── IMAGE UPLOAD ───────────────
-const uploadTrigger = document.getElementById('upload-trigger');
-const fileInput = document.getElementById('file-input');
-const imagePreview = document.getElementById('image-preview');
-const removeImageBtn = document.getElementById('remove-image');
-const uploadPreviewWrap = document.getElementById('upload-preview-wrap');
-const dropArea = document.getElementById('drop-area');
+    <script>
+        // ─────────────── IMAGE UPLOAD ───────────────
+        const uploadTrigger = document.getElementById('upload-trigger');
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image');
+        const uploadPreviewWrap = document.getElementById('upload-preview-wrap');
+        const dropArea = document.getElementById('drop-area');
 
-uploadTrigger.addEventListener('click', () => fileInput.click());
+        uploadTrigger.addEventListener('click', () => fileInput.click());
 
-fileInput.addEventListener('change', function () {
-    if (this.files && this.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            imagePreview.src = e.target.result;
-            imagePreview.style.display = 'block';
-            uploadPreviewWrap.style.display = 'none';
-            removeImageBtn.style.display = 'inline-block';
-        };
-        reader.readAsDataURL(this.files[0]);
-    }
-});
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    uploadPreviewWrap.style.display = 'none';
+                    removeImageBtn.style.display = 'inline-block';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
 
-removeImageBtn.addEventListener('click', () => {
-    fileInput.value = '';
-    imagePreview.style.display = 'none';
-    removeImageBtn.style.display = 'none';
-    uploadPreviewWrap.style.display = 'flex';
-});
+        removeImageBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            imagePreview.style.display = 'none';
+            removeImageBtn.style.display = 'none';
+            uploadPreviewWrap.style.display = 'flex';
+        });
 
-// Drag & Drop
-dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('drag-over'); });
-dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
-dropArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropArea.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        fileInput.files = dt.files;
-        fileInput.dispatchEvent(new Event('change'));
-    }
-});
+        // Drag & Drop
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('drag-over');
+        });
+        dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
 
-// ─────────────── ADD SECTION ───────────────
-let currentTierForAdd = null;
+        // ─────────────── ADD SECTION ───────────────
+        let currentTierForAdd = null;
 
-document.querySelectorAll('.add-section-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        currentTierForAdd = this.dataset.tier;
-        document.getElementById('newSectionTitle').value = '';
-        document.getElementById('newSectionDesc').value = '';
-        document.getElementById('addSectionModal').style.display = 'flex';
-        document.getElementById('newSectionTitle').focus();
-    });
-});
+        document.querySelectorAll('.add-section-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentTierForAdd = this.dataset.tier;
+                document.getElementById('newSectionTitle').value = '';
+                document.getElementById('newSectionDesc').value = '';
+                document.getElementById('addSectionModal').style.display = 'flex';
+                document.getElementById('newSectionTitle').focus();
+            });
+        });
 
-document.getElementById('closeModal').addEventListener('click', () => {
-    document.getElementById('addSectionModal').style.display = 'none';
-});
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('addSectionModal').style.display = 'none';
+        });
 
-document.getElementById('addSectionModal').addEventListener('click', function(e){
-    if (e.target === this) this.style.display = 'none';
-});
+        document.getElementById('addSectionModal').addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
 
-document.getElementById('confirmAddSection').addEventListener('click', () => {
-    const title = document.getElementById('newSectionTitle').value.trim();
-    const desc = document.getElementById('newSectionDesc').value.trim();
-    if (!title) { alert('Please enter a section title.'); return; }
+        document.getElementById('confirmAddSection').addEventListener('click', () => {
+            const title = document.getElementById('newSectionTitle').value.trim();
+            const desc = document.getElementById('newSectionDesc').value.trim();
+            if (!title) {
+                alert('Please enter a section title.');
+                return;
+            }
 
-    const itemsList = document.querySelector(`.items-list[data-tier="${currentTierForAdd}"]`);
-    const newRow = buildItemRow(currentTierForAdd, title, desc || 'Description here...');
-    itemsList.appendChild(newRow);
-    bindRowEvents(newRow, currentTierForAdd);
-    document.getElementById('addSectionModal').style.display = 'none';
-});
+            const itemsList = document.querySelector(`.items-list[data-tier="${currentTierForAdd}"]`);
+            const newRow = buildItemRow(currentTierForAdd, title, desc || 'Description here...');
+            itemsList.appendChild(newRow);
+            bindRowEvents(newRow, currentTierForAdd);
+            document.getElementById('addSectionModal').style.display = 'none';
+        });
 
-// ─────────────── EDIT & DELETE ───────────────
-let currentEditRow = null;
+        // ─────────────── EDIT & DELETE ───────────────
+        let currentEditRow = null;
 
-function buildItemRow(tier, title, desc) {
-    const row = document.createElement('div');
-    row.className = 'item-row';
-    const index = document.querySelectorAll(`.items-list[data-tier="${tier}"] .item-row`).length;
-    row.innerHTML = `
+        function buildItemRow(tier, title, desc) {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            const index = document.querySelectorAll(`.items-list[data-tier="${tier}"] .item-row`).length;
+            row.innerHTML = `
         <span class="drag-handle">⠿</span>
         <div class="item-content">
             <strong>${escapeHtml(title)}</strong>
@@ -363,86 +378,139 @@ function buildItemRow(tier, title, desc) {
             <button type="button" class="icon-action-btn delete-item-btn" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
         </div>
     `;
-    return row;
-}
-
-function escapeHtml(text) {
-    const d = document.createElement('div');
-    d.appendChild(document.createTextNode(text));
-    return d.innerHTML;
-}
-
-function bindRowEvents(row, tier) {
-    row.querySelector('.edit-item-btn').addEventListener('click', function () {
-        currentEditRow = row;
-        const strong = row.querySelector('.item-content strong');
-        const p = row.querySelector('.item-content p');
-        document.getElementById('editSectionTitle').value = strong.textContent;
-        document.getElementById('editSectionDesc').value = p.textContent;
-        document.getElementById('editSectionModal').style.display = 'flex';
-        document.getElementById('editSectionTitle').focus();
-    });
-
-    row.querySelector('.delete-item-btn').addEventListener('click', function () {
-        if (confirm('Remove this section?')) {
-            row.style.transition = 'all 0.2s ease';
-            row.style.opacity = '0';
-            row.style.transform = 'translateX(20px)';
-            setTimeout(() => {
-                row.remove();
-                renumberItems(tier);
-            }, 200);
+            return row;
         }
-    });
-}
 
-function renumberItems(tier) {
-    document.querySelectorAll(`.items-list[data-tier="${tier}"] .item-row`).forEach((row, index) => {
-        const titleInput = row.querySelector('input[name*="[title]"]');
-        const descInput = row.querySelector('input[name*="[description]"]');
-        if (titleInput) titleInput.name = `packages[${tier}][items][${index}][title]`;
-        if (descInput) descInput.name = `packages[${tier}][items][${index}][description]`;
-    });
-}
+        function escapeHtml(text) {
+            const d = document.createElement('div');
+            d.appendChild(document.createTextNode(text));
+            return d.innerHTML;
+        }
 
-// Bind existing rows
-document.querySelectorAll('.items-list').forEach(list => {
-    const tier = list.dataset.tier;
-    list.querySelectorAll('.item-row').forEach((row, index) => {
-        // Add hidden inputs to pre-rendered rows if they don't have them
-        if (!row.querySelector('input[type="hidden"]')) {
-            const title = row.querySelector('.item-content strong').textContent;
-            const desc = row.querySelector('.item-content p').textContent;
-            row.querySelector('.item-content').insertAdjacentHTML('beforeend', `
+        function bindRowEvents(row, tier) {
+            row.querySelector('.edit-item-btn').addEventListener('click', function() {
+                currentEditRow = row;
+                const strong = row.querySelector('.item-content strong');
+                const p = row.querySelector('.item-content p');
+                document.getElementById('editSectionTitle').value = strong.textContent;
+                document.getElementById('editSectionDesc').value = p.textContent;
+                document.getElementById('editSectionModal').style.display = 'flex';
+                document.getElementById('editSectionTitle').focus();
+            });
+
+            row.querySelector('.delete-item-btn').addEventListener('click', function() {
+                if (confirm('Remove this section?')) {
+                    row.style.transition = 'all 0.2s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        row.remove();
+                        renumberItems(tier);
+                    }, 200);
+                }
+            });
+        }
+
+        function renumberItems(tier) {
+            document.querySelectorAll(`.items-list[data-tier="${tier}"] .item-row`).forEach((row, index) => {
+                const titleInput = row.querySelector('input[name*="[title]"]');
+                const descInput = row.querySelector('input[name*="[description]"]');
+                if (titleInput) titleInput.name = `packages[${tier}][items][${index}][title]`;
+                if (descInput) descInput.name = `packages[${tier}][items][${index}][description]`;
+            });
+        }
+
+        // Bind existing rows
+        document.querySelectorAll('.items-list').forEach(list => {
+            const tier = list.dataset.tier;
+            list.querySelectorAll('.item-row').forEach((row, index) => {
+                // Add hidden inputs to pre-rendered rows if they don't have them
+                if (!row.querySelector('input[type="hidden"]')) {
+                    const title = row.querySelector('.item-content strong').textContent;
+                    const desc = row.querySelector('.item-content p').textContent;
+                    row.querySelector('.item-content').insertAdjacentHTML('beforeend', `
                 <input type="hidden" name="packages[${tier}][items][${index}][title]" value="${escapeHtml(title)}">
                 <input type="hidden" name="packages[${tier}][items][${index}][description]" value="${escapeHtml(desc)}">
             `);
-        }
-        bindRowEvents(row, tier);
-    });
-});
+                }
+                bindRowEvents(row, tier);
+            });
+        });
 
-// Edit modal
-document.getElementById('closeEditModal').addEventListener('click', () => {
-    document.getElementById('editSectionModal').style.display = 'none';
-});
-document.getElementById('editSectionModal').addEventListener('click', function(e){
-    if (e.target === this) this.style.display = 'none';
-});
+        // Edit modal
+        document.getElementById('closeEditModal').addEventListener('click', () => {
+            document.getElementById('editSectionModal').style.display = 'none';
+        });
+        document.getElementById('editSectionModal').addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
 
-document.getElementById('confirmEditSection').addEventListener('click', () => {
-    const title = document.getElementById('editSectionTitle').value.trim();
-    const desc = document.getElementById('editSectionDesc').value.trim();
-    if (!title) { alert('Please enter a section title.'); return; }
-    if (currentEditRow) {
-        currentEditRow.querySelector('.item-content strong').textContent = title;
-        currentEditRow.querySelector('.item-content p').textContent = desc;
-        currentEditRow.querySelector('input[name*="[title]"]').value = title;
-        currentEditRow.querySelector('input[name*="[description]"]').value = desc;
-    }
-    document.getElementById('editSectionModal').style.display = 'none';
-});
-</script>
+        document.getElementById('confirmEditSection').addEventListener('click', () => {
+            const title = document.getElementById('editSectionTitle').value.trim();
+            const desc = document.getElementById('editSectionDesc').value.trim();
+            if (!title) {
+                alert('Please enter a section title.');
+                return;
+            }
+            if (currentEditRow) {
+                currentEditRow.querySelector('.item-content strong').textContent = title;
+                currentEditRow.querySelector('.item-content p').textContent = desc;
+                currentEditRow.querySelector('input[name*="[title]"]').value = title;
+                currentEditRow.querySelector('input[name*="[description]"]').value = desc;
+            }
+            document.getElementById('editSectionModal').style.display = 'none';
+        });
+
+        // ─────────────── PACKAGE PRICE VALIDATION ───────────────
+        const eventForm = document.getElementById('createEventForm');
+        const MAX_PACKAGE_PRICE = 20000000;
+
+        document.querySelectorAll('.package-price-input').forEach((input) => {
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/[^\d]/g, '');
+            });
+        });
+
+        eventForm.addEventListener('submit', function(e) {
+            const basicVal = document.querySelector('input[name="packages[basic][price]"]').value;
+            const standardVal = document.querySelector('input[name="packages[standard][price]"]').value;
+            const premiumVal = document.querySelector('input[name="packages[premium][price]"]').value;
+
+            const basic = parseInt(basicVal, 10);
+            const standard = parseInt(standardVal, 10);
+            const premium = parseInt(premiumVal, 10);
+
+            if (![basicVal, standardVal, premiumVal].every(v => /^\d+$/.test(v))) {
+                e.preventDefault();
+                alert('Package prices must be numbers only (no decimals or symbols).');
+                return;
+            }
+
+            if ([basic, standard, premium].some(v => v <= 0)) {
+                e.preventDefault();
+                alert('All package prices must be greater than 0.');
+                return;
+            }
+
+            if ([basic, standard, premium].some(v => v > MAX_PACKAGE_PRICE)) {
+                e.preventDefault();
+                alert('Package price cannot exceed NPR 2,00,00,000.');
+                return;
+            }
+
+            if (basic >= MAX_PACKAGE_PRICE || standard >= MAX_PACKAGE_PRICE) {
+                e.preventDefault();
+                alert('Only premium package can be set to NPR 2,00,00,000. Basic and standard must be lower.');
+                return;
+            }
+
+            if (!(basic < standard && standard < premium)) {
+                e.preventDefault();
+                alert('Price order must be: Basic < Standard < Premium.');
+            }
+        });
+    </script>
 
 </body>
+
 </html>

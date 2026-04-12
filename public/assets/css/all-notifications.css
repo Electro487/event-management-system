@@ -1,7 +1,4 @@
-/* ================================================================
-   all-notifications.css — Full Notifications Page
-   Matches the site's green (#246A55) design system
-   ================================================================ */
+
 
 /* ---- Base Reset & Typography ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,9 +38,7 @@ body {
 /* ---- Link / Anchor Reset ---- */
 a { text-decoration: none; color: inherit; }
 
-/* ================================================================
-   CLIENT LAYOUT  (no sidebar)
-   ================================================================ */
+
 .notif-page-client {
     width: 100%;
     max-width: 1200px;
@@ -51,18 +46,14 @@ a { text-decoration: none; color: inherit; }
     padding: 40px 24px 80px;
 }
 
-/* ================================================================
-   DASH LAYOUT  (admin / organizer — sidebar already in DOM)
-   ================================================================ */
+
 .main-content .notif-page-dash {
     width: 100%;
     max-width: 1200px;
 }
 .notif-page-dash { width: 100%; }
 
-/* ================================================================
-   HEADER HERO BLOCK
-   ================================================================ */
+
 .np-hero {
     background: linear-gradient(135deg, var(--brand) 0%, #1a5e49 100%);
     border-radius: var(--radius);
@@ -164,9 +155,28 @@ a { text-decoration: none; color: inherit; }
 }
 .np-clear-all-btn:hover { background: #c0392b; transform: translateY(-1px); }
 
-/* ================================================================
-   FILTER BAR
-   ================================================================ */
+.np-unread-all-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all .2s;
+    backdrop-filter: blur(8px);
+}
+.np-unread-all-btn:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-1px);
+}
+
+
 .np-filter-bar {
     display: flex;
     gap: 10px;
@@ -207,9 +217,7 @@ a { text-decoration: none; color: inherit; }
     color: var(--text-muted);
 }
 
-/* ================================================================
-   STATS ROW - Grid based for better readability
-   ================================================================ */
+
 .np-stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -254,9 +262,7 @@ a { text-decoration: none; color: inherit; }
 .np-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
 .np-stat-value { font-size: 22px; font-weight: 800; color: var(--text-main); line-height: 1; }
 
-/* ================================================================
-   NOTIFICATIONS LIST
-   ================================================================ */
+
 .np-list {
     display: flex;
     flex-direction: column;
@@ -442,9 +448,7 @@ a { text-decoration: none; color: inherit; }
     font-size: 16px;
 }
 
-/* ================================================================
-   EMPTY STATE
-   ================================================================ */
+
 .np-empty-state {
     padding: 80px 40px;
     text-align: center;
@@ -475,9 +479,7 @@ a { text-decoration: none; color: inherit; }
 .np-empty-state h3 { font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
 .np-empty-state p  { font-size: 15px; color: var(--text-muted); max-width: 340px; margin: 0 auto; }
 
-/* ================================================================
-   PAGINATION / LOAD MORE
-   ================================================================ */
+
 .np-load-more {
     text-align: center;
     padding: 18px;
@@ -500,18 +502,14 @@ a { text-decoration: none; color: inherit; }
 }
 .np-load-more-btn:hover { background: var(--brand); color: #fff; }
 
-/* ================================================================
-   CLIENT TOP NAVBAR OVERRIDE FOR NOTIFICATIONS PAGE
-   ================================================================ */
+
 .notif-nav-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
 }
 
-/* ================================================================
-   RESPONSIVE
-   ================================================================ */
+
 @media(max-width: 992px) {
     .np-stats-row { grid-template-columns: repeat(2, 1fr); }
 }

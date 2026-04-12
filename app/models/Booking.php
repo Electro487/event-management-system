@@ -209,9 +209,22 @@ class Booking
 
     public function getRevenueByOrganizer($organizer_id)
     {
-        $sql = "SELECT SUM(b.total_amount) as total FROM bookings b JOIN events e ON b.event_id = e.id WHERE e.organizer_id = :organizer_id AND b.status = 'confirmed'";
+        $sql = "SELECT SUM(p.amount) as total 
+                FROM payments p 
+                JOIN bookings b ON p.booking_id = b.id 
+                JOIN events e ON b.event_id = e.id 
+                WHERE e.organizer_id = :organizer_id AND p.status = 'succeeded'";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':organizer_id', $organizer_id);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (float)($result['total'] ?? 0);
+    }
+
+    public function getTotalSystemRevenue()
+    {
+        $sql = "SELECT SUM(amount) as total FROM payments WHERE status = 'succeeded'";
+        $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (float)($result['total'] ?? 0);
