@@ -132,10 +132,7 @@ class User
 
         if ($user) {
             // Check password (assume it's hashed using password_hash during registration)
-            // Included a fallback to plain text check during dev in case legacy data is present
             if (password_verify($password, $user['password'])) {
-                return $user;
-            } else if ($password === $user['password']) {
                 return $user;
             }
         }
