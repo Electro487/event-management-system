@@ -17,7 +17,8 @@
         $parts = explode('@', $email);
         $masked_email = substr($parts[0], 0, 2) . '***@' . ($parts[1] ?? '');
         ?>
-        <p>We've sent a 6-digit verification code to <span class="email-preview"><?php echo $masked_email; ?></span>. Please enter it below to secure your account.</p>
+        <p>We've sent a 6-digit verification code to <span class="email-preview"><?php echo $masked_email; ?></span>.
+            Please enter it below to secure your account.</p>
 
         <?php if (!empty($error)): ?>
             <div class="error"><?php echo $error; ?></div>
@@ -25,7 +26,7 @@
 
         <?php if (!empty($_SESSION['error'])): ?>
             <div class="error"><?php echo $_SESSION['error'];
-                                unset($_SESSION['error']); ?></div>
+            unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
         <form action="/EventManagementSystem/public/verify-otp" method="POST" id="otp-form">

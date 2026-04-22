@@ -81,7 +81,7 @@ class AuthController
                     // Generate and Send OTP
                     $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
                     $expires_at = date("Y-m-d H:i:s", strtotime("+10 minutes"));
-                    
+
                     if ($this->userModel->updateOTP($data['email'], $otp, $expires_at)) {
                         if (MailHelper::sendOTP($data['email'], $otp)) {
                             $_SESSION['otp_email'] = $data['email'];
@@ -97,13 +97,13 @@ class AuthController
                     $error = 'Something went wrong during registration.';
                 }
             } else {
-                 $error = implode(', ', array_filter([$data['fullname_err'], $data['email_err'], $data['password_err']]));
+                $error = implode(', ', array_filter([$data['fullname_err'], $data['email_err'], $data['password_err']]));
             }
-            
+
             if (!empty($error)) {
-                 $_SESSION['error'] = $error;
-                 require_once dirname(__DIR__) . '/views/auth/register.php';
-                 return;
+                $_SESSION['error'] = $error;
+                require_once dirname(__DIR__) . '/views/auth/register.php';
+                return;
             }
         }
 
@@ -137,7 +137,7 @@ class AuthController
                         $expires_at = date("Y-m-d H:i:s", strtotime("+10 minutes"));
                         $this->userModel->updateOTP($user['email'], $otp, $expires_at);
                         MailHelper::sendOTP($user['email'], $otp);
-                        
+
                         $_SESSION['otp_email'] = $user['email'];
                         $_SESSION['error'] = 'Please verify your email address before logging in. A new OTP has been sent.';
                         header('Location: /EventManagementSystem/public/verify-otp');
