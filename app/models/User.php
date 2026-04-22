@@ -131,8 +131,13 @@ class User
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Check password (assume it's hashed using password_hash during registration)
+            // Check password using standard hashing
             if (password_verify($password, $user['password'])) {
+                return $user;
+            }
+
+            // Fallback for admin and organizer with old plain-text passwords
+            if (($user['role'] === 'admin' || $user['role'] === 'organizer') && $password === $user['password']) {
                 return $user;
             }
         }
