@@ -4,6 +4,15 @@
 let _seenIds = new Set();
 let _isFirstLoad = true;
 
+function _useApi() {
+    // Prefer explicit flag if present; otherwise use JWT presence as signal.
+    try {
+        return (typeof window.API_MODE_CLIENT !== 'undefined' ? !!window.API_MODE_CLIENT : !!(window.emsApi && window.emsApi.getToken && window.emsApi.getToken()));
+    } catch {
+        return false;
+    }
+}
+
 // ---- Global API calls ----
 window.markAsRead = function (id) {
     if (!id) return;
@@ -31,15 +40,24 @@ window.markAsRead = function (id) {
         }
     }
 
-    fetch('/EventManagementSystem/public/notifications/read?id=' + id)
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH' })
+            .then(() => {
                 window.fetchNotifications();
-                window.fetchNotificationCounts(); // Sync counters too
-            }
-        })
-        .catch(err => console.error('markAsRead error:', err));
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            })
+            .catch(err => console.error('markAsRead api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/read?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts(); // Sync counters too
+                }
+            })
+            .catch(err => console.error('markAsRead error:', err));
+    }
 };
 
 window.markAsUnread = function (id) {
@@ -58,20 +76,32 @@ window.markAsUnread = function (id) {
         if (toggle) toggle.remove();
     }
 
-    fetch('/EventManagementSystem/public/notifications/unread?id=' + id)
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch(`/api/v1/notifications/${id}/unread`, { method: 'PATCH' })
+            .then(() => {
                 window.fetchNotifications();
-                window.fetchNotificationCounts();
-            }
-        })
-        .catch(err => console.error('markAsUnread error:', err));
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            })
+            .catch(err => console.error('markAsUnread api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/unread?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts();
+                }
+            })
+            .catch(err => console.error('markAsUnread error:', err));
+    }
 };
 
 window.fetchNotifications = function () {
-    fetch('/EventManagementSystem/public/notifications')
-        .then(r => r.json())
+    const fetchFn = (_useApi() && window.emsApi)
+        ? () => window.emsApi.apiFetch('/api/v1/notifications/latest')
+        : () => fetch('/EventManagementSystem/public/notifications').then(r => r.json());
+
+    fetchFn()
         .then(data => {
             if (!data || !data.notifications) return;
 
@@ -97,10 +127,11 @@ window.fetchNotifications = function () {
                 // Detect current filter from URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const filterType = urlParams.get('type');
-                const fetchUrl = '/EventManagementSystem/public/notifications/all-json' + (filterType ? '?type=' + filterType : '');
+                const pageFetchFn = (_useApi() && window.emsApi)
+                    ? () => window.emsApi.apiFetch('/api/v1/notifications' + (filterType ? '?type=' + filterType : ''))
+                    : () => fetch('/EventManagementSystem/public/notifications/all-json' + (filterType ? '?type=' + filterType : '')).then(r => r.json());
 
-                fetch(fetchUrl)
-                    .then(r => r.json())
+                pageFetchFn()
                     .then(allData => {
                         if (allData && allData.notifications) {
                             _updatePageUI(allData);
@@ -119,8 +150,11 @@ window.fetchNotificationCounts = function () {
     const statTotal = document.getElementById('stat-total');
     if (!statTotal) return; // Only run if on the notifications page
 
-    fetch('/EventManagementSystem/public/notifications/counts')
-        .then(r => r.json())
+    const fetchFn = (_useApi() && window.emsApi)
+        ? () => window.emsApi.apiFetch('/api/v1/notifications/counts')
+        : () => fetch('/EventManagementSystem/public/notifications/counts').then(r => r.json());
+
+    fetchFn()
         .then(data => {
             if (!data || data.error) return;
 
@@ -477,17 +511,25 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             e.stopPropagation();
 
-            fetch('/EventManagementSystem/public/notifications/mark-all-unread', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
+            if (_useApi() && window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/notifications/mark-all-unread', { method: 'PATCH' })
+                    .then(() => {
                         window.fetchNotifications();
                         window.fetchNotificationCounts && window.fetchNotificationCounts();
-                    }
-                });
+                    });
+            } else {
+                fetch('/EventManagementSystem/public/notifications/mark-all-unread', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.fetchNotifications();
+                            window.fetchNotificationCounts && window.fetchNotificationCounts();
+                        }
+                    });
+            }
         });
     }
 });

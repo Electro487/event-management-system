@@ -131,8 +131,26 @@ class User
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Check password using standard hashing
-            if (password_verify($password, $user['password'])) {
+            // Check password (assume it's hashed using password_hash during registration)
+            $stored = (string)($user['password'] ?? '');
+            if (password_verify($password, $stored)) {
+                return $user;
+            }
+
+            // Compatibility upgrade: if a legacy plaintext password exists, allow one successful login
+            // and immediately re-hash it to align with password_hash() storage.
+            $looksHashed = str_starts_with($stored, '$2y$')
+                || str_starts_with($stored, '$2a$')
+                || str_starts_with($stored, '$argon2');
+
+            if (!$looksHashed && $stored !== '' && hash_equals($stored, (string)$password)) {
+                $newHash = password_hash((string)$password, PASSWORD_DEFAULT);
+                $up = $pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
+                $up->bindParam(':password', $newHash);
+                $up->bindParam(':id', $user['id']);
+                $up->execute();
+
+                $user['password'] = $newHash;
                 return $user;
             }
 

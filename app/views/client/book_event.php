@@ -477,7 +477,63 @@ if (empty($items)) {
         </div>
     </footer>
 
+    <script>
+        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+        (function () {
+            if (!window.API_MODE_CLIENT || !window.emsApi) return;
+            const form = document.querySelector('form.booking-grid');
+            if (!form) return;
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                if (!form.reportValidity()) return;
+
+                const fd = new FormData(form);
+                const payLater = (fd.get('pay_later') === '1');
+
+                const payload = {
+                    event_id: Number(fd.get('event_id')),
+                    package_tier: String(fd.get('package_tier') || ''),
+                    event_date: String(fd.get('event_date') || ''),
+                    guest_count: Number(fd.get('guest_count') || 0),
+                    full_name: String(fd.get('full_name') || ''),
+                    email: String(fd.get('email') || ''),
+                    phone: String(fd.get('phone') || ''),
+                    checkin_time: String(fd.get('checkin_time') || ''),
+                    total_amount: Number(fd.get('total_amount') || 0),
+                };
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/bookings', { method: 'POST', body: payload });
+                    const bookingId = res?.data?.booking_id;
+                    if (!bookingId) throw new Error('Booking created but missing booking_id.');
+
+                    if (payLater) {
+                        window.location.href = `/EventManagementSystem/public/client/events?booking_success=1#my-bookings`;
+                        return;
+                    }
+
+                    const checkout = await window.emsApi.apiFetch('/api/v1/payments/checkout', {
+                        method: 'POST',
+                        body: { booking_id: Number(bookingId) }
+                    });
+
+                    const url = checkout?.data?.checkout_url;
+                    if (!url) throw new Error('Checkout created but missing checkout_url.');
+                    window.location.href = url;
+                } catch (err) {
+                    console.error('API booking flow failed, falling back to MVC submit.', err);
+                    form.submit();
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

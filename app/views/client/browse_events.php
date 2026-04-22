@@ -786,6 +786,91 @@ $searchQuery = $_GET['search'] ?? '';
     </footer>
 
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script>
+        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+        (function () {
+            if (!window.API_MODE_CLIENT || !window.emsApi) return;
+            // Optional: refresh browse events list from API (keeps PHP render as initial paint)
+            const grid = document.querySelector('.event-grid');
+            if (grid) {
+                const params = new URLSearchParams(window.location.search);
+                const category = params.get('category') || 'All';
+                const search = params.get('search') || '';
+                const page = Number(params.get('page') || 1);
+                const limit = 6;
+
+                window.emsApi.apiFetch(`/api/v1/events?category=${encodeURIComponent(category)}&search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`)
+                    .then(res => {
+                        const items = res?.data?.items || [];
+                        if (!Array.isArray(items)) return;
+
+                        grid.innerHTML = items.map(ev => {
+                            const image = ev.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                            const cat = ev.category || 'Event';
+                            const title = ev.title || '';
+                            const desc = ev.description || '';
+                            const loc = ev.venue_location || 'Location TBD';
+
+                            // packages may be JSON string
+                            let packages = ev.packages;
+                            try {
+                                if (typeof packages === 'string') packages = JSON.parse(packages);
+                            } catch {}
+                            let startPrice = 0;
+                            if (packages && typeof packages === 'object') {
+                                const prices = Object.values(packages).map(p => Number(p?.price || 0)).filter(n => Number.isFinite(n) && n > 0);
+                                if (prices.length) startPrice = Math.min(...prices);
+                            }
+                            const displayPrice = startPrice > 0 ? startPrice.toLocaleString() : '10,000';
+
+                            return `
+                                <div class="event-card">
+                                    <div class="event-image-container">
+                                        <img src="${image}" alt="${title.replace(/\"/g,'&quot;')}" class="event-image">
+                                        <span class="event-category-tag">${cat}</span>
+                                    </div>
+                                    <div class="event-content">
+                                        <h3 class="event-title">${title}</h3>
+                                        <p class="event-description">${desc}</p>
+                                        <div class="event-location">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                            ${loc}
+                                        </div>
+                                        <div class="event-price">Packages from Rs. ${displayPrice}</div>
+                                        <a href="/EventManagementSystem/public/client/events/view?id=${ev.id}" class="btn-view-packages">
+                                            View Packages &rarr;
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    })
+                    .catch(() => { /* keep PHP render */ });
+            }
+
+            const cancelForm = document.getElementById('cancel-booking-form');
+            if (!cancelForm) return;
+
+            cancelForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const id = document.getElementById('cancel-booking-id')?.value;
+                if (!id) return;
+                if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+
+                try {
+                    await window.emsApi.apiFetch(`/api/v1/bookings/${id}/cancel`, { method: 'PATCH' });
+                    window.location.reload();
+                } catch (err) {
+                    console.error('Cancel via API failed, falling back to MVC submit.', err);
+                    cancelForm.submit();
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

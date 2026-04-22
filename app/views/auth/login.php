@@ -35,7 +35,7 @@
         </div>
     <?php endif; ?>
 
-    <form action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
+    <form id="login-form" action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
         <div class="form-group">
             <div class="form-label-row">
                 <label for="email">Email / Username</label>
@@ -60,6 +60,45 @@
         Don't have an account? <a href="/EventManagementSystem/public/register">Register</a>
     </div>
 </div>
+
+<script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+<script>
+    (function() {
+        const form = document.getElementById('login-form');
+        if (!form || !window.emsApi) return;
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email')?.value?.trim() || '';
+            const password = document.getElementById('password')?.value || '';
+            if (!email || !password) return;
+
+            try {
+                const res = await window.emsApi.apiFetch('/api.php/api/v1/auth/login'.replace('/api.php', ''), {
+                    method: 'POST',
+                    body: { email, password }
+                });
+
+                const token = res?.data?.token;
+                const role = res?.data?.user?.role;
+                if (!token) throw new Error('Login succeeded but no token returned.');
+
+                window.emsApi.setToken(token);
+
+                if (role === 'admin') window.location.href = '/EventManagementSystem/public/admin/dashboard';
+                else if (role === 'organizer') window.location.href = '/EventManagementSystem/public/organizer/dashboard';
+                else window.location.href = '/EventManagementSystem/public/client/home';
+            } catch (err) {
+                // Fall back to MVC submit if API login fails (migration safety)
+                try {
+                    window.emsApi.clearToken();
+                } catch {}
+                form.submit();
+            }
+        });
+    })();
+</script>
 
 </body>
 </html>

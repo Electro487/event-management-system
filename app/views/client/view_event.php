@@ -446,7 +446,24 @@ if (empty($includedItemsList)) {
         }
     </script>
 
+    <script>
+        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+        (function () {
+            if (!window.API_MODE_CLIENT || !window.emsApi) return;
+            // Optional: refresh this event data from API using query id for parity
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) return;
+            window.emsApi.apiFetch(`/api/v1/events/${id}`)
+                .then(() => { /* if needed later, can live-update DOM */ })
+                .catch(() => { /* keep PHP render */ });
+        })();
+    </script>
 </body>
 
 </html>

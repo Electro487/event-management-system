@@ -519,7 +519,59 @@ $steps = [
         </div>
     </footer>
 
+    <script>
+        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+        (function () {
+            if (!window.API_MODE_CLIENT || !window.emsApi) return;
+
+            const cancelForm = document.querySelector('form[action*="/client/bookings/cancel"]');
+            if (cancelForm) {
+                cancelForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const id = cancelForm.querySelector('input[name="booking_id"]')?.value;
+                    if (!id) return;
+                    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+
+                    try {
+                        await window.emsApi.apiFetch(`/api/v1/bookings/${id}/cancel`, { method: 'PATCH' });
+                        window.location.href = '/EventManagementSystem/public/client/events#my-bookings';
+                    } catch (err) {
+                        console.error('Cancel via API failed, falling back to MVC submit.', err);
+                        cancelForm.submit();
+                    }
+                });
+            }
+
+            // Replace checkout link to prefer API-created checkout url (optional)
+            const payLink = document.querySelector('a[href*="/client/payment/checkout"]');
+            if (payLink) {
+                const match = payLink.getAttribute('href').match(/booking_id=(\\d+)/);
+                const bookingId = match ? match[1] : null;
+                if (bookingId) {
+                    payLink.addEventListener('click', async function (e) {
+                        e.preventDefault();
+                        try {
+                            const checkout = await window.emsApi.apiFetch('/api/v1/payments/checkout', {
+                                method: 'POST',
+                                body: { booking_id: Number(bookingId) }
+                            });
+                            const url = checkout?.data?.checkout_url;
+                            if (!url) throw new Error('Missing checkout_url');
+                            window.location.href = url;
+                        } catch (err) {
+                            console.error('Checkout via API failed, falling back to MVC link.', err);
+                            window.location.href = payLink.getAttribute('href');
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
 </body>
 
 </html>
