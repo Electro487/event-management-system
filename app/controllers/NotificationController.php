@@ -77,7 +77,9 @@ class NotificationController
             'booking_cancel' => 0,
             'event_update' => 0,
             'message' => 0,
-            'event_creation' => 0 // for admin/organizer logic if needed
+            'event_creation' => 0,
+            'feedback' => 0,
+            'feedback_reply' => 0
         ];
 
         foreach ($notifications as $n) {

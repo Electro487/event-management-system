@@ -247,4 +247,12 @@ class User
         $stmt = $pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getOrganizers()
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT id FROM users WHERE role = 'organizer' AND is_blocked = 0";
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

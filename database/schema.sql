@@ -76,3 +76,13 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS `feedbacks` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `client_id` INT NOT NULL,
+    `rating` INT NOT NULL CHECK (`rating` >= 1 AND `rating` <= 5),
+    `comment` TEXT NOT NULL,
+    `reply` TEXT DEFAULT NULL,
+    `replied_at` TIMESTAMP NULL DEFAULT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -13,6 +13,7 @@ $messageCount = ($typeCounts['message'] ?? 0);
 $approvedCount = ($typeCounts['booking_approve'] ?? 0);
 $cancelledCount = ($typeCounts['booking_cancel'] ?? 0);
 $paymentCount = ($typeCounts['payment_alert'] ?? 0);
+$feedbackCount = ($typeCounts['feedback'] ?? 0) + ($typeCounts['feedback_reply'] ?? 0);
 
 $activeFilter = $_GET['type'] ?? 'all';
 
@@ -41,11 +42,7 @@ $activePage = 'notifications';
     <main class="main-content">
         <!-- Minimal Header -->
         <header class="header">
-            <form action="/EventManagementSystem/public/organizer/events" method="GET" class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" name="search" placeholder="Search your events...">
-                <button type="submit" style="display:none;"></button>
-            </form>
+            <div style="flex: 1;"></div>
             <div class="header-icons">
                 <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
@@ -120,6 +117,13 @@ $activePage = 'notifications';
                     <div class="np-stat-value" id="stat-payment"><?php echo $paymentCount; ?></div>
                 </div>
             </div>
+            <div class="np-stat-card">
+                <div class="np-stat-icon green"><i class="fa-solid fa-comments"></i></div>
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Feedback</div>
+                    <div class="np-stat-value" id="stat-feedback"><?php echo $feedbackCount; ?></div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -153,6 +157,11 @@ $activePage = 'notifications';
                 class="np-filter-tab <?php echo ($activeFilter === 'payment_alert') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-credit-card"></i> Payments
                 <span class="np-filter-count" id="count-payment"><?php echo $paymentCount; ?></span>
+            </a>
+            <a href="/EventManagementSystem/public/notifications/all?type=feedback"
+                class="np-filter-tab <?php echo ($activeFilter === 'feedback') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-comments"></i> Feedback
+                <span class="np-filter-count" id="count-feedback"><?php echo $feedbackCount; ?></span>
             </a>
         </div>
 
@@ -206,6 +215,8 @@ $activePage = 'notifications';
                                 'message' => 'fa-solid fa-message',
                                 'payment' => 'fa-solid fa-credit-card',
                                 'payment_alert' => 'fa-solid fa-credit-card',
+                                'feedback' => 'fa-solid fa-comments',
+                                'feedback_reply' => 'fa-solid fa-comments',
                                 'system' => 'fa-solid fa-gear',
                                 'info' => 'fa-solid fa-circle-info',
                             ];

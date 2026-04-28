@@ -83,4 +83,13 @@ $routes = [
     '/notifications/all' => 'NotificationController@allNotifications',
     '/notifications/all-json' => 'NotificationController@allNotificationsJson',
     '/notifications/counts' => 'NotificationController@getCountsJson',
+
+    // Feedback Routes
+    '/client/feedback' => 'FeedbackController@clientFeedback',
+    '/client/feedback/store' => 'FeedbackController@store',
+    '/admin/feedback' => 'FeedbackController@adminFeedback',
+    '/organizer/feedback' => 'FeedbackController@organizerFeedback',
+    '/feedback/reply' => 'FeedbackController@reply',
+    '/feedback/edit' => 'FeedbackController@editFeedback',
+    '/feedback/editReply' => 'FeedbackController@editReply',
 ];
