@@ -25,6 +25,7 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/client-home.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
 </head>
 
 <body>
@@ -433,6 +434,81 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
         }
     </script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script>
+        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
+        (function () {
+            if (!window.API_MODE_CLIENT || !window.emsApi) return;
+
+            console.log('%c[API Dashboard] Fetching client stats...', 'color: #3498db;');
+
+            window.emsApi.apiFetch('/api/v1/dashboard/client')
+                .then(data => {
+                    console.log('%c[API Dashboard] Stats received:', 'color: #27ae60;', data);
+                    if (!data || !data.data) return;
+                    const stats = data.data;
+                    
+                    // The API returns { total_bookings, upcoming_count, completed_count, pending_count }
+                    const total = stats.total_bookings || 0;
+                    const upcoming = stats.upcoming_count || 0;
+                    const completed = stats.completed_count || 0;
+                    const pending = stats.pending_count || 0;
+
+                    // Update numbers in the UI
+                    const statNumbers = document.querySelectorAll('.stat-number');
+                    if (statNumbers.length >= 3) {
+                        statNumbers[0].textContent = total;
+                        statNumbers[1].textContent = completed;
+                        statNumbers[2].textContent = pending;
+                    }
+
+                    // Update badges
+                    const totalBadge = document.querySelector('.stat-badge.badge-upcoming') || document.querySelector('.stat-badge.badge-review');
+                    if (totalBadge) {
+                        if (upcoming > 0) {
+                            totalBadge.className = 'stat-badge badge-upcoming';
+                            totalBadge.textContent = upcoming + ' UPCOMING';
+                            totalBadge.style.display = 'inline-block';
+                        } else if (total === 0) {
+                            totalBadge.className = 'stat-badge badge-review';
+                            totalBadge.textContent = 'NO BOOKINGS';
+                            totalBadge.style.display = 'inline-block';
+                        } else {
+                            totalBadge.style.display = 'none';
+                        }
+                    }
+
+                    const statCards = document.querySelectorAll('.stat-card');
+                    if (statCards[1]) {
+                        const badge = statCards[1].querySelector('.stat-badge');
+                        if (badge) {
+                            if (completed > 0) {
+                                badge.className = 'stat-badge badge-success';
+                                badge.textContent = 'ALL SUCCESSFUL';
+                            } else {
+                                badge.className = 'stat-badge badge-review';
+                                badge.textContent = 'NONE YET';
+                            }
+                        }
+                    }
+
+                    if (statCards[2]) {
+                        const badge = statCards[2].querySelector('.stat-badge');
+                        if (badge) {
+                            if (pending > 0) {
+                                badge.className = 'stat-badge badge-warning';
+                                badge.textContent = 'AWAITING REVIEW';
+                            } else {
+                                badge.className = 'stat-badge badge-success';
+                                badge.textContent = 'ALL CLEAR';
+                            }
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.warn('%c[API Dashboard] Could not sync stats:', 'color: #e67e22;', err.message);
+                });
+        })();
+    </script>
 </body>
 
 </html>

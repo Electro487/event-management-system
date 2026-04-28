@@ -390,6 +390,36 @@ $steps = [
         </div>
     </main>
 
+    <script>
+        window.API_MODE_ORGANIZER = <?php echo defined('API_MODE_ORGANIZER') ? (int)API_MODE_ORGANIZER : 0; ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function () {
+            if (!window.API_MODE_ORGANIZER || !window.emsApi) return;
+
+            const bindPatch = (selector, endpoint, confirmText) => {
+                const form = document.querySelector(selector);
+                if (!form) return;
+                form.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const id = form.querySelector('input[name="booking_id"]')?.value;
+                    if (!id) return;
+                    if (confirmText && !confirm(confirmText)) return;
+                    try {
+                        await window.emsApi.apiFetch(endpoint(id), { method: 'PATCH' });
+                        window.location.reload();
+                    } catch (err) {
+                        console.error('Organizer booking action via API failed, fallback to MVC.', err);
+                        form.submit();
+                    }
+                });
+            };
+
+            bindPatch('form[action*="/organizer/bookings/approve"]', (id) => `/api/v1/bookings/${id}/approve`, 'Are you sure you want to CONFIRM this booking?');
+            bindPatch('form[action*="/organizer/bookings/mark-paid"]', (id) => `/api/v1/bookings/${id}/mark-paid`, 'Confirm that you have received the remaining 50% cash balance for this booking?');
+        })();
+    </script>
 </body>
 </html>

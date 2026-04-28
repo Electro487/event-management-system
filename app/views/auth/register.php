@@ -49,6 +49,8 @@
                     </div>
                 <?php endif; ?>
 
+                <div id="api-status" style="display: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
+
                 <form action="/EventManagementSystem/public/register" method="POST" class="register-form">
 
                     <div class="form-row">
@@ -88,6 +90,69 @@
         </section>
     </div>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function() {
+            const form = document.querySelector('.register-form');
+            const submitBtn = form?.querySelector('.btn-submit');
+            const statusDiv = document.getElementById('api-status');
+            if (!form || !window.emsApi) return;
+
+            function showStatus(msg, isError = true) {
+                if (!statusDiv) return;
+                statusDiv.textContent = msg;
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = isError ? '#f9ebeb' : '#e8f5e9';
+                statusDiv.style.color = isError ? '#d9534f' : '#2d5a27';
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const first_name = document.getElementById('first_name')?.value?.trim() || '';
+                const last_name = document.getElementById('last_name')?.value?.trim() || '';
+                const email = document.getElementById('email')?.value?.trim() || '';
+                const password = document.getElementById('password')?.value || '';
+
+                if (!first_name || !last_name || !email || !password) return;
+
+                // UI Loading State
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Creating Account...';
+                if (statusDiv) statusDiv.style.display = 'none';
+
+                console.log('%c[API Auth] Attempting Registration...', 'color: #3498db; font-weight: bold;');
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/auth/register', {
+                        method: 'POST',
+                        body: { first_name, last_name, email, password }
+                    });
+
+                    console.log('%c[API Auth] Registration Success!', 'color: #27ae60; font-weight: bold;', res);
+
+                    if (res?.data?.otp_required) {
+                        showStatus('Account created! Redirecting to verification...', false);
+                        setTimeout(() => {
+                            window.location.href = '/EventManagementSystem/public/verify-otp';
+                        }, 1200);
+                    }
+                } catch (err) {
+                    console.warn('%c[API Auth] Registration Failed:', 'color: #e67e22; font-weight: bold;', err.message);
+                    
+                    if (err.status && err.status < 500) {
+                        showStatus(err.message);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    } else {
+                        showStatus('API Unavailable. Falling back to standard registration...');
+                        setTimeout(() => form.submit(), 1500);
+                    }
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

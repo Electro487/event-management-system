@@ -103,22 +103,24 @@ window.fetchNotifications = function () {
 
     fetchFn()
         .then(data => {
-            if (!data || !data.notifications) return;
+            // Support both MVC response and API wrapped response
+            const actualData = data.data || data;
+            if (!actualData || !actualData.notifications) return;
 
             if (_isFirstLoad) {
-                data.notifications.forEach(n => {
+                actualData.notifications.forEach(n => {
                     _seenIds.add(n.id); // Remember all existing notifications
                 });
                 _isFirstLoad = false;
             } else {
-                data.notifications.forEach(n => {
+                actualData.notifications.forEach(n => {
                     if (n.is_read == 0 && !_seenIds.has(n.id)) {
                         _showToast(n);
                         _seenIds.add(n.id);
                     }
                 });
             }
-            _updateUI(data);
+            _updateUI(actualData);
 
             // If we're on the full notification page, separately fetch ALL notifications
             // so items beyond the dropdown's 3-item limit also get their state updated.
@@ -133,8 +135,9 @@ window.fetchNotifications = function () {
 
                 pageFetchFn()
                     .then(allData => {
-                        if (allData && allData.notifications) {
-                            _updatePageUI(allData);
+                        const actualAllData = allData.data || allData;
+                        if (actualAllData && actualAllData.notifications) {
+                            _updatePageUI(actualAllData);
                         }
                     })
                     .catch(() => { }); // Silent fail — page items still work via init-scan
@@ -155,7 +158,8 @@ window.fetchNotificationCounts = function () {
         : () => fetch('/EventManagementSystem/public/notifications/counts').then(r => r.json());
 
     fetchFn()
-        .then(data => {
+        .then(res => {
+            const data = res.data || res;
             if (!data || data.error) return;
 
             // Update Stat Cards (Top row)
@@ -506,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (markAllBtn) {
-        markAllBtn.textContent = 'Mark all as unread';
+        markAllBtn.textContent = 'Mark all as read';
         markAllBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();

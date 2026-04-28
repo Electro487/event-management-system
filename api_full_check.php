@@ -79,7 +79,7 @@ function pathJoin(string $base, string $path): string
     return rtrim($base, '/') . $path;
 }
 
-$base = argValue($argv, '--base', 'http://localhost/EventManagementSystem/public/api.php');
+$base = argValue($argv, '--base', 'http://localhost/EventManagementSystem/public');
 $email = argValue($argv, '--email');
 $password = argValue($argv, '--password');
 $bookingId = argValue($argv, '--booking');

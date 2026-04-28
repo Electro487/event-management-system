@@ -35,6 +35,8 @@
         </div>
     <?php endif; ?>
 
+    <div id="api-status" style="display: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
+
     <form id="login-form" action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
         <div class="form-group">
             <div class="form-label-row">
@@ -65,36 +67,70 @@
 <script>
     (function() {
         const form = document.getElementById('login-form');
+        const submitBtn = form?.querySelector('.btn-submit');
+        const statusDiv = document.getElementById('api-status');
         if (!form || !window.emsApi) return;
 
+        function showStatus(msg, isError = true) {
+            if (!statusDiv) return;
+            statusDiv.textContent = msg;
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = isError ? '#f9ebeb' : '#e8f5e9';
+            statusDiv.style.color = isError ? '#d9534f' : '#2d5a27';
+        }
+
+        let isSyncing = false;
         form.addEventListener('submit', async function(e) {
+            if (isSyncing) return; // Allow standard form submit to proceed
             e.preventDefault();
 
             const email = document.getElementById('email')?.value?.trim() || '';
             const password = document.getElementById('password')?.value || '';
             if (!email || !password) return;
 
+            // UI Loading State
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Verifying...';
+            if (statusDiv) statusDiv.style.display = 'none';
+
+            console.log('%c[API Auth] Attempting Login...', 'color: #3498db; font-weight: bold;');
+
             try {
-                const res = await window.emsApi.apiFetch('/api.php/api/v1/auth/login'.replace('/api.php', ''), {
+                const res = await window.emsApi.apiFetch('/api/v1/auth/login', {
                     method: 'POST',
                     body: { email, password }
                 });
 
+                console.log('%c[API Auth] Login Success!', 'color: #27ae60; font-weight: bold;', res);
+
                 const token = res?.data?.token;
-                const role = res?.data?.user?.role;
                 if (!token) throw new Error('Login succeeded but no token returned.');
 
                 window.emsApi.setToken(token);
+                showStatus('API Authenticated. Establishing session...', false);
 
-                if (role === 'admin') window.location.href = '/EventManagementSystem/public/admin/dashboard';
-                else if (role === 'organizer') window.location.href = '/EventManagementSystem/public/organizer/dashboard';
-                else window.location.href = '/EventManagementSystem/public/client/home';
+                // We sync with the PHP session by submitting the form normally
+                isSyncing = true;
+                setTimeout(() => {
+                    form.submit();
+                }, 500);
+
             } catch (err) {
-                // Fall back to MVC submit if API login fails (migration safety)
-                try {
-                    window.emsApi.clearToken();
-                } catch {}
-                form.submit();
+                console.warn('%c[API Auth] Failed:', 'color: #e67e22; font-weight: bold;', err.message);
+                
+                // If it's a validation/auth error from API (4xx), show it instead of falling back immediately
+                if (err.status && err.status < 500) {
+                    showStatus(err.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                } else {
+                    // Critical error or server down: Fall back to MVC submit
+                    showStatus('API Unavailable. Falling back to standard login...');
+                    try { window.emsApi.clearToken(); } catch {}
+                    isSyncing = true;
+                    setTimeout(() => form.submit(), 1000);
+                }
             }
         });
     })();

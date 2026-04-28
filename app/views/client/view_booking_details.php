@@ -487,8 +487,7 @@ $steps = [
                             <form action="/EventManagementSystem/public/client/bookings/cancel" method="POST"
                                 style="margin:0;">
                                 <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
-                                <button type="submit" class="btn-danger"
-                                    onclick="return confirm('Are you sure you want to cancel this booking? This action cannot be undone.');">
+                                <button type="submit" class="btn-danger">
                                     <i class="fa-solid fa-xmark"></i> Cancel Reservation
                                 </button>
                             </form>

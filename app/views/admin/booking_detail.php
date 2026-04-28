@@ -304,11 +304,6 @@ $steps = [
                         <?php endif; ?>
 
                         <?php if(($status === 'pending' || $status === 'confirmed') && $pStat !== 'paid'): ?>
-                            <?php if($pStat === 'partially_paid'): ?>
-                                <div style="margin: 15px 0 10px; padding: 10px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; font-size: 11px; color: #9f1239; line-height: 1.4;">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> <b>Payment Detected:</b> This booking has a recorded payment. If you cancel, you must manually process any refunds via your payment provider.
-                                </div>
-                            <?php endif; ?>
                             <form action="/EventManagementSystem/public/admin/bookings/cancel" method="POST"
                                   onsubmit="return confirm('Are you sure you want to CANCEL this booking? This action cannot be undone.')">
                                 <input type="hidden" name="booking_id" value="<?php echo $id; ?>">

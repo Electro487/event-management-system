@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<?php /** @var array $bookings */ ?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -419,6 +420,31 @@
             applyFilters();
         });
     </script>
+    <script>
+        window.API_MODE_ADMIN = <?php echo defined('API_MODE_ADMIN') ? (int)API_MODE_ADMIN : 0; ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function () {
+            if (!window.API_MODE_ADMIN || !window.emsApi) return;
+
+            document.querySelectorAll('form[action*="/admin/bookings/approve"]').forEach((form) => {
+                form.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const id = form.querySelector('input[name="booking_id"]')?.value;
+                    if (!id) return;
+                    if (!confirm('Approve this booking?')) return;
+                    try {
+                        await window.emsApi.apiFetch(`/api/v1/bookings/${id}/approve`, { method: 'PATCH' });
+                        window.location.reload();
+                    } catch (err) {
+                        console.error('Admin approve via API failed, fallback to MVC.', err);
+                        form.submit();
+                    }
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
