@@ -94,6 +94,24 @@
     object-fit: cover;
 }
 
+/* Default Avatar Initials Styles */
+.default-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.default-avatar.staff,
+.default-avatar.client {
+    background: #246A55;
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
 .reply-content {
     flex: 1;
 }

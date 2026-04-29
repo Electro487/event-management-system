@@ -271,8 +271,18 @@
                                     <?php foreach ($fb['replies'] as $index => $reply): ?>
                                         <div class="reply-item <?php echo ($reply['user_role'] !== 'client') ? 'admin-reply' : ''; ?> <?php echo ($index >= 2) ? 'reply-hidden' : ''; ?>"
                                             data-index="<?php echo $index; ?>">
-                                            <img src="<?php echo $reply['profile_picture'] ?: '/EventManagementSystem/public/assets/images/default-avatar.png'; ?>"
-                                                class="reply-avatar">
+                                            <?php if (!empty($reply['profile_picture'])): ?>
+                                                <img src="<?php echo htmlspecialchars($reply['profile_picture']); ?>" class="reply-avatar">
+                                            <?php else: ?>
+                                                <div class="default-avatar <?php echo ($reply['user_role'] === 'client') ? 'client' : 'staff'; ?> reply-avatar"
+                                                    style="font-size: 12px;">
+                                                    <?php
+                                                    $nameParts = explode(' ', trim($reply['user_name']));
+                                                    $initials = strtoupper(substr($nameParts[0] ?? '', 0, 1) . (count($nameParts) > 1 ? substr(end($nameParts), 0, 1) : ''));
+                                                    echo htmlspecialchars($initials ?: '??');
+                                                    ?>
+                                                </div>
+                                            <?php endif; ?>
                                             <div class="reply-content">
                                                 <div class="reply-user-info">
                                                     <h5><?php echo htmlspecialchars($reply['user_name']); ?></h5>
