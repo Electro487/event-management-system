@@ -44,8 +44,33 @@
                 <input type="text" id="searchInput" placeholder="Search your events...">
             </div>
             <div class="header-icons">
+                <div class="header-actions">
+                    <div class="notifications-wrapper">
+                        <div class="notification-bell-btn" id="notification-bell">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                        </div>
+                        <!-- Notifications Dropdown -->
+                        <div class="notifications-dropdown" id="notifications-dropdown">
+                            <div class="nd-header">
+                                <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                                <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                            </div>
+                            <div class="nd-content" id="nd-list">
+                                <div class="nd-empty">
+                                    <i class="fa-regular fa-bell-slash"></i>
+                                    <p>No new notifications</p>
+                                </div>
+                            </div>
+                            <div class="nd-footer">
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
+
         </header>
 
         <!-- HERO -->
