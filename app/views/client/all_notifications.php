@@ -69,8 +69,31 @@ if (strlen($initials) > 2)
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
         </nav>
         <div class="nav-icons">
+            <div class="notifications-wrapper">
+                <div class="notification-bell-btn" id="notification-bell">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                </div>
+                <!-- Notifications Dropdown -->
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="nd-header">
+                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                        <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                    </div>
+                    <div class="nd-content" id="nd-list">
+                        <div class="nd-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <p>No new notifications</p>
+                        </div>
+                    </div>
+                    <div class="nd-footer">
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
             <!-- Profile Avatar & Hidden Dropdown -->
             <?php if (isset($_SESSION['user_id'])): ?>
+
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if (!empty($_SESSION['user_profile_pic'])): ?>
