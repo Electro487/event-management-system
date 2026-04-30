@@ -209,6 +209,9 @@ $displayName = $fullName;
                         </thead>
                         <tbody>
                             <?php foreach ($recentBookings as $bk):
+                                $eSnapList = !empty($bk['event_snapshot']) ? json_decode($bk['event_snapshot'], true) : null;
+                                $bListTitle = $eSnapList['title'] ?? ($bk['event_title'] ?? '–');
+
                                 $ds = $bk['display_status'];
                                 $badgeClass = match ($ds) {
                                     'confirmed'  => 'badge-confirmed',
@@ -219,7 +222,7 @@ $displayName = $fullName;
                                 };
                             ?>
                                 <tr>
-                                    <td class="col-event"><?php echo htmlspecialchars($bk['event_title'] ?? '–'); ?></td>
+                                    <td class="col-event"><?php echo htmlspecialchars($bListTitle); ?></td>
                                     <td class="col-package"><?php echo htmlspecialchars(ucfirst($bk['package_tier'] ?? '–')); ?></td>
                                     <td>
                                         <span class="stat-badge <?php echo $badgeClass; ?>">
@@ -247,14 +250,19 @@ $displayName = $fullName;
                 <div class="card-header">Next Event</div>
                 <?php if ($nextEvent): ?>
                     <?php
-                    $evImg = !empty($nextEvent['event_image'])
-                        ? htmlspecialchars($nextEvent['event_image'])
-                        : '/EventManagementSystem/public/assets/images/placeholder.png';
-                    $evCat   = htmlspecialchars($nextEvent['event_category'] ?? 'Event');
-                    $evTitle = htmlspecialchars($nextEvent['event_title'] ?? 'Upcoming Event');
+                    $nSnap = !empty($nextEvent['event_snapshot']) ? json_decode($nextEvent['event_snapshot'], true) : null;
+                    
+                    $evImg = !empty($nSnap['image_path']) 
+                        ? htmlspecialchars($nSnap['image_path']) 
+                        : (!empty($nextEvent['event_image']) ? htmlspecialchars($nextEvent['event_image']) : '/EventManagementSystem/public/assets/images/placeholder.png');
+                    
+                    $evCat   = htmlspecialchars($nSnap['category'] ?? ($nextEvent['event_category'] ?? 'Event'));
+                    $evTitle = htmlspecialchars($nSnap['title'] ?? ($nextEvent['event_title'] ?? 'Upcoming Event'));
+                    
                     $evDate  = $nextEvent['event_date'] ?: ($nextEvent['event_start_date'] ?? '');
                     $evDateFormatted = $evDate ? date('M j, Y', strtotime($evDate)) : '';
-                    $evLocation = htmlspecialchars($nextEvent['venue_location'] ?? '');
+                    
+                    $evLocation = htmlspecialchars($nSnap['venue_location'] ?? ($nextEvent['venue_location'] ?? ''));
                     $bookingId  = $nextEvent['id'] ?? null;
                     ?>
                     <div class="next-event-img-wrap">

@@ -139,10 +139,14 @@ function applyFilters(searchQ = null) {
     const dtFilter = document.getElementById('dateFilter')?.value || '';
 
     filteredBookings = allBookings.filter(b => {
+        const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+        const eTitle = eSnap?.title || b.event_title || '';
+        const eCat = eSnap?.category || b.event_category || '';
+
         const client = (b.full_name || b.client_user_name || '').toLowerCase();
-        const event = (b.event_title || '').toLowerCase();
+        const event = (eTitle).toLowerCase();
         const organizer = (b.organizer_name || '').toLowerCase();
-        const category = (b.event_category || '').toLowerCase();
+        const category = (eCat).toLowerCase();
         const pkg = (b.package_tier || '').toLowerCase();
         const status = (b.display_status || b.status || '').toLowerCase();
         const bDate = (b.event_date || b.event_start_date || '').split(' ')[0];
@@ -182,6 +186,9 @@ function renderTable() {
     const pageItems = filteredBookings.slice(start, end);
 
     tbody.innerHTML = pageItems.map(b => {
+        const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+        const dispTitle = eSnap?.title || b.event_title || 'Untitled Event';
+
         const clientName = b.full_name || b.client_user_name || 'User';
         const initials = clientName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         const pkgClass = (b.package_tier || 'basic').toLowerCase();
@@ -204,7 +211,7 @@ function renderTable() {
                     </div>
                 </td>
                 <td>
-                    <div class="event-title-cell">${b.event_title || 'Untitled Event'}</div>
+                    <div class="event-title-cell">${dispTitle}</div>
                     <span class="organizer-info"><i class="fas fa-user-tie"></i> ${b.organizer_name || 'System'}</span>
                 </td>
                 <td>

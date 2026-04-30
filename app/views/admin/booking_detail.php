@@ -13,7 +13,7 @@ $id = $_GET['id'] ?? 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking #BK-<?php echo str_pad($id, 3, '0', STR_PAD_LEFT); ?> | Organizer</title>
+    <title>Booking #BK-<?php echo str_pad($id, 3, '0', STR_PAD_LEFT); ?> | Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
@@ -38,7 +38,7 @@ $id = $_GET['id'] ?? 0;
                         class="bc-link current">Booking Detail</a>
                 </div>
                 <div class="title-section">
-                    <h1>Booking #BK-<span id="booking-id-pad">...</span> <span class="badge-status"
+                    <h1>Booking <span id="booking-id-pad">...</span> <span class="badge-status"
                             id="booking-status-badge">...</span></h1>
                     <p class="sub-title"><span id="event-title-display">...</span> - <span
                             id="package-tier-display">...</span> Package</p>

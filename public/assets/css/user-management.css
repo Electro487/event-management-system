@@ -88,10 +88,14 @@
 .user-table tbody tr {
     border-bottom: 1px solid #f3f4f6;
     transition: background-color 0.15s;
+    position: relative;
+    z-index: 1;
 }
 
-.user-table tbody tr:hover {
+.user-table tbody tr:hover,
+.user-table tbody tr.dropdown-open-row {
     background-color: #f9fafb;
+    z-index: 50;
 }
 
 .user-table tbody td {

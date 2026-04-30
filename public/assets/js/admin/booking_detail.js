@@ -22,14 +22,17 @@ async function loadBookingDetail() {
 
 function populateUI(booking) {
     const status = (booking.display_status || booking.status || 'pending').toLowerCase();
+    const eSnap = booking.event_snapshot ? JSON.parse(booking.event_snapshot) : null;
+    const dispTitle = eSnap?.title || booking.event_title || 'Untitled Event';
+    const dispCategory = eSnap?.category || booking.event_category || 'Event';
     
     // Header
-    document.getElementById('booking-id-pad').innerText = booking.id.toString().padStart(3, '0');
+    document.getElementById('booking-id-pad').innerText = '#BK-' + booking.id.toString().padStart(3, '0');
     const statusBadge = document.getElementById('booking-status-badge');
     statusBadge.innerText = status.toUpperCase();
     statusBadge.className = `badge-status ${status}`;
 
-    document.getElementById('event-title-display').innerText = booking.event_title;
+    document.getElementById('event-title-display').innerText = dispTitle;
     document.getElementById('package-tier-display').innerText = (booking.package_tier || 'Basic').charAt(0).toUpperCase() + (booking.package_tier || 'basic').slice(1).toLowerCase();
 
     // Client
@@ -51,18 +54,18 @@ function populateUI(booking) {
 
     // Event Hero Image
     const heroImg = document.getElementById('event-hero-img');
-    if (heroImg) heroImg.src = booking.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+    if (heroImg) heroImg.src = eSnap?.image_path || booking.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
     
-    document.getElementById('event-category-display').innerText = booking.event_category || 'Event';
-    document.getElementById('event-hero-title-display').innerText = booking.event_title || 'Untitled Event';
+    document.getElementById('event-category-display').innerText = dispCategory;
+    document.getElementById('event-hero-title-display').innerText = dispTitle;
     document.getElementById('event-desc-display').innerText = booking.event_description || 'Curating timeless moments for your once-in-a-lifetime celebration with architectural precision.';
 
     // Quick Stats
     const eventDate = new Date(booking.event_date || booking.event_start_date);
     document.getElementById('event-date-display').innerText = eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     document.getElementById('guest-count-display').innerText = `${booking.guest_count || 0} Persons`;
-    document.getElementById('venue-name-display').innerText = booking.venue_name || 'Royal Palace';
-    document.getElementById('venue-location-display').innerText = booking.venue_location || 'Bhaktapur';
+    document.getElementById('venue-name-display').innerText = eSnap?.venue_name || booking.venue_name || 'Royal Palace';
+    document.getElementById('venue-location-display').innerText = eSnap?.venue_location || booking.venue_location || 'Bhaktapur';
 
     // Package
     document.getElementById('pkg-tier-name').innerText = `${(booking.package_tier || 'Basic').charAt(0).toUpperCase() + (booking.package_tier || 'basic').slice(1).toLowerCase()} Package`;
@@ -87,11 +90,19 @@ function renderFeatures(booking) {
     let description = "Most popular for event planning";
 
     try {
-        const allPackages = JSON.parse(booking.event_packages || '[]');
-        const tier = (booking.package_tier || 'basic').toLowerCase();
-        if (allPackages[tier]) {
-            features = (allPackages[tier].items || []).map(i => i.title);
-            description = allPackages[tier].description || description;
+        let packageData = null;
+        if (booking.package_snapshot) {
+            packageData = JSON.parse(booking.package_snapshot || '{}');
+            features = (packageData.items || []).map(i => i.title);
+            description = packageData.description || description;
+        } else {
+            // Fallback for legacy bookings
+            const allPackages = JSON.parse(booking.event_packages || '{}');
+            const tier = (booking.package_tier || 'basic').toLowerCase();
+            if (allPackages[tier]) {
+                features = (allPackages[tier].items || []).map(i => i.title);
+                description = allPackages[tier].description || description;
+            }
         }
     } catch (e) {
         console.error('Error parsing packages:', e);

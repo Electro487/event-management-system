@@ -226,9 +226,13 @@
                 let confirmedCount = 0, pendingCount = 0, cancelledCount = 0, completedCount = 0;
 
                 filteredBookings = (Array.isArray(allBookings) ? allBookings : []).filter(b => {
+                    const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                    const eTitle = eSnap?.title || b.event_title || '';
+                    const eCat = eSnap?.category || b.event_category || '';
+
                     const clientName = (b.full_name || b.client_user_name || '').toLowerCase();
-                    const eventTitle = (b.event_title || '').toLowerCase();
-                    const category = (b.event_category || '').toLowerCase().trim();
+                    const eventTitle = (eTitle).toLowerCase();
+                    const category = (eCat).toLowerCase().trim();
                     const pkg = (b.package_tier || '').toLowerCase().trim();
                     const dateStr = (b.event_date || b.event_start_date || '').split(' ')[0];
                     

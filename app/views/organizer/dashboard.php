@@ -240,6 +240,9 @@
                             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No recent bookings.</td></tr>`;
                         } else {
                             tbody.innerHTML = recent.map(b => {
+                                const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                                const dispTitle = eSnap?.title || b.event_name || b.event_title || '';
+
                                 const statusDisp = b.display_status || b.status || 'pending';
                                 const dateStr = b.event_date ? new Date(b.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
                                 
@@ -257,7 +260,7 @@
                                     </td>
                                     <td style="font-weight:500;">
                                         <a href="/EventManagementSystem/public/organizer/events/view?id=${b.event_id}" style="color:var(--text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#246A55'" onmouseout="this.style.color='var(--text-main)'">
-                                            ${b.event_name || ''}
+                                            ${dispTitle}
                                         </a>
                                     </td>
                                     <td>${b.package_name || ''}</td>

@@ -415,16 +415,21 @@ $searchQuery = $_GET['search'] ?? '';
                             <div class="b-item" data-status="<?php echo $dispStatus; ?>" data-upcoming="<?php echo $isUpcoming; ?>"
                                 data-index="<?php echo $index; ?>" onclick="selectBooking(<?php echo $index; ?>, this)">
 
-                                <?php $image = !empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>
+                                <?php 
+                                $eSnapList = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
+                                $bListTitle = $eSnapList['title'] ?? $booking['event_title'];
+                                $bListCat = $eSnapList['category'] ?? ($booking['event_category'] ?: 'Event');
+                                $image = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'); 
+                                ?>
                                 <img src="<?php echo htmlspecialchars($image); ?>" alt="Event Cover" class="b-img">
 
                                 <div class="b-content">
                                     <div>
                                         <div class="b-top">
                                             <div class="b-title-wrap">
-                                                <h3 class="b-title"><?php echo htmlspecialchars($booking['event_title']); ?></h3>
+                                                <h3 class="b-title"><?php echo htmlspecialchars($bListTitle); ?></h3>
                                                 <span class="b-cat-badge"
-                                                    style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($booking['event_category'] ?: 'Event'); ?></span>
+                                                    style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($bListCat); ?></span>
                                             </div>
                                             <span class="b-status-badge status-<?php echo htmlspecialchars($dispStatus); ?>">
                                                 <?php echo strtoupper($dispStatus); ?>
@@ -591,22 +596,30 @@ $searchQuery = $_GET['search'] ?? '';
             const data = bookingsData[index];
             if (!data) return;
 
+            // Snapshots
+            const eSnap = data.event_snapshot ? JSON.parse(data.event_snapshot) : null;
+            const pSnap = data.package_snapshot ? JSON.parse(data.package_snapshot) : null;
+
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
-            document.getElementById('sb-img').src = data.event_image ? data.event_image : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            
+            let imgUrl = eSnap?.image_path || data.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            document.getElementById('sb-img').src = imgUrl;
 
             const dispStatus = data.display_status || data.status;
             const statusEl = document.getElementById('sb-status');
             statusEl.innerText = dispStatus.toUpperCase();
             statusEl.className = 'b-status-badge status-' + dispStatus;
 
-            document.getElementById('sb-event-title').innerText = data.event_title;
+            document.getElementById('sb-event-title').innerText = eSnap?.title || data.event_title;
             document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, {
                 minimumFractionDigits: 2
             });
 
             let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + ' Package';
             let pDesc = 'Includes selected access & features.';
-            if (data.packages_data && data.packages_data[data.package_tier] && data.packages_data[data.package_tier].description) {
+            if (pSnap) {
+                pDesc = pSnap.description || pDesc;
+            } else if (data.packages_data && data.packages_data[data.package_tier] && data.packages_data[data.package_tier].description) {
                 pDesc = data.packages_data[data.package_tier].description;
             }
 
@@ -614,10 +627,10 @@ $searchQuery = $_GET['search'] ?? '';
             document.getElementById('sb-pkg-desc').innerText = pDesc;
             document.getElementById('sb-org-name').innerText = data.organizer_name || 'Event Organizer';
 
-            let locName = data.venue_name || 'Convention Center';
-            let locAddr = data.venue_location || 'Address TBD';
-            if (!data.venue_name && data.venue_location) {
-                locName = data.venue_location;
+            let locName = eSnap?.venue_name || data.venue_name || 'Convention Center';
+            let locAddr = eSnap?.venue_location || data.venue_location || 'Address TBD';
+            if (!locName && locAddr) {
+                locName = locAddr;
                 locAddr = "Local Venue";
             }
             document.getElementById('sb-loc-name').innerText = locName;

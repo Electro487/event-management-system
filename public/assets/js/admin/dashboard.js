@@ -59,6 +59,9 @@ function renderRecentBookings(bookings) {
     }
 
     tbody.innerHTML = bookings.map(b => {
+        const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+        const dispTitle = eSnap?.title || b.event_title || 'Event';
+
         const clientName = b.client_name || 'User';
         const initials = clientName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         
@@ -76,7 +79,7 @@ function renderRecentBookings(bookings) {
                         <span style="font-weight: 500; font-size: 13.5px; color: var(--text-main);">${clientName}</span>
                     </div>
                 </td>
-                <td style="color:var(--text-main); font-weight:500;">${b.event_title || 'Event'}</td>
+                <td style="color:var(--text-main); font-weight:500;">${dispTitle}</td>
                 <td><span class="admin-badge">${b.organizer_name || 'System'}</span></td>
                 <td>
                     <span class="badge ${status}">
