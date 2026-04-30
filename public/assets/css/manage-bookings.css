@@ -1,0 +1,917 @@
+/* 
+ * Manage Bookings specific styles
+ * Matches the e-Plan Organizer Bookings Dashboard UI
+ */
+
+/* Content Header Refinements */
+.main-content {
+    background: #f8fafb !important;
+}
+
+.b-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: none !important;
+    padding: 10px 0 30px 0 !important;
+    margin-bottom: 0px;
+}
+
+.b-header-left h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0b3d2e;
+    margin: 0 0 2px 0;
+    letter-spacing: -0.5px;
+}
+
+.b-header-left p {
+    font-size: 14px;
+    color: #8a94a6;
+    margin: 0;
+    font-weight: 500;
+}
+
+.b-header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* Search Bar Top (Pill Shape) */
+.search-wrap {
+    display: flex;
+    align-items: center;
+    background: #eff2f5;
+    border-radius: 50px;
+    padding: 10px 20px;
+    gap: 12px;
+}
+
+.search-wrap i {
+    color: #8e9ba5;
+    font-size: 16px;
+}
+
+.search-wrap input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    width: 220px;
+}
+
+.top-search {
+    width: 320px;
+}
+
+/* User Profile Header */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #8e9ba5;
+    font-size: 20px;
+    cursor: pointer;
+    position: relative;
+    padding: 4px;
+}
+
+.icon-btn i {
+    color: #5c6c7b;
+}
+
+.icon-btn i.fa-bell {
+    color: #1f6f59 !important;
+    transition: color 0.2s ease;
+}
+
+.fa-bell:hover {
+    color: #FFC24A !important;
+}
+
+.user-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: 8px;
+    padding-left: 20px;
+    border-left: 1.5px solid #eff2f5;
+}
+
+.up-text {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.up-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.up-role {
+    font-size: 10px;
+    color: #5c6c7b;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    margin-top: 1px;
+}
+
+.user-avatar-small {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: visible;
+    background: transparent;
+}
+
+.user-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.stat-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #8a94a6;
+    margin: 0;
+}
+
+.stat-number {
+    font-size: 40px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.stat-number.dark {
+    color: #111827;
+}
+
+.stat-number.green {
+    color: #0b3d2e;
+}
+
+.stat-number.orange {
+    color: #FFC24A;
+}
+
+.stat-number.red {
+    color: #dc2626;
+}
+
+/* Filters Row */
+.filters-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    align-items: center;
+}
+
+.bottom-search {
+    flex: 1;
+    max-width: 320px;
+    background: #eff2f5;
+    height: 48px;
+    border-radius: 12px;
+}
+
+/* Custom Components - Now globally in organizer-layout.css */
+
+/* Status Tabs (Pill Shapes) */
+.status-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    margin-top: 5px;
+}
+
+.status-tab {
+    padding: 10px 24px;
+    border-radius: 50px;
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    color: #8a94a6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.status-tab:hover {
+    background: #eff2f5;
+    color: #111827;
+}
+
+.status-tab.active {
+    background: #0b3d2e;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(11, 61, 46, 0.2);
+}
+
+.status-tab .badge {
+    background: #eff2f5;
+    color: #8a94a6;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.status-tab.active .badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* Bookings Table */
+.bookings-list-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bookings-table th {
+    text-align: left;
+    padding: 20px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #8e9ba5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1.5px solid #f8fafb;
+    background: #ffffff;
+}
+
+.bookings-table td {
+    padding: 16px 8px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+/* Row Content Styling */
+.client-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.client-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.basic-av {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.standard-av {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.premium-av {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.client-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.event-title-cell {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.4;
+    max-width: 180px;
+    white-space: wrap;
+}
+
+.pkg-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.pkg-badge.premium {
+    background: #a7f3d0;
+    color: #047857;
+}
+
+.pkg-badge.standard {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.pkg-badge.basic {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.date-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-cell .m-d {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.date-cell .year {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.amount-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.amount-cell .curr {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.amount-cell .val {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.status-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot.confirmed {
+    background: #0b3d2e;
+}
+
+.dot.pending {
+    background: #FFC24A;
+}
+
+.dot.cancelled {
+    background: #dc2626;
+}
+
+.dot.completed {
+    background: #1e1b4b;
+}
+
+.st-text {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.st-text.confirmed {
+    color: #0b3d2e;
+}
+
+.st-text.pending {
+    color: #FFC24A;
+}
+
+.st-text.cancelled {
+    color: #dc2626;
+}
+
+.st-text.completed {
+    color: #1e1b4b;
+}
+
+/* Actions */
+.action-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0;
+}
+
+.btn-approve {
+    background: #0b3d2e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin-right: 80px;
+}
+
+.btn-approve:hover {
+    background: #eab308;
+    color: #111827;
+    transform: translateY(-1px);
+}
+
+.btn-view {
+    color: #0b3d2e;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 6px 0;
+    transition: all 0.3s ease;
+}
+
+.btn-view.secondary {
+    color: #8e9ba5;
+}
+
+.btn-view:hover,
+.btn-view.secondary:hover {
+    color: #eab308;
+}
+
+.btn-review {
+    color: #8e9ba5;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 6px 0;
+    transition: all 0.3s ease;
+}
+
+.btn-review:hover {
+    color: #fcd34d;
+    /* Lighter yellow */
+}
+
+
+/* Pagination Details - Now globally in organizer-layout.css */
+.pagination-row {
+    background: #f9fafb;
+}
+
+@media (max-width: 1024px) {
+    .b-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 10px 0 20px 0 !important;
+    }
+
+    .b-header-left h1 {
+        font-size: 24px;
+    }
+
+    .b-header-right {
+        width: 100%;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .top-search {
+        width: 240px;
+    }
+
+    .search-wrap input {
+        width: 180px;
+    }
+
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .stat-box {
+        padding: 20px;
+        gap: 10px;
+    }
+
+    .stat-number {
+        font-size: 32px;
+    }
+
+    .filters-row {
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .bottom-search {
+        max-width: 240px;
+    }
+
+    .custom-premium-dropdown {
+        width: 180px;
+    }
+
+    .custom-date {
+        width: 180px;
+    }
+
+    .status-tabs {
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+
+    .status-tab {
+        padding: 8px 18px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .bookings-table th {
+        padding: 16px 6px;
+        font-size: 11px;
+    }
+
+    .bookings-table td {
+        padding: 12px 6px;
+        font-size: 13px;
+    }
+
+    .event-title-cell {
+        max-width: 150px;
+        font-size: 13px;
+    }
+
+    .btn-approve {
+        margin-right: 60px;
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .b-header-left h1 {
+        font-size: 22px;
+    }
+
+    .b-header-right {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .header-actions {
+        gap: 12px;
+    }
+
+    .user-profile-info {
+        gap: 12px;
+        padding-left: 12px;
+        border-left: 1px solid #eff2f5;
+    }
+
+    .up-name {
+        font-size: 14px;
+    }
+
+    .top-search {
+        width: 200px;
+    }
+
+    .search-wrap {
+        padding: 8px 14px;
+        gap: 10px;
+    }
+
+    .search-wrap input {
+        width: 140px;
+        font-size: 13px;
+    }
+
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-box {
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .stat-title {
+        font-size: 13px;
+    }
+
+    .stat-number {
+        font-size: 28px;
+    }
+
+    .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .bottom-search {
+        width: 100%;
+        max-width: none;
+    }
+
+    .custom-premium-dropdown,
+    .custom-date {
+        width: 100%;
+    }
+
+    .status-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .status-tab {
+        padding: 7px 16px;
+        font-size: 12px;
+    }
+
+    .bookings-table th,
+    .bookings-table td {
+        padding: 10px 5px;
+        font-size: 12px;
+    }
+
+    .bookings-table th:nth-child(5),
+    .bookings-table td:nth-child(5) {
+        display: none;
+    }
+
+    .client-cell {
+        gap: 8px;
+    }
+
+    .client-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+
+    .client-name {
+        font-size: 13px;
+    }
+
+    .event-title-cell {
+        max-width: 120px;
+        font-size: 12px;
+    }
+
+    .amount-cell .val {
+        font-size: 14px;
+    }
+
+    .btn-approve {
+        margin-right: 40px;
+        padding: 7px 14px;
+        font-size: 11px;
+    }
+
+    .btn-view,
+    .btn-review {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 520px) {
+    .b-header-left h1 {
+        font-size: 20px;
+    }
+
+    .b-header-right {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .user-profile-info {
+        order: -1;
+        border-left: none;
+        padding: 0;
+        gap: 10px;
+    }
+
+    .up-text {
+        display: none;
+    }
+
+    .top-search {
+        width: 100%;
+    }
+
+    .search-wrap {
+        width: 100%;
+    }
+
+    .search-wrap input {
+        width: 100%;
+    }
+
+    .stats-row {
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .stat-box {
+        padding: 12px;
+        gap: 6px;
+    }
+
+    .stat-title {
+        font-size: 11px;
+    }
+
+    .stat-number {
+        font-size: 24px;
+    }
+
+    .filters-row {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .bottom-search {
+        height: 40px;
+    }
+
+    .custom-premium-dropdown,
+    .custom-date {
+        height: 40px;
+        padding: 0 12px;
+    }
+
+    .dropdown-trigger {
+        padding: 0 12px;
+        font-size: 12px;
+    }
+
+    .custom-date input {
+        font-size: 12px;
+    }
+
+    .status-tabs {
+        gap: 6px;
+    }
+
+    .status-tab {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .status-tab .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .bookings-list-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .bookings-table {
+        min-width: 100%;
+    }
+
+    .bookings-table th,
+    .bookings-table td {
+        padding: 8px 4px;
+        font-size: 11px;
+    }
+
+    .bookings-table th:nth-child(3),
+    .bookings-table td:nth-child(3),
+    .bookings-table th:nth-child(4),
+    .bookings-table td:nth-child(4),
+    .bookings-table th:nth-child(5),
+    .bookings-table td:nth-child(5) {
+        display: none;
+    }
+
+    .client-cell {
+        gap: 6px;
+    }
+
+    .client-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+
+    .client-name {
+        font-size: 12px;
+    }
+
+    .event-title-cell {
+        max-width: 100px;
+        font-size: 11px;
+    }
+
+    .pkg-badge {
+        font-size: 9px;
+        padding: 3px 8px;
+    }
+
+    .amount-cell .curr {
+        font-size: 10px;
+    }
+
+    .amount-cell .val {
+        font-size: 12px;
+    }
+
+    .st-text {
+        font-size: 11px;
+    }
+
+    .btn-approve {
+        margin-right: 0;
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+
+    .btn-view,
+    .btn-review {
+        font-size: 11px;
+    }
+
+    .pagination-row {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .showing-text {
+        font-size: 12px;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .p-btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}

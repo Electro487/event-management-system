@@ -1,0 +1,358 @@
+/* Notifications Dropdown Container */
+.notifications-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-bell-btn {
+    cursor: pointer;
+    position: relative;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    color: #1f6f59;
+    
+    font-size: 1.2rem;
+    box-shadow: none !important;
+}
+
+.notification-bell-btn:hover {
+    background: transparent;
+    color: #FFC24A;
+    box-shadow: none !important;
+}
+
+.unread-badge {
+    position: absolute;
+    top: 4px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* border: 2px solid #fff; */
+}
+
+/* Dropdown Menu */
+.notifications-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 360px;
+    max-height: 500px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.notifications-dropdown.show {
+    display: flex;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.nd-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.nd-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nd-unread-tag {
+    background: #1f6f59;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+
+.nd-mark-all {
+    font-size: 13px;
+    color: #1f6f59;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.nd-mark-all:hover {
+    text-decoration: underline;
+}
+
+/* Content Area */
+.nd-content {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.nd-item {
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid #f8fafc;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nd-item:hover {
+    background: #f8fafc;
+}
+
+.nd-item.unread {
+    background: #f0fdf9;
+}
+
+.nd-dot {
+    width: 8px;
+    height: 8px;
+    background: #1f6f59;
+    border-radius: 50%;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.nd-body {
+    flex: 1;
+}
+
+.nd-title {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.nd-message {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nd-time {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Footer */
+.nd-footer {
+    padding: 14px;
+    text-align: center;
+    border-top: 1px solid #f1f5f9;
+}
+
+.nd-view-all {
+    color: #1f6f59;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.nd-view-all:hover {
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+/* Empty State */
+.nd-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.nd-empty i {
+    font-size: 40px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Toast Notification Styles */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 380px;
+    max-width: 90vw;
+    pointer-events: none;
+    /* Allow clicks to pass through empty container */
+}
+
+.notif-toast {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-left: 5px solid #1f6f59;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+    /* Re-enable clicks for individual toasts */
+    cursor: pointer;
+    animation: toastSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.notif-toast:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+}
+
+.notif-toast.hide {
+    animation: toastSlideOut 0.4s forwards;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    background: rgba(31, 111, 89, 0.1);
+    color: #1f6f59;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.toast-body {
+    flex-grow: 1;
+}
+
+.toast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.toast-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.toast-close {
+    color: #94a3b8;
+    font-size: 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #e74c3c;
+}
+
+.toast-msg {
+    margin: 0;
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* Progress bar for auto-dismiss */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: #1f6f59;
+    width: 100%;
+}
+
+.notif-toast.showing .toast-progress {
+    animation: toastProgress 8s linear forwards;
+}
+
+@keyframes toastProgress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}

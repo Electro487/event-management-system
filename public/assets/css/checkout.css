@@ -1,0 +1,229 @@
+body {
+    background-color: #f7fafc;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    color: #1a202c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.checkout-wrapper {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin: 20px;
+}
+
+/* Left Side - Summary */
+.order-summary {
+    background: #fdfdfd;
+    width: 40%;
+    padding: 40px;
+    border-right: 1px solid #e2e8f0;
+}
+
+.order-summary h2 {
+    font-size: 16px;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.summary-amount {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 30px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.summary-item .label {
+    color: #4a5568;
+}
+
+.summary-item .value {
+    font-weight: 500;
+    color: #2d3748;
+    text-align: right;
+    max-width: 60%;
+}
+
+.divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 20px 0;
+}
+
+/* Right Side - Payment Form */
+.payment-section {
+    width: 60%;
+    padding: 40px;
+    position: relative;
+}
+
+.payment-section h1 {
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.payment-section p.subtitle {
+    color: #718096;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+/* Stripe-like Input Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #2d3748;
+}
+
+.input-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.input-container:focus-within {
+    border-color: #3182ce;
+    box-shadow: 0 0 0 1px #3182ce;
+}
+
+.input-container i {
+    color: #a0aec0;
+    margin-right: 10px;
+}
+
+.stripe-input {
+    width: 100%;
+    border: none;
+    padding: 12px 0;
+    font-size: 16px;
+    font-family: inherit;
+    color: #2d3748;
+    outline: none;
+    background: transparent;
+}
+
+.stripe-input::placeholder {
+    color: #cbd5e0;
+}
+
+.row {
+    display: flex;
+    gap: 15px;
+}
+
+.col {
+    flex: 1;
+}
+
+/* Validation Feedback */
+.stripe-input.invalid {
+    color: #e53e3e;
+}
+.input-container.invalid {
+    border-color: #e53e3e;
+    box-shadow: none;
+}
+.error-msg {
+    color: #e53e3e;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+}
+
+/* Button */
+.btn-pay {
+    width: 100%;
+    background: #246A55; /* Project Brand */
+    color: #ffffff;
+    border: none;
+    padding: 16px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-pay:hover {
+    background: #1a4d3e;
+}
+
+.btn-pay:disabled {
+    background: #718096;
+    cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.btn-pay.loading .btn-text {
+    visibility: hidden;
+}
+
+.btn-pay.loading .spinner {
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .checkout-wrapper {
+        flex-direction: column;
+    }
+    .order-summary, .payment-section {
+        width: 100%;
+        padding: 30px;
+    }
+    .order-summary {
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+}
