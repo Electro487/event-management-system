@@ -399,17 +399,20 @@ $displayName = $fullName;
             if (!input.files || !input.files[0]) return;
             const fd = new FormData();
             fd.append('profile_picture', input.files[0]);
-            fetch('/EventManagementSystem/public/client/profile/update', {
+
+            if (window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                     method: 'POST',
                     body: fd
                 })
-                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
+                        const path = data.data?.path || data.path;
                         document.getElementById('profile-icon').innerHTML =
-                            '<img src="' + data.path + '" style="width:100%;height:100%;object-fit:cover;" id="header-avatar">';
+                            '<img src="' + path + '" style="width:100%;height:100%;object-fit:cover;" id="header-avatar">';
                         document.querySelector('.pd-avatar').innerHTML =
-                            '<img src="' + data.path + '" style="width:100%;height:100%;object-fit:cover;">';
+                            '<img src="' + path + '" style="width:100%;height:100%;object-fit:cover;">';
+                        
                         if (!document.querySelector('.pd-delete-icon')) {
                             const ac = document.querySelector('.pd-avatar-container');
                             const db = document.createElement('div');
@@ -422,15 +425,28 @@ $displayName = $fullName;
                     } else {
                         alert(data.message || 'Upload failed.');
                     }
+                }).catch(err => alert('An error occurred during upload: ' + err.message));
+            } else {
+                // Fallback for unexpected absence of emsApi
+                fetch('/EventManagementSystem/public/client/profile/update', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) location.reload();
+                    else alert(data.message || 'Upload failed.');
                 }).catch(() => alert('An error occurred during upload.'));
+            }
         }
 
         function deleteProfilePicture() {
             if (!confirm('Remove your profile picture?')) return;
-            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                    method: 'POST'
+            
+            if (window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                    method: 'DELETE'
                 })
-                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         const initials = '<?php echo addslashes(htmlspecialchars($initials)); ?>';
@@ -441,14 +457,23 @@ $displayName = $fullName;
                     } else {
                         alert('Error removing image.');
                     }
-                }).catch(() => alert('An error occurred.'));
+                }).catch(err => alert('An error occurred: ' + err.message));
+            } else {
+                fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                        method: 'POST'
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else alert('Error removing image.');
+                    }).catch(() => alert('An error occurred.'));
+            }
         }
     </script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
     <script>
-        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
         (function () {
-            if (!window.API_MODE_CLIENT || !window.emsApi) return;
+            if (!window.emsApi) return;
 
             console.log('%c[API Dashboard] Fetching client stats...', 'color: #3498db;');
 

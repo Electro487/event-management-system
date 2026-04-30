@@ -14,12 +14,6 @@ if (file_exists($envFile)) {
     $env = parse_ini_file($envFile);
 }
 
-// API Migration Flags
-// 0 = keep MVC behavior, 1 = switch client-side calls to API
-define('API_MODE_CLIENT', (int)($env['API_MODE_CLIENT'] ?? 0));
-define('API_MODE_ORGANIZER', (int)($env['API_MODE_ORGANIZER'] ?? 0));
-define('API_MODE_ADMIN', (int)($env['API_MODE_ADMIN'] ?? 0));
-
 // Stripe Configuration
 define('STRIPE_PUBLISHABLE_KEY', $env['STRIPE_PUBLISHABLE_KEY'] ?? 'pk_test_placeholder');
 define('STRIPE_SECRET_KEY', $env['STRIPE_SECRET_KEY'] ?? 'sk_test_placeholder');

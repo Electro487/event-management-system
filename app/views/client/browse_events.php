@@ -143,20 +143,21 @@ $searchQuery = $_GET['search'] ?? '';
                             const formData = new FormData();
                             formData.append('profile_picture', input.files[0]);
 
-                            fetch('/EventManagementSystem/public/client/profile/update', {
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                                     method: 'POST',
                                     body: formData
                                 })
-                                .then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
+                                        const path = data.data?.path || data.path;
                                         // Update header avatar
                                         let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                        headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
 
                                         // Update dropdown avatar
                                         let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                                        dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
 
                                         // Add delete icon if not exists
                                         if (!document.querySelector('.pd-delete-icon')) {
@@ -173,31 +174,37 @@ $searchQuery = $_GET['search'] ?? '';
                                     }
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('An error occurred during upload.');
+                                    console.error('API Error:', error);
+                                    alert('An error occurred during upload: ' + error.message);
                                 });
+                            } else {
+                                fetch('/EventManagementSystem/public/client/profile/update', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) location.reload();
+                                        else alert(data.message || 'Error uploading image.');
+                                    })
+                                    .catch(error => alert('An error occurred.'));
+                            }
                         }
                     }
 
                     function deleteProfilePicture() {
                         if (confirm('Are you sure you want to remove your profile picture?')) {
-                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                                    method: 'POST'
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                    method: 'DELETE'
                                 })
-                                .then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
                                         const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-
-                                        // Update header avatar
                                         let headerIcon = document.getElementById('profile-icon');
                                         headerIcon.innerHTML = initialsElement;
-
-                                        // Update dropdown avatar
                                         let dropdownAvatar = document.querySelector('.pd-avatar');
                                         dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-
-                                        // Remove delete icon if exists
                                         let deleteIcon = document.querySelector('.pd-delete-icon');
                                         if (deleteIcon) deleteIcon.remove();
                                     } else {
@@ -205,9 +212,20 @@ $searchQuery = $_GET['search'] ?? '';
                                     }
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('An error occurred.');
+                                    console.error('API Error:', error);
+                                    alert('An error occurred: ' + error.message);
                                 });
+                            } else {
+                                fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                        method: 'POST'
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) location.reload();
+                                        else alert('Error removing image.');
+                                    })
+                                    .catch(error => alert('An error occurred.'));
+                            }
                         }
                     }
                 </script>
@@ -798,9 +816,6 @@ $searchQuery = $_GET['search'] ?? '';
     </footer>
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
-    <script>
-        window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
-    </script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 
     <script src="/EventManagementSystem/public/assets/js/client/browse_events.js?v=<?php echo time(); ?>"></script>
