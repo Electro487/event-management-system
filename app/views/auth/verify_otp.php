@@ -29,6 +29,8 @@
             unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
+        <div id="api-status" style="display: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
+
         <form action="/EventManagementSystem/public/verify-otp" method="POST" id="otp-form">
             <div class="otp-inputs">
                 <input type="text" name="otp[]" maxlength="1" required autofocus>
@@ -47,8 +49,77 @@
         </div>
         <a class="resend-link" id="resend-btn" style="display:none;">Resend code</a>
 
-        <script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function() {
+            const form = document.getElementById('otp-form');
+            const submitBtn = form?.querySelector('.btn');
+            const statusDiv = document.getElementById('api-status');
             const inputs = document.querySelectorAll('.otp-inputs input');
+            if (!form || !window.emsApi) return;
+
+            function showStatus(msg, isError = true) {
+                if (!statusDiv) return;
+                statusDiv.textContent = msg;
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = isError ? '#f9ebeb' : '#e8f5e9';
+                statusDiv.style.color = isError ? '#d9534f' : '#2d5a27';
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const otp = Array.from(inputs).map(i => i.value).join('');
+                const email = "<?php echo $_SESSION['otp_email'] ?? ''; ?>";
+                const otp_type = "<?php echo $_SESSION['otp_type'] ?? 'registration'; ?>";
+
+                if (otp.length !== 6 || !email) return;
+
+                // UI Loading State
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Verifying...';
+                if (statusDiv) statusDiv.style.display = 'none';
+
+                console.log('%c[API Auth] Verifying OTP...', 'color: #3498db; font-weight: bold;');
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/auth/verify-otp', {
+                        method: 'POST',
+                        body: { email, otp, otp_type }
+                    });
+
+                    console.log('%c[API Auth] OTP Success!', 'color: #27ae60; font-weight: bold;', res);
+
+                    if (res?.data?.verified) {
+                        showStatus('Code verified! Redirecting to login...', false);
+                        setTimeout(() => {
+                            if (otp_type === 'password_reset') {
+                                window.location.href = '/EventManagementSystem/public/reset-password';
+                            } else {
+                                // Direct redirect to login with success flag
+                                // We don't use form.submit() here because the API already cleared the OTP in DB,
+                                // so the MVC verification would fail if called again.
+                                window.location.href = '/EventManagementSystem/public/login?success=verified';
+                            }
+                        }, 1200);
+                    }
+                } catch (err) {
+                    console.warn('%c[API Auth] OTP Failed:', 'color: #e67e22; font-weight: bold;', err.message);
+                    
+                    if (err.status && err.status < 500) {
+                        showStatus(err.message);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    } else {
+                        showStatus('API Service Error: ' + err.message);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                }
+            });
+
+            // Input navigation logic (already in file, kept for reference)
             inputs.forEach((input, index) => {
                 input.addEventListener('input', (e) => {
                     if (e.target.value.length === 1 && index < inputs.length - 1) {
@@ -78,8 +149,8 @@
                     timeLeft--;
                 }
             }, 1000);
-        </script>
-    </div>
+        })();
+    </script>
 </body>
 
 </html>

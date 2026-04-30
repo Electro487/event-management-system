@@ -1,11 +1,22 @@
 <?php
-$bgImage = !empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
-$eventTitle = htmlspecialchars($booking['event_title']);
+// Snapshots
+$eSnap = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
+$pSnap = !empty($booking['package_snapshot']) ? json_decode($booking['package_snapshot'], true) : null;
+
+$rawBg = !empty($eSnap['image_path']) ? $eSnap['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '');
+$bgImage = !empty($rawBg) ? ($rawBg[0] === '/' ? $rawBg : '/EventManagementSystem/public/assets/images/events/' . $rawBg) : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+
+$eventTitle = $eSnap['title'] ?? ($booking['event_title'] ?? 'Event');
+$eventCategory = $eSnap['category'] ?? ($booking['event_category'] ?: 'Event');
+$venueName = $eSnap['venue_name'] ?? ($booking['venue_name'] ?: 'Venue TBD');
+$venueLocation = $eSnap['venue_location'] ?? ($booking['venue_location'] ?: 'Address will be confirmed shortly.');
+
 $displayStatus = $booking['display_status'] ?? strtolower($booking['status']);
 $statusStr = strtoupper($displayStatus);
 $statusClass = "status-" . strtolower($displayStatus);
 
 // Parse package features
+$selectedPackage = $pSnap ?? ($selectedPackage ?? []);
 $items = $selectedPackage['items'] ?? [];
 if (empty($items)) {
     if ($booking['package_tier'] == 'premium') {
@@ -201,20 +212,21 @@ $steps = [
                             const formData = new FormData();
                             formData.append('profile_picture', input.files[0]);
 
-                            fetch('/EventManagementSystem/public/client/profile/update', {
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                                     method: 'POST',
                                     body: formData
                                 })
-                                .then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
+                                        const path = data.data?.path || data.path;
                                         // Update header avatar
                                         let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                        headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
 
                                         // Update dropdown avatar
                                         let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                                        dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
 
                                         // Add delete icon if not exists
                                         if (!document.querySelector('.pd-delete-icon')) {
@@ -231,31 +243,37 @@ $steps = [
                                     }
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('An error occurred during upload.');
+                                    console.error('API Error:', error);
+                                    alert('An error occurred during upload: ' + error.message);
                                 });
+                            } else {
+                                fetch('/EventManagementSystem/public/client/profile/update', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) location.reload();
+                                        else alert(data.message || 'Error uploading image.');
+                                    })
+                                    .catch(error => alert('An error occurred.'));
+                            }
                         }
                     }
 
                     function deleteProfilePicture() {
                         if (confirm('Are you sure you want to remove your profile picture?')) {
-                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                                    method: 'POST'
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                    method: 'DELETE'
                                 })
-                                .then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
                                         const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
-
-                                        // Update header avatar
                                         let headerIcon = document.getElementById('profile-icon');
                                         headerIcon.innerHTML = initialsElement;
-
-                                        // Update dropdown avatar
                                         let dropdownAvatar = document.querySelector('.pd-avatar');
                                         dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
-
-                                        // Remove delete icon if exists
                                         let deleteIcon = document.querySelector('.pd-delete-icon');
                                         if (deleteIcon) deleteIcon.remove();
                                     } else {
@@ -263,9 +281,20 @@ $steps = [
                                     }
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('An error occurred.');
+                                    console.error('API Error:', error);
+                                    alert('An error occurred: ' + error.message);
                                 });
+                            } else {
+                                fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                        method: 'POST'
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) location.reload();
+                                        else alert('Error removing image.');
+                                    })
+                                    .catch(error => alert('An error occurred.'));
+                            }
                         }
                     }
                 </script>
@@ -278,8 +307,8 @@ $steps = [
         <img src="<?php echo htmlspecialchars($bgImage); ?>" alt="Event Background">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <span class="category-tag"><?php echo htmlspecialchars($booking['event_category'] ?: 'Event'); ?></span>
-            <h1><?php echo $eventTitle; ?></h1>
+            <span class="category-tag"><?php echo htmlspecialchars($eventCategory); ?></span>
+            <h1><?php echo htmlspecialchars($eventTitle); ?></h1>
             <p>Your curated architectural event experience is <?php echo strtolower($statusStr); ?>.</p>
         </div>
     </div>
@@ -369,9 +398,9 @@ $steps = [
                         <div class="info-item" style="border-left-color: #ffc241;">
                             <span class="info-label">Venue</span>
                             <span
-                                class="info-val"><?php echo htmlspecialchars($booking['venue_name'] ?: 'Venue TBD'); ?></span>
+                                class="info-val"><?php echo htmlspecialchars($venueName); ?></span>
                             <span style="display:block; font-size:12px; color:var(--text-gray); margin-top:4px;">
-                                <?php echo htmlspecialchars($booking['venue_location'] ?: 'Address will be confirmed shortly.'); ?>
+                                <?php echo htmlspecialchars($venueLocation); ?>
                             </span>
                         </div>
                         <div class="info-item" style="border-left-color: #ffc241;">
@@ -416,10 +445,16 @@ $steps = [
 
                     <?php
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                    $advance = $advanceTarget;
-                    $balance = $booking['total_amount'] * 0.5;
                     $hasAnyAdvancePaid = ($paidAdvance > 0.009);
-                    $isAdvanceComplete = ($remainingAdvance <= 0.009);
+                    $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $hasAnyAdvancePaid);
+                    
+                    if ($isAdvanceComplete) {
+                        $remainingAdvance = 0;
+                    }
+
+                    $advance = $advanceTarget;
+                    // The balance is whatever is left of the total amount after all payments
+                    $balance = $booking['total_amount'] - $paidAdvance;
 
                     $isPartiallyPaid = ($payStatus === 'partially_paid');
                     $isFullyPaid = ($payStatus === 'paid');
@@ -473,7 +508,7 @@ $steps = [
                     <div class="policy-note" style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
                         <span style="font-size:12px; color:#0369a1; display:flex; gap:8px; line-height:1.4;">
                             <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i>
-                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer on the day of the event.</span>
+                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer by or on the day of the event.</span>
                         </span>
                     </div>
 
@@ -487,8 +522,7 @@ $steps = [
                             <form action="/EventManagementSystem/public/client/bookings/cancel" method="POST"
                                 style="margin:0;">
                                 <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
-                                <button type="submit" class="btn-danger"
-                                    onclick="return confirm('Are you sure you want to cancel this booking? This action cannot be undone.');">
+                                <button type="submit" class="btn-danger">
                                     <i class="fa-solid fa-xmark"></i> Cancel Reservation
                                 </button>
                             </form>
@@ -519,7 +553,56 @@ $steps = [
         </div>
     </footer>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+        (function () {
+            if (!window.emsApi) return;
+
+            const cancelForm = document.querySelector('form[action*="/client/bookings/cancel"]');
+            if (cancelForm) {
+                cancelForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const id = cancelForm.querySelector('input[name="booking_id"]')?.value;
+                    if (!id) return;
+                    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+
+                    try {
+                        await window.emsApi.apiFetch(`/api/v1/bookings/${id}/cancel`, { method: 'PATCH' });
+                        window.location.href = '/EventManagementSystem/public/client/events#my-bookings';
+                    } catch (err) {
+                        console.error('Cancel via API failed:', err);
+                        alert('Error: ' + err.message);
+                    }
+                });
+            }
+
+            // Replace checkout link to prefer API-created checkout url (optional)
+            const payLink = document.querySelector('a[href*="/client/payment/checkout"]');
+            if (payLink) {
+                const match = payLink.getAttribute('href').match(/booking_id=(\\d+)/);
+                const bookingId = match ? match[1] : null;
+                if (bookingId) {
+                    payLink.addEventListener('click', async function (e) {
+                        e.preventDefault();
+                        try {
+                            const checkout = await window.emsApi.apiFetch('/api/v1/payments/checkout', {
+                                method: 'POST',
+                                body: { booking_id: Number(bookingId) }
+                            });
+                            const url = checkout?.data?.checkout_url;
+                            if (!url) throw new Error('Missing checkout_url');
+                            window.location.href = url;
+                        } catch (err) {
+                            console.error('Checkout via API failed, falling back to MVC link.', err);
+                            window.location.href = payLink.getAttribute('href');
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
 </body>
 
 </html>

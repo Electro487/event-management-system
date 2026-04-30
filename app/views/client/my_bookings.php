@@ -136,71 +136,89 @@
                         const formData = new FormData();
                         formData.append('profile_picture', input.files[0]);
                         
-                        fetch('/EventManagementSystem/public/client/profile/update', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                        if (window.emsApi) {
+                            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const path = data.data?.path || data.path;
+                                    // Update header avatar
+                                    let headerIcon = document.getElementById('profile-icon');
+                                    headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                    
+                                    // Update dropdown avatar
+                                    let dropdownAvatar = document.querySelector('.pd-avatar');
+                                    dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
 
-                                // Add delete icon if not exists
-                                if (!document.querySelector('.pd-delete-icon')) {
-                                    let avatarContainer = document.querySelector('.pd-avatar-container');
-                                    let deleteBtn = document.createElement('div');
-                                    deleteBtn.className = 'pd-delete-icon';
-                                    deleteBtn.title = 'Remove Photo';
-                                    deleteBtn.onclick = deleteProfilePicture;
-                                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                    avatarContainer.appendChild(deleteBtn);
+                                    // Add delete icon if not exists
+                                    if (!document.querySelector('.pd-delete-icon')) {
+                                        let avatarContainer = document.querySelector('.pd-avatar-container');
+                                        let deleteBtn = document.createElement('div');
+                                        deleteBtn.className = 'pd-delete-icon';
+                                        deleteBtn.title = 'Remove Photo';
+                                        deleteBtn.onclick = deleteProfilePicture;
+                                        deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                        avatarContainer.appendChild(deleteBtn);
+                                    }
+                                } else {
+                                    alert(data.message || 'Error uploading image.');
                                 }
-                            } else {
-                                alert(data.message || 'Error uploading image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred during upload.');
-                        });
+                            })
+                            .catch(error => {
+                                console.error('API Error:', error);
+                                alert('An error occurred during upload: ' + error.message);
+                            });
+                        } else {
+                            fetch('/EventManagementSystem/public/client/profile/update', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) location.reload();
+                                else alert(data.message || 'Error uploading image.');
+                            })
+                            .catch(error => alert('An error occurred.'));
+                        }
                     }
                 }
 
                 function deleteProfilePicture() {
                     if (confirm('Are you sure you want to remove your profile picture?')) {
-                        fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                            method: 'POST'
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = initialsElement;
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                
-                                // Remove delete icon if exists
-                                let deleteIcon = document.querySelector('.pd-delete-icon');
-                                if (deleteIcon) deleteIcon.remove();
-                            } else {
-                                alert('Error removing image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred.');
-                        });
+                        if (window.emsApi) {
+                            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                method: 'DELETE'
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                    let headerIcon = document.getElementById('profile-icon');
+                                    headerIcon.innerHTML = initialsElement;
+                                    let dropdownAvatar = document.querySelector('.pd-avatar');
+                                    dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                    let deleteIcon = document.querySelector('.pd-delete-icon');
+                                    if (deleteIcon) deleteIcon.remove();
+                                } else {
+                                    alert('Error removing image.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('API Error:', error);
+                                alert('An error occurred: ' + error.message);
+                            });
+                        } else {
+                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                method: 'POST'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) location.reload();
+                                else alert('Error removing image.');
+                            })
+                            .catch(error => alert('An error occurred.'));
+                        }
                     }
                 }
                 </script>
@@ -270,21 +288,29 @@
                         if (strtolower($booking['event_category']) == 'music') {
                             $catStyle = 'background: #fef08a; color: #854d0e;';
                         }
+                        
+                        $eSnapList = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
+                        $bListTitle = $eSnapList['title'] ?? $booking['event_title'];
+                        $bListCat = $eSnapList['category'] ?? ($booking['event_category'] ?: 'Event');
+                        $rawImg = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '');
+                        $bListImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                        if ($rawImg) {
+                            $bListImg = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
+                        }
                         ?>
                         <div class="b-item" data-status="<?php echo $booking['status']; ?>"
                             data-upcoming="<?php echo $isUpcoming; ?>" data-index="<?php echo $index; ?>"
                             onclick="selectBooking(<?php echo $index; ?>, this)">
 
-                            <?php $image = !empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>
-                            <img src="<?php echo htmlspecialchars($image); ?>" alt="Event Cover" class="b-img">
+                            <img src="<?php echo htmlspecialchars($bListImg); ?>" alt="Event Cover" class="b-img">
 
                             <div class="b-content">
                                 <div>
                                     <div class="b-top">
                                         <div class="b-title-wrap">
-                                            <h3 class="b-title"><?php echo htmlspecialchars($booking['event_title']); ?></h3>
+                                            <h3 class="b-title"><?php echo htmlspecialchars($bListTitle); ?></h3>
                                             <span class="b-cat-badge"
-                                                style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($booking['event_category'] ?: 'Event'); ?></span>
+                                                style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($bListCat); ?></span>
                                         </div>
                                         <span class="b-status-badge status-<?php echo htmlspecialchars($booking['status']); ?>">
                                             <?php echo strtoupper($booking['status']); ?>
@@ -434,17 +460,25 @@
             const data = bookingsData[index];
             if (!data) return;
 
+            // Snapshots
+            const eSnap = data.event_snapshot ? JSON.parse(data.event_snapshot) : null;
+            const pSnap = data.package_snapshot ? JSON.parse(data.package_snapshot) : null;
+
             // Populate Sidebar
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
 
-            let imgUrl = data.event_image ? data.event_image : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            let rawImg = eSnap?.image_path || data.event_image || '';
+            let imgUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            if (rawImg) {
+                imgUrl = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+            }
             document.getElementById('sb-img').src = imgUrl;
 
             const statusEl = document.getElementById('sb-status');
             statusEl.innerText = data.status.toUpperCase();
             statusEl.className = 'b-status-badge status-' + data.status;
 
-            document.getElementById('sb-event-title').innerText = data.event_title;
+            document.getElementById('sb-event-title').innerText = eSnap?.title || data.event_title;
 
             document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
 
@@ -453,7 +487,9 @@
             let pDesc = 'Includes selected access & features.';
 
             // Try getting exact package data from JSON decoded array
-            if (data.packages_data && data.packages_data[data.package_tier]) {
+            if (pSnap) {
+                pDesc = pSnap.description || pDesc;
+            } else if (data.packages_data && data.packages_data[data.package_tier]) {
                 const storedPkg = data.packages_data[data.package_tier];
                 if (storedPkg.description) {
                     pDesc = storedPkg.description;
@@ -465,10 +501,10 @@
 
             document.getElementById('sb-org-name').innerText = data.organizer_name || 'Event Organizer';
 
-            let locName = data.venue_name || 'Convention Center';
-            let locAddr = data.venue_location || 'Address TBD';
-            if (!data.venue_name && data.venue_location) {
-                locName = data.venue_location;
+            let locName = eSnap?.venue_name || data.venue_name || 'Convention Center';
+            let locAddr = eSnap?.venue_location || data.venue_location || 'Address TBD';
+            if (!locName && locAddr) {
+                locName = locAddr;
                 locAddr = "Local Venue";
             }
             document.getElementById('sb-loc-name').innerText = locName;
@@ -612,6 +648,7 @@
 
     </script>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 

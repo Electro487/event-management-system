@@ -4,14 +4,17 @@
  *  @var int $totalBookings @var int $upcomingCount @var int $completedCount @var int $pendingCount */
 
 $initials = '';
-$nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+$fullName = trim($_SESSION['user_fullname'] ?? '');
+if (!$fullName) $fullName = 'User';
+$nameParts = explode(' ', $fullName);
+
 foreach ($nameParts as $p) {
     if (!empty($p)) $initials .= strtoupper(substr($p, 0, 1));
 }
 if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
 $firstName   = $nameParts[0] ?? '';
 $lastName    = count($nameParts) > 1 ? end($nameParts) : '';
-$displayName = $_SESSION['user_fullname'] ?? 'User';
+$displayName = $fullName;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,6 +28,7 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/client-home.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
 </head>
 
 <body>
@@ -205,7 +209,10 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
                         </thead>
                         <tbody>
                             <?php foreach ($recentBookings as $bk):
-                                $ds = $bk['display_status'];
+                                $eSnapList = !empty($bk['event_snapshot']) ? json_decode($bk['event_snapshot'], true) : null;
+                                $bListTitle = $eSnapList['title'] ?? ($bk['event_title'] ?? '–');
+
+                                $ds = $bk['display_status'] ?? $bk['status'] ?? 'pending';
                                 $badgeClass = match ($ds) {
                                     'confirmed'  => 'badge-confirmed',
                                     'pending'    => 'badge-pending',
@@ -215,7 +222,7 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
                                 };
                             ?>
                                 <tr>
-                                    <td class="col-event"><?php echo htmlspecialchars($bk['event_title'] ?? '–'); ?></td>
+                                    <td class="col-event"><?php echo htmlspecialchars($bListTitle); ?></td>
                                     <td class="col-package"><?php echo htmlspecialchars(ucfirst($bk['package_tier'] ?? '–')); ?></td>
                                     <td>
                                         <span class="stat-badge <?php echo $badgeClass; ?>">
@@ -243,14 +250,25 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
                 <div class="card-header">Next Event</div>
                 <?php if ($nextEvent): ?>
                     <?php
-                    $evImg = !empty($nextEvent['event_image'])
-                        ? htmlspecialchars($nextEvent['event_image'])
-                        : '/EventManagementSystem/public/assets/images/placeholder.png';
-                    $evCat   = htmlspecialchars($nextEvent['event_category'] ?? 'Event');
-                    $evTitle = htmlspecialchars($nextEvent['event_title'] ?? 'Upcoming Event');
+                    $nSnap = !empty($nextEvent['event_snapshot']) ? json_decode($nextEvent['event_snapshot'], true) : null;
+                    
+                    $rawImg = !empty($nSnap['image_path']) 
+                        ? $nSnap['image_path'] 
+                        : (!empty($nextEvent['event_image']) ? $nextEvent['event_image'] : '');
+                    
+                    if (!empty($rawImg)) {
+                        $evImg = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
+                    } else {
+                        $evImg = '/EventManagementSystem/public/assets/images/placeholder.png';
+                    }
+                    
+                    $evCat   = htmlspecialchars($nSnap['category'] ?? ($nextEvent['event_category'] ?? 'Event'));
+                    $evTitle = htmlspecialchars($nSnap['title'] ?? ($nextEvent['event_title'] ?? 'Upcoming Event'));
+                    
                     $evDate  = $nextEvent['event_date'] ?: ($nextEvent['event_start_date'] ?? '');
                     $evDateFormatted = $evDate ? date('M j, Y', strtotime($evDate)) : '';
-                    $evLocation = htmlspecialchars($nextEvent['venue_location'] ?? '');
+                    
+                    $evLocation = htmlspecialchars($nSnap['venue_location'] ?? ($nextEvent['venue_location'] ?? ''));
                     $bookingId  = $nextEvent['id'] ?? null;
                     ?>
                     <div class="next-event-img-wrap">
@@ -387,17 +405,20 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
             if (!input.files || !input.files[0]) return;
             const fd = new FormData();
             fd.append('profile_picture', input.files[0]);
-            fetch('/EventManagementSystem/public/client/profile/update', {
+
+            if (window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                     method: 'POST',
                     body: fd
                 })
-                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
+                        const path = data.data?.path || data.path;
                         document.getElementById('profile-icon').innerHTML =
-                            '<img src="' + data.path + '" style="width:100%;height:100%;object-fit:cover;" id="header-avatar">';
+                            '<img src="' + path + '" style="width:100%;height:100%;object-fit:cover;" id="header-avatar">';
                         document.querySelector('.pd-avatar').innerHTML =
-                            '<img src="' + data.path + '" style="width:100%;height:100%;object-fit:cover;">';
+                            '<img src="' + path + '" style="width:100%;height:100%;object-fit:cover;">';
+                        
                         if (!document.querySelector('.pd-delete-icon')) {
                             const ac = document.querySelector('.pd-avatar-container');
                             const db = document.createElement('div');
@@ -410,15 +431,28 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
                     } else {
                         alert(data.message || 'Upload failed.');
                     }
+                }).catch(err => alert('An error occurred during upload: ' + err.message));
+            } else {
+                // Fallback for unexpected absence of emsApi
+                fetch('/EventManagementSystem/public/client/profile/update', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) location.reload();
+                    else alert(data.message || 'Upload failed.');
                 }).catch(() => alert('An error occurred during upload.'));
+            }
         }
 
         function deleteProfilePicture() {
             if (!confirm('Remove your profile picture?')) return;
-            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                    method: 'POST'
+            
+            if (window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                    method: 'DELETE'
                 })
-                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         const initials = '<?php echo addslashes(htmlspecialchars($initials)); ?>';
@@ -429,10 +463,157 @@ $displayName = $_SESSION['user_fullname'] ?? 'User';
                     } else {
                         alert('Error removing image.');
                     }
-                }).catch(() => alert('An error occurred.'));
+                }).catch(err => alert('An error occurred: ' + err.message));
+            } else {
+                fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                        method: 'POST'
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else alert('Error removing image.');
+                    }).catch(() => alert('An error occurred.'));
+            }
         }
     </script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function () {
+            if (!window.emsApi) return;
+
+            console.log('%c[API Dashboard] Fetching client stats...', 'color: #3498db;');
+
+            window.emsApi.apiFetch('/api/v1/dashboard/client')
+                .then(data => {
+                    console.log('%c[API Dashboard] Stats received:', 'color: #27ae60;', data);
+                    if (!data || !data.data) return;
+                    const stats = data.data;
+                    
+                    // The API returns { total_bookings, upcoming_count, completed_count, pending_count }
+                    const total = stats.total_bookings || 0;
+                    const upcoming = stats.upcoming_count || 0;
+                    const completed = stats.completed_count || 0;
+                    const pending = stats.pending_count || 0;
+
+                    // Update numbers in the UI
+                    const statNumbers = document.querySelectorAll('.stat-number');
+                    if (statNumbers.length >= 3) {
+                        statNumbers[0].textContent = total;
+                        statNumbers[1].textContent = completed;
+                        statNumbers[2].textContent = pending;
+                    }
+
+                    // Update badges
+                    const totalBadge = document.querySelector('.stat-badge.badge-upcoming') || document.querySelector('.stat-badge.badge-review');
+                    if (totalBadge) {
+                        if (upcoming > 0) {
+                            totalBadge.className = 'stat-badge badge-upcoming';
+                            totalBadge.textContent = upcoming + ' UPCOMING';
+                            totalBadge.style.display = 'inline-block';
+                        } else if (total === 0) {
+                            totalBadge.className = 'stat-badge badge-review';
+                            totalBadge.textContent = 'NO BOOKINGS';
+                            totalBadge.style.display = 'inline-block';
+                        } else {
+                            totalBadge.style.display = 'none';
+                        }
+                    }
+
+                    const statCards = document.querySelectorAll('.stat-card');
+                    if (statCards[1]) {
+                        const badge = statCards[1].querySelector('.stat-badge');
+                        if (badge) {
+                            if (completed > 0) {
+                                badge.className = 'stat-badge badge-success';
+                                badge.textContent = 'ALL SUCCESSFUL';
+                            } else {
+                                badge.className = 'stat-badge badge-review';
+                                badge.textContent = 'NONE YET';
+                            }
+                        }
+                    }
+
+                    if (statCards[2]) {
+                        const badge = statCards[2].querySelector('.stat-badge');
+                        if (badge) {
+                            if (pending > 0) {
+                                badge.className = 'stat-badge badge-warning';
+                                badge.textContent = 'AWAITING REVIEW';
+                            } else {
+                                badge.className = 'stat-badge badge-success';
+                                badge.textContent = 'ALL CLEAR';
+                            }
+                        }
+                    }
+
+                    // Render Recent Bookings Table
+                    const bookingsTbody = document.querySelector('.bookings-table tbody');
+                    const recentBookings = stats.recent_bookings || [];
+                    if (bookingsTbody && recentBookings.length > 0) {
+                        let html = '';
+                        recentBookings.forEach(bk => {
+                            const eSnap = bk.event_snapshot ? (typeof bk.event_snapshot === 'string' ? JSON.parse(bk.event_snapshot) : bk.event_snapshot) : null;
+                            const title = eSnap?.title || bk.event_title || '–';
+                            const tier = bk.package_tier || '–';
+                            const ds = (bk.display_status || bk.status || 'review').toLowerCase();
+                            
+                            let badgeClass = 'badge-review';
+                            if (ds === 'confirmed') badgeClass = 'badge-confirmed';
+                            else if (ds === 'pending') badgeClass = 'badge-pending';
+                            else if (ds === 'completed') badgeClass = 'badge-completed';
+                            else if (ds === 'cancelled') badgeClass = 'badge-cancelled';
+
+                            html += `
+                                <tr>
+                                    <td class="col-event">${title}</td>
+                                    <td class="col-package">${tier.charAt(0).toUpperCase() + tier.slice(1)}</td>
+                                    <td>
+                                        <span class="stat-badge ${badgeClass}">
+                                            ${ds.toUpperCase()}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        bookingsTbody.innerHTML = html;
+                        // Remove empty message if it exists
+                        const emptyMsg = document.querySelector('.table-empty');
+                        if (emptyMsg) emptyMsg.style.display = 'none';
+                        const table = document.querySelector('.bookings-table');
+                        if (table) table.style.display = 'table';
+                    }
+
+                    // Render Next Event Card
+                    const nextEventCard = document.querySelector('.next-event-card');
+                    const nextEvent = stats.next_event;
+                    if (nextEventCard && nextEvent) {
+                        const eSnap = nextEvent.event_snapshot ? (typeof nextEvent.event_snapshot === 'string' ? JSON.parse(nextEvent.event_snapshot) : nextEvent.event_snapshot) : null;
+                        const title = eSnap?.title || nextEvent.event_title || 'Upcoming Event';
+                        const date = nextEvent.event_date ? new Date(nextEvent.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD';
+                        
+                        nextEventCard.innerHTML = `
+                            <div class="card-header">Next Event</div>
+                            <div class="next-event-content">
+                                <div class="ne-date-badge">
+                                    <span class="ne-month">${new Date(nextEvent.event_date).toLocaleString('en-US', {month:'short'}).toUpperCase()}</span>
+                                    <span class="ne-day">${new Date(nextEvent.event_date).getDate()}</span>
+                                </div>
+                                <div class="ne-details">
+                                    <h4 class="ne-title">${title}</h4>
+                                    <p class="ne-meta"><i class="fa-regular fa-clock"></i> Confirmed</p>
+                                </div>
+                            </div>
+                            <div class="ne-footer">
+                                <a href="/EventManagementSystem/public/client/bookings?id=${nextEvent.id}" class="ne-btn">View Details</a>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.warn('%c[API Dashboard] Could not sync stats:', 'color: #e67e22;', err.message);
+                });
+        })();
+    </script>
 </body>
 
 </html>
