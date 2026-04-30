@@ -35,7 +35,9 @@
         </div>
     <?php endif; ?>
 
-    <form action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
+    <div id="api-status" style="display: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
+
+    <form id="login-form" action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
         <div class="form-group">
             <div class="form-label-row">
                 <label for="email">Email / Username</label>
@@ -60,6 +62,75 @@
         Don't have an account? <a href="/EventManagementSystem/public/register">Register</a>
     </div>
 </div>
+
+<script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+<script>
+    (function() {
+        const form = document.getElementById('login-form');
+        const submitBtn = form?.querySelector('.btn-submit');
+        const statusDiv = document.getElementById('api-status');
+        if (!form || !window.emsApi) return;
+
+        function showStatus(msg, isError = true) {
+            if (!statusDiv) return;
+            statusDiv.textContent = msg;
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = isError ? '#f9ebeb' : '#e8f5e9';
+            statusDiv.style.color = isError ? '#d9534f' : '#2d5a27';
+        }
+
+        let isSyncing = false;
+        form.addEventListener('submit', async function(e) {
+            if (isSyncing) return; // Allow standard form submit to proceed
+            e.preventDefault();
+
+            const email = document.getElementById('email')?.value?.trim() || '';
+            const password = document.getElementById('password')?.value || '';
+            if (!email || !password) return;
+
+            // UI Loading State
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Verifying...';
+            if (statusDiv) statusDiv.style.display = 'none';
+
+            console.log('%c[API Auth] Attempting Login...', 'color: #3498db; font-weight: bold;');
+
+            try {
+                const res = await window.emsApi.apiFetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    body: { email, password }
+                });
+
+                console.log('%c[API Auth] Login Success!', 'color: #27ae60; font-weight: bold;', res);
+
+                const token = res?.data?.token;
+                if (!token) throw new Error('Login succeeded but no token returned.');
+
+                window.emsApi.setToken(token);
+                showStatus('Authentication successful! Redirecting...', false);
+
+                // No longer need to submit the form. The AuthBridge will handle the PHP session via cookie.
+                const user = res?.data?.user;
+                const role = user?.role || 'client';
+                
+                setTimeout(() => {
+                    if (role === 'admin') window.location.href = '/EventManagementSystem/public/admin/dashboard';
+                    else if (role === 'organizer') window.location.href = '/EventManagementSystem/public/organizer/dashboard';
+                    else window.location.href = '/EventManagementSystem/public/client/home';
+                }, 800);
+
+            } catch (err) {
+                console.warn('%c[API Auth] Failed:', 'color: #e67e22; font-weight: bold;', err.message);
+                
+                // Always show API error instead of falling back
+                showStatus(err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    })();
+</script>
 
 </body>
 </html>

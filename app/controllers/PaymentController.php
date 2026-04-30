@@ -73,6 +73,12 @@ class PaymentController
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
         $maxStripeCheckoutNpr = 999999.99;
 
+        // Stripe minimum charge for NPR is 50.
+        if ($remainingAdvance < 50 && $paidAdvance > 0) {
+            header('Location: /EventManagementSystem/public/client/bookings/view?id=' . urlencode((string) $booking_id));
+            exit;
+        }
+
         if ($remainingAdvance <= 0.009) {
             header('Location: /EventManagementSystem/public/client/bookings/view?id=' . urlencode((string) $booking_id));
             exit;
@@ -245,7 +251,7 @@ class PaymentController
                 $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
                 $maxStripeCheckoutNpr = 999999.99;
                 $nextInstallmentAmount = min($remainingAdvance, $maxStripeCheckoutNpr);
-                $isAdvanceComplete = ($remainingAdvance <= 0.009);
+                $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $paidAdvance > 0);
 
                 $transaction_id = $session->payment_intent;
                 require_once dirname(__DIR__) . '/views/client/payment/success.php';

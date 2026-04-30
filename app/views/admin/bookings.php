@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<?php /** @var array $bookings */ ?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,7 +10,6 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-bookings.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/admin-bookings-extra.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
@@ -28,7 +28,7 @@
             <div class="header-right b-header-right">
                 <div class="search-wrap top-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="topSearchInput" placeholder="Search across all organizers...">
+                    <input type="text" id="globalSearchInput" placeholder="Search across all organizers..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
                 </div>
                 <div class="header-actions">
                     <div class="notifications-wrapper">
@@ -67,19 +67,19 @@
         <div class="stats-row">
             <div class="stat-box">
                 <p class="stat-title">Total Bookings</p>
-                <h2 class="stat-number dark"><?php echo number_format($totalBookings ?? 0); ?></h2>
+                <h2 class="stat-number dark" id="stat-total-bookings">0</h2>
             </div>
             <div class="stat-box">
                 <p class="stat-title">Confirmed</p>
-                <h2 class="stat-number green"><?php echo number_format($confirmedCount ?? 0); ?></h2>
+                <h2 class="stat-number green" id="stat-confirmed-count">0</h2>
             </div>
             <div class="stat-box">
                 <p class="stat-title">Pending</p>
-                <h2 class="stat-number orange"><?php echo number_format($pendingCount ?? 0); ?></h2>
+                <h2 class="stat-number orange" id="stat-pending-count">0</h2>
             </div>
             <div class="stat-box">
                 <p class="stat-title">Cancelled</p>
-                <h2 class="stat-number red"><?php echo number_format($cancelledCount ?? 0); ?></h2>
+                <h2 class="stat-number red" id="stat-cancelled-count">0</h2>
             </div>
         </div>
 
@@ -130,15 +130,15 @@
         <!-- Secondary Status Tabs -->
         <div class="status-tabs">
             <button class="status-tab active" data-status="all">All <span
-                    class="badge"><?php echo number_format($totalBookings ?? 0); ?></span></button>
+                    class="badge" id="tab-all-count">0</span></button>
             <button class="status-tab" data-status="pending">Pending <span
-                    class="badge"><?php echo number_format($pendingCount ?? 0); ?></span></button>
+                    class="badge" id="tab-pending-count">0</span></button>
             <button class="status-tab" data-status="confirmed">Confirmed <span
-                    class="badge"><?php echo number_format($confirmedCount ?? 0); ?></span></button>
+                    class="badge" id="tab-confirmed-count">0</span></button>
             <button class="status-tab" data-status="completed">Completed <span
-                    class="badge"><?php echo number_format($completedCount ?? 0); ?></span></button>
+                    class="badge" id="tab-completed-count">0</span></button>
             <button class="status-tab" data-status="cancelled">Cancelled <span
-                    class="badge"><?php echo number_format($cancelledCount ?? 0); ?></span></button>
+                    class="badge" id="tab-cancelled-count">0</span></button>
         </div>
 
         <!-- Bookings List / Table -->
@@ -156,96 +156,14 @@
                     </tr>
                 </thead>
                 <tbody id="bookingsTableBody">
-                    <?php if (empty($bookings)): ?>
-                        <tr><td colspan="7" class="no-data">No bookings found in the system.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($bookings as $b):
-                            $clientName = $b['full_name'] ?: ($b['client_user_name'] ?: 'Unknown Client');
-                            $initials = strtoupper(substr($clientName, 0, 2));
-                            if (strpos($clientName, ' ') !== false) {
-                                $parts = explode(' ', $clientName);
-                                $initials = strtoupper(substr($parts[0], 0, 1) . substr($parts[1] ?? '', 0, 1));
-                            }
-                            $rowStatus = $b['display_status'];
-                            $dateObj = new DateTime($b['event_date'] ?: $b['event_start_date']);
-                            $packageClass = strtolower($b['package_tier']);
-                            ?>
-                            <tr class="booking-row" 
-                                data-client="<?php echo strtolower(htmlspecialchars($clientName)); ?>"
-                                data-event="<?php echo strtolower(htmlspecialchars($b['event_title'])); ?>"
-                                data-organizer="<?php echo strtolower(htmlspecialchars($b['organizer_name'] ?? '')); ?>"
-                                data-category="<?php echo strtolower(htmlspecialchars($b['event_category'] ?? '')); ?>"
-                                data-package="<?php echo strtolower($b['package_tier']); ?>"
-                                data-status="<?php echo $rowStatus; ?>" 
-                                data-date="<?php echo $dateObj->format('Y-m-d'); ?>">
-
-                                <td style="padding-left:24px;">
-                                    <div class="client-cell">
-                                        <?php if (!empty($b['client_profile_pic'])): ?>
-                                            <img src="<?php echo htmlspecialchars($b['client_profile_pic']); ?>" alt="Client" class="client-avatar-img" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-right: 12px;">
-                                        <?php else: ?>
-                                            <div class="client-avatar <?php echo $packageClass; ?>-av" style="margin-right: 12px;"><?php echo $initials; ?></div>
-                                        <?php endif; ?>
-                                        <span class="client-name"><?php echo htmlspecialchars($clientName); ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="event-title-cell"><?php echo htmlspecialchars($b['event_title']); ?></div>
-                                    <span class="organizer-info"><i class="fas fa-user-tie"></i> <?php echo htmlspecialchars($b['organizer_name'] ?? 'System'); ?></span>
-                                </td>
-                                <td>
-                                    <span class="pkg-badge <?php echo $packageClass; ?>"><?php echo strtoupper($b['package_tier']); ?></span>
-                                </td>
-                                <td>
-                                    <div class="date-cell">
-                                        <span class="m-d"><?php echo $dateObj->format('M d'); ?></span>
-                                        <span class="year"><?php echo $dateObj->format('Y'); ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="amount-cell">
-                                        <span class="curr">Rs.</span>
-                                        <span class="val"><?php echo number_format($b['total_amount'], 0); ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="status-cell">
-                                        <span class="dot <?php echo $rowStatus; ?>"></span>
-                                        <span class="st-text <?php echo $rowStatus; ?>"><?php echo ucfirst($rowStatus); ?></span>
-                                    </div>
-                                </td>
-                                <td style="text-align:right; padding-right:24px;">
-                                    <div class="action-cell">
-                                        <?php if ($rowStatus == 'pending'): ?>
-                                            <?php 
-                                                $pStat = strtolower($b['payment_status'] ?? 'unpaid');
-                                                $canApprove = ($pStat === 'paid' || $pStat === 'partially_paid');
-                                            ?>
-                                            <form action="/EventManagementSystem/public/admin/bookings/approve" method="POST"
-                                                style="margin:0; display:inline-block;">
-                                                <input type="hidden" name="booking_id" value="<?php echo $b['id']; ?>">
-                                                <button type="submit" class="btn-approve"
-                                                    <?php echo !$canApprove ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Wait for 50% advance payment"' : 'onclick="return confirm(\'Approve this booking?\')"'; ?>>
-                                                    Approve
-                                                </button>
-                                            </form>
-                                            <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $b['id']; ?>"
-                                                class="btn-view secondary">View</a>
-                                        <?php else: ?>
-                                            <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $b['id']; ?>" class="btn-view">View</a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <tr><td colspan="7" class="no-data">Loading bookings...</td></tr>
                 </tbody>
             </table>
 
             <div class="pagination-row">
                 <div class="showing-text">
-                    Showing <span id="visibleCount"><?php echo count($bookings); ?></span> of <span
-                        id="totalBookingsSpan"><?php echo number_format($totalBookings ?? 0); ?></span> bookings
+                    Showing <span id="visibleCount">0</span> of <span
+                        id="totalBookingsSpan">0</span> bookings
                 </div>
                 <div class="pagination-controls" id="paginationControls">
                     <!-- Pagination buttons injected via JS -->
@@ -254,171 +172,9 @@
         </div>
     </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const rows = Array.from(document.querySelectorAll('.booking-row'));
-            const topSearch = document.getElementById('topSearchInput');
-            const filterSearch = document.getElementById('filterSearchInput');
-            const dateFilter = document.getElementById('dateFilter');
-            const statusTabs = document.querySelectorAll('.status-tab');
-            const visibleCountLabel = document.getElementById('visibleCount');
-            const paginationControls = document.getElementById('paginationControls');
-
-            let currentStatus = 'all';
-            let currentCategory = 'all';
-            let currentPackage = 'all';
-            let currentPage = 1;
-            const itemsPerPage = 5;
-
-            // Custom Dropdown Handling
-            function initCustomDropdown(id, callback) {
-                const dropdown = document.getElementById(id);
-                if(!dropdown) return;
-                const trigger = dropdown.querySelector('.dropdown-trigger');
-                const menu = dropdown.querySelector('.dropdown-menu');
-                const items = dropdown.querySelectorAll('.dropdown-item');
-                const selectedText = dropdown.querySelector('.selected-val');
-
-                trigger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('.custom-premium-dropdown').forEach(d => {
-                        if (d !== dropdown) d.classList.remove('open');
-                    });
-                    dropdown.classList.toggle('open');
-                });
-
-                items.forEach(item => {
-                    item.addEventListener('click', () => {
-                        const val = item.dataset.value;
-                        selectedText.textContent = item.textContent;
-                        items.forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-                        dropdown.classList.remove('open');
-                        callback(val);
-                    });
-                });
-            }
-
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.custom-premium-dropdown').forEach(d => d.classList.remove('open'));
-            });
-
-            initCustomDropdown('eventDropdown', (val) => {
-                currentCategory = val;
-                currentPage = 1;
-                applyFilters();
-            });
-
-            initCustomDropdown('packageDropdown', (val) => {
-                currentPackage = val;
-                currentPage = 1;
-                applyFilters();
-            });
-
-            topSearch.addEventListener('input', function () {
-                filterSearch.value = this.value;
-                currentPage = 1;
-                applyFilters();
-            });
-            filterSearch.addEventListener('input', function () {
-                topSearch.value = this.value;
-                currentPage = 1;
-                applyFilters();
-            });
-
-            dateFilter.addEventListener('change', () => { currentPage = 1; applyFilters(); });
-
-            statusTabs.forEach(tab => {
-                tab.addEventListener('click', function () {
-                    statusTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    currentStatus = this.dataset.status;
-                    currentPage = 1;
-                    applyFilters();
-                });
-            });
-
-            function applyFilters() {
-                const searchQ = filterSearch.value.toLowerCase();
-                const dtFilter = dateFilter.value;
-
-                let visibleRows = [];
-
-                rows.forEach(row => {
-                    const client = row.dataset.client || '';
-                    const event = row.dataset.event || '';
-                    const organizer = row.dataset.organizer || '';
-                    const category = row.dataset.category || '';
-                    const pkg = row.dataset.package || '';
-                    const status = row.dataset.status || '';
-                    const date = row.dataset.date || '';
-
-                    let matchSearch = client.includes(searchQ) || event.includes(searchQ) || organizer.includes(searchQ);
-                    let matchCategory = currentCategory === 'all' || category === currentCategory;
-                    let matchPkg = currentPackage === 'all' || pkg === currentPackage;
-                    let matchDate = dtFilter === '' || date === dtFilter;
-                    let matchStatus = currentStatus === 'all' || status === currentStatus;
-
-                    if (matchSearch && matchCategory && matchPkg && matchDate && matchStatus) {
-                        visibleRows.push(row);
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                visibleCountLabel.textContent = visibleRows.length;
-                renderPagination(visibleRows);
-            }
-
-            function renderPagination(visibleRows) {
-                const totalVisible = visibleRows.length;
-                const totalPages = Math.ceil(totalVisible / itemsPerPage);
-
-                rows.forEach(row => row.style.display = 'none');
-
-                if (totalPages === 0) {
-                    paginationControls.innerHTML = '';
-                    return;
-                }
-
-                if (currentPage > totalPages) currentPage = totalPages;
-                if (currentPage < 1) currentPage = 1;
-
-                const startIdx = (currentPage - 1) * itemsPerPage;
-                const endIdx = startIdx + itemsPerPage;
-                for (let i = startIdx; i < endIdx && i < totalVisible; i++) {
-                    visibleRows[i].style.display = 'table-row';
-                }
-
-                let html = '';
-                html += `<button class="p-btn prev ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}"><i class="fa-solid fa-angle-left"></i></button>`;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    if (totalPages > 5) {
-                        if (i > 1 && i < totalPages && Math.abs(i - currentPage) > 1) {
-                            if (i === 2 && currentPage > 3) html += `<span class="dots">...</span>`;
-                            if (i === totalPages - 1 && currentPage < totalPages - 2) html += `<span class="dots">...</span>`;
-                            continue;
-                        }
-                    }
-                    html += `<button class="p-btn num ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
-                }
-
-                html += `<button class="p-btn next ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}"><i class="fa-solid fa-angle-right"></i></button>`;
-
-                paginationControls.innerHTML = html;
-
-                paginationControls.querySelectorAll('.p-btn:not(.disabled)').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        currentPage = parseInt(this.dataset.page);
-                        renderPagination(visibleRows);
-                    });
-                });
-            }
-
-            applyFilters();
-        });
-    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/admin/bookings.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

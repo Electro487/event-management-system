@@ -1,17 +1,11 @@
 <?php
-if (!isset($transaction_id) || !isset($booking_id)) {
+$booking_id = $_GET['booking_id'] ?? 0;
+$session_id = $_GET['session_id'] ?? '';
+
+if (!$booking_id || !$session_id) {
     header('Location: /EventManagementSystem/public/client/events');
     exit;
 }
-
-$isAdvanceComplete = isset($isAdvanceComplete) ? (bool) $isAdvanceComplete : false;
-$remainingAdvance = isset($remainingAdvance) ? (float) $remainingAdvance : 0;
-$paidAdvance = isset($paidAdvance) ? (float) $paidAdvance : 0;
-$advanceTarget = isset($advanceTarget) ? (float) $advanceTarget : 0;
-$nextInstallmentAmount = isset($nextInstallmentAmount) ? (float) $nextInstallmentAmount : 0;
-
-$bookingDetailsUrl = '/EventManagementSystem/public/client/bookings/view?id=' . urlencode((string) $booking_id);
-$nextInstallmentUrl = '/EventManagementSystem/public/client/payment/checkout?booking_id=' . urlencode((string) $booking_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,6 +16,7 @@ $nextInstallmentUrl = '/EventManagementSystem/public/client/payment/checkout?boo
     <title>Payment Successful - e-Plan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -43,13 +38,19 @@ $nextInstallmentUrl = '/EventManagementSystem/public/client/payment/checkout?boo
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             max-width: 520px;
             width: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+        }
+        .success-card.loaded {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .icon {
             font-size: 60px;
             color: #22c55e;
             margin-bottom: 20px;
-            animation: scaleIn 0.5s ease-out;
         }
 
         h1 {
@@ -126,58 +127,101 @@ $nextInstallmentUrl = '/EventManagementSystem/public/client/payment/checkout?boo
             background: #f8fafc;
         }
 
-        @keyframes scaleIn {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-
-            80% {
-                transform: scale(1.1);
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+        #verifying {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #246A55;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 
 <body>
 
-    <div class="success-card">
+    <div id="verifying">
+        <div class="spinner"></div>
+        <p>Verifying your payment with Stripe...</p>
+    </div>
+
+    <div class="success-card" id="success-card" style="display: none;">
         <div class="icon">
             <i class="fa-solid fa-circle-check"></i>
         </div>
         <h1>Payment Successful!</h1>
         <p>Your installment has been received successfully.</p>
 
-        <div class="tx-id">
-            TX ID: <?php echo htmlspecialchars($transaction_id); ?>
-        </div>
+        <div class="tx-id" id="display-tx"></div>
 
         <div class="progress">
-            <div><b>Online Advance Paid:</b> NPR <?php echo number_format($paidAdvance, 2); ?> / NPR <?php echo number_format($advanceTarget, 2); ?></div>
-            <div><b>Remaining Online Advance:</b> NPR <?php echo number_format($remainingAdvance, 2); ?></div>
+            <div><b>Online Advance Paid:</b> NPR <span id="display-paid"></span> / NPR <span id="display-target"></span></div>
+            <div><b>Remaining Online Advance:</b> NPR <span id="display-remaining"></span></div>
         </div>
 
-        <?php if (!$isAdvanceComplete): ?>
-            <p class="soft">NPR <?php echo number_format($remainingAdvance, 2); ?> is still left for online advance. You can pay the next installment now.</p>
-        <?php else: ?>
-            <p class="soft">Online advance is complete. Remaining 50% can be settled offline on event day.</p>
-        <?php endif; ?>
+        <p class="soft" id="display-message"></p>
 
         <div class="btn-row">
-            <?php if (!$isAdvanceComplete): ?>
-                <a href="<?php echo htmlspecialchars($nextInstallmentUrl); ?>" class="btn">Pay Next Installment (NPR <?php echo number_format($nextInstallmentAmount, 2); ?>)</a>
-            <?php endif; ?>
-            <a href="<?php echo htmlspecialchars($bookingDetailsUrl); ?>" class="btn btn-outline">Open This Booking</a>
+            <a href="#" id="next-btn" class="btn" style="display: none;">Pay Next Installment</a>
+            <a href="#" id="view-btn" class="btn btn-outline">Open This Booking</a>
         </div>
 
         <p style="margin-top:12px; font-size:12px; color:#64748b;">Use the buttons above to continue.</p>
     </div>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (async function() {
+            const bookingId = <?php echo (int)$booking_id; ?>;
+            const sessionId = "<?php echo htmlspecialchars($session_id); ?>";
+
+            try {
+                if (!window.emsApi) throw new Error('API Client not loaded');
+
+                const res = await window.emsApi.apiFetch('/api/v1/payments/confirm', {
+                    method: 'POST',
+                    body: { booking_id: bookingId, session_id: sessionId }
+                });
+
+                const data = res.data;
+                document.getElementById('verifying').style.display = 'none';
+                
+                const card = document.getElementById('success-card');
+                card.style.display = 'block';
+                setTimeout(() => card.classList.add('loaded'), 50);
+
+                // Populate UI
+                document.getElementById('display-tx').textContent = 'TX ID: ' + (data.transaction_id || sessionId);
+                document.getElementById('display-paid').textContent = data.paid_advance.toLocaleString();
+                document.getElementById('display-target').textContent = data.advance_target.toLocaleString();
+                document.getElementById('display-remaining').textContent = data.remaining_advance.toLocaleString();
+                
+                const msg = document.getElementById('display-message');
+                if (data.is_advance_complete) {
+                    msg.textContent = "Online advance is complete. Any tiny remaining balance and the final 50% will be settled offline on your event day.";
+                } else {
+                    msg.textContent = `NPR ${data.remaining_advance.toLocaleString()} is still left for online advance. You can pay the next installment now.`;
+                    const nextBtn = document.getElementById('next-btn');
+                    nextBtn.href = `/EventManagementSystem/public/client/payment/checkout?booking_id=${bookingId}`;
+                    nextBtn.textContent = `Pay Next Installment (NPR ${data.next_installment_amount.toLocaleString()})`;
+                    nextBtn.style.display = 'block';
+                }
+
+                document.getElementById('view-btn').href = `/EventManagementSystem/public/client/bookings/view?id=${bookingId}`;
+
+            } catch (err) {
+                console.error('Verification failed:', err);
+                window.location.href = `/EventManagementSystem/public/client/payment/error?booking_id=${bookingId}&reason=verification_failed`;
+            }
+        })();
+    </script>
 </body>
 
 </html>

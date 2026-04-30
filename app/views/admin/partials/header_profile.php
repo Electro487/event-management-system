@@ -82,42 +82,63 @@ if (strlen($headerInitials) > 2) $headerInitials = substr($headerInitials, 0, 2)
             const formData = new FormData();
             formData.append('profile_picture', input.files[0]);
 
-            fetch(`/EventManagementSystem/public/${role}/profile/update`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Error updating profile picture.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred during upload.');
-                });
+            const endpoint = (window.emsApi) ? '/api/v1/auth/profile/picture' : `/EventManagementSystem/public/${role}/profile/update`;
+
+            if (window.emsApi) {
+                window.emsApi.apiFetch(endpoint, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => {
+                        if (res.success) location.reload();
+                        else alert(res.error?.message || 'Error updating profile picture.');
+                    })
+                    .catch(err => alert('Error: ' + err.message));
+            } else {
+                fetch(endpoint, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else alert(data.message || 'Error updating profile picture.');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred during upload.');
+                    });
+            }
         }
     }
 
     function deleteHeaderProfile(role) {
         if (confirm('Are you sure you want to remove your profile picture?')) {
-            fetch(`/EventManagementSystem/public/${role}/profile/delete-picture`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Error deleting profile picture.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred during deletion.');
-                });
+            const endpoint = (window.emsApi) ? '/api/v1/auth/profile/picture' : `/EventManagementSystem/public/${role}/profile/delete-picture`;
+
+            if (window.emsApi) {
+                window.emsApi.apiFetch(endpoint, {
+                        method: 'DELETE'
+                    })
+                    .then(res => {
+                        if (res.success) location.reload();
+                        else alert(res.error?.message || 'Error deleting profile picture.');
+                    })
+                    .catch(err => alert('Error: ' + err.message));
+            } else {
+                fetch(endpoint, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else alert(data.message || 'Error deleting profile picture.');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred during deletion.');
+                    });
+            }
         }
     }
 </script>

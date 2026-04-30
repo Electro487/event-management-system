@@ -31,7 +31,7 @@ if (strlen($initials) > 2)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Notifications — e.PLAN</title>
+    <title>All Notifications - e.PLAN</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -124,33 +124,6 @@ if (strlen($initials) > 2)
                             if (d) d.classList.remove('show');
                         }
                     });
-
-                    function confirmMarkAllUnread() {
-                        fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
-                            .then(r => r.json())
-                            .then(data => {
-                                if (data.success) {
-                                    // Instant UI update
-                                    document.querySelectorAll('.np-item').forEach(item => {
-                                        item.classList.add('unread');
-                                        if (!item.querySelector('.np-unread-dot')) {
-                                            const dot = document.createElement('div');
-                                            dot.className = 'np-unread-dot';
-                                            item.prepend(dot);
-                                        }
-                                        if (!item.querySelector('.np-new-badge')) {
-                                            const title = item.querySelector('.np-item-title');
-                                            const badge = document.createElement('span');
-                                            badge.className = 'np-new-badge';
-                                            badge.textContent = 'New';
-                                            title.appendChild(badge);
-                                        }
-                                        const toggle = item.querySelector('.np-unread-toggle');
-                                        if (toggle) toggle.remove();
-                                    });
-                                }
-                            });
-                    }
                 </script>
             <?php endif; ?>
         </div>
@@ -174,10 +147,13 @@ if (strlen($initials) > 2)
                     <span><?php echo $totalCount; ?> Notification<?php echo $totalCount !== 1 ? 's' : ''; ?></span>
                 </div>
                 <?php if ($totalCount > 0): ?>
-                    <button class="np-unread-all-btn" onclick="confirmMarkAllUnread()">
+                    <button class="np-unread-all-btn" id="mark-all-read-btn" data-action="mark-all-read">
+                        <i class="fa-solid fa-check-double"></i> Mark all as read
+                    </button>
+                    <button class="np-unread-all-btn" id="mark-all-unread-btn" data-action="mark-all-unread">
                         <i class="fa-solid fa-envelope-open"></i> Mark all as unread
                     </button>
-                    <button class="np-clear-all-btn" onclick="confirmClearAll()">
+                    <button class="np-clear-all-btn" id="clear-all-btn" data-action="clear-all">
                         <i class="fa-solid fa-trash-can"></i> Clear All
                     </button>
                 <?php endif; ?>
@@ -399,45 +375,8 @@ if (strlen($initials) > 2)
 
     </div>
 
-    <!-- External JS for Dropdown & Deletion Logic -->
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
-    <script>
-        window.deleteNotification = function(id) {
-            if (!confirm("Remove this notification?")) return;
-
-            fetch('/EventManagementSystem/public/notifications/delete?id=' + id)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const el = document.getElementById('np-item-' + id);
-                        if (el) {
-                            el.style.opacity = '0';
-                            el.style.transform = 'translateY(10px)';
-                            setTimeout(() => {
-                                el.remove();
-                                // Optional: Check if we need to show empty state
-                                const list = document.querySelector('.np-list');
-                                if (list && list.children.length === 0) {
-                                    window.location.reload();
-                                }
-                            }, 300);
-                        }
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function confirmClearAll() {
-            if (!confirm("Are you sure you want to clear ALL your notifications? This cannot be undone.")) return;
-            fetch('/EventManagementSystem/public/notifications/clear-all', { method: 'POST' })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) location.reload();
-                });
-        }
-
-        // The markAllUnread functionality is now handled by the function at the top of this view.
-    </script>
 </body>
 
 </html>
