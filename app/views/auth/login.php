@@ -108,29 +108,25 @@
                 if (!token) throw new Error('Login succeeded but no token returned.');
 
                 window.emsApi.setToken(token);
-                showStatus('API Authenticated. Establishing session...', false);
+                showStatus('Authentication successful! Redirecting...', false);
 
-                // We sync with the PHP session by submitting the form normally
-                isSyncing = true;
+                // No longer need to submit the form. The AuthBridge will handle the PHP session via cookie.
+                const user = res?.data?.user;
+                const role = user?.role || 'client';
+                
                 setTimeout(() => {
-                    form.submit();
-                }, 500);
+                    if (role === 'admin') window.location.href = '/EventManagementSystem/public/admin/dashboard';
+                    else if (role === 'organizer') window.location.href = '/EventManagementSystem/public/organizer/dashboard';
+                    else window.location.href = '/EventManagementSystem/public/client/home';
+                }, 800);
 
             } catch (err) {
                 console.warn('%c[API Auth] Failed:', 'color: #e67e22; font-weight: bold;', err.message);
                 
-                // If it's a validation/auth error from API (4xx), show it instead of falling back immediately
-                if (err.status && err.status < 500) {
-                    showStatus(err.message);
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                } else {
-                    // Critical error or server down: Fall back to MVC submit
-                    showStatus('API Unavailable. Falling back to standard login...');
-                    try { window.emsApi.clearToken(); } catch {}
-                    isSyncing = true;
-                    setTimeout(() => form.submit(), 1000);
-                }
+                // Always show API error instead of falling back
+                showStatus(err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
             }
         });
     })();

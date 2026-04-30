@@ -13,16 +13,18 @@ class Booking
 
     public function create($data)
     {
-        $sql = "INSERT INTO bookings (event_id, client_id, package_tier, event_date, guest_count, full_name, email, phone, checkin_time, total_amount, status, payment_status) 
-                VALUES (:event_id, :client_id, :package_tier, :event_date, :guest_count, :full_name, :email, :phone, :checkin_time, :total_amount, :status, :payment_status)";
+        $sql = "INSERT INTO bookings (event_id, event_snapshot, client_id, package_tier, package_snapshot, event_date, guest_count, full_name, email, phone, checkin_time, total_amount, status, payment_status) 
+                VALUES (:event_id, :event_snapshot, :client_id, :package_tier, :package_snapshot, :event_date, :guest_count, :full_name, :email, :phone, :checkin_time, :total_amount, :status, :payment_status)";
 
         $stmt = $this->db->prepare($sql);
 
         $status = $data['status'] ?? 'pending';
 
         $stmt->bindParam(':event_id', $data['event_id']);
+        $stmt->bindParam(':event_snapshot', $data['event_snapshot']);
         $stmt->bindParam(':client_id', $data['client_id']);
         $stmt->bindParam(':package_tier', $data['package_tier']);
+        $stmt->bindParam(':package_snapshot', $data['package_snapshot']);
         $stmt->bindParam(':event_date', $data['event_date']);
         $stmt->bindParam(':guest_count', $data['guest_count']);
         $stmt->bindParam(':full_name', $data['full_name']);

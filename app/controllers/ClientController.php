@@ -4,9 +4,8 @@ class ClientController
 {
     private function checkClientAuth()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+        require_once dirname(__DIR__) . '/helpers/AuthBridge.php';
+        AuthBridge::sync();
 
         if (!isset($_SESSION['user_id'])) {
             header('Location: /EventManagementSystem/public/login');

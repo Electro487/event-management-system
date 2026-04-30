@@ -140,15 +140,9 @@
                     }
                 } catch (err) {
                     console.warn('%c[API Auth] Registration Failed:', 'color: #e67e22; font-weight: bold;', err.message);
-                    
-                    if (err.status && err.status < 500) {
-                        showStatus(err.message);
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-                    } else {
-                        showStatus('API Unavailable. Falling back to standard registration...');
-                        setTimeout(() => form.submit(), 1500);
-                    }
+                    showStatus(err.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
         })();

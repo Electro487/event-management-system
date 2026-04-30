@@ -12,9 +12,28 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-weight: 600;
+            color: #1e293b;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">Loading...</div>
 
     <?php
     $activePage = 'events';
@@ -77,7 +96,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="<?php echo $formAction; ?>" method="POST" enctype="multipart/form-data" class="create-event-form" id="createEventForm">
+        <form action="javascript:void(0)" method="POST" enctype="multipart/form-data" class="create-event-form" id="createEventForm">
             <?php if ($isEdit): ?>
                 <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
                 <input type="hidden" name="organizer_id" value="<?php echo $event['organizer_id']; ?>">
@@ -96,15 +115,23 @@
                     </div>
                     <div class="form-group">
                         <label>CATEGORY SELECTION</label>
-                        <select name="category" required>
-                            <option value="">-- Select Category --</option>
-                            <?php
-                            $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
-                            foreach ($categories as $cat):
-                            ?>
-                                <option value="<?php echo $cat; ?>" <?php echo (isset($event['category']) && $event['category'] == $cat) ? 'selected' : ''; ?>><?php echo $cat; ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="custom-premium-dropdown" id="categoryDropdown" style="width: 100%; height: 50px; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px;">
+                            <div class="dropdown-trigger" style="padding: 0 15px; font-weight: 500;">
+                                <span class="selected-val"><?php echo $event['category'] ?? '-- Select Category --'; ?></span>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </div>
+                            <div class="dropdown-menu">
+                                <?php
+                                $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                                foreach ($categories as $cat):
+                                ?>
+                                    <div class="dropdown-item <?php echo (isset($event['category']) && $event['category'] == $cat) ? 'active' : ''; ?>" data-value="<?php echo $cat; ?>">
+                                        <?php echo $cat; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <input type="hidden" name="category" value="<?php echo htmlspecialchars($event['category'] ?? ''); ?>" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>DESCRIPTION</label>
@@ -493,7 +520,10 @@
             });
         });
 
-        eventForm.addEventListener('submit', function(e) {
+        eventForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // ─────────────── VALIDATION ───────────────
             const basicVal = document.querySelector('input[name="packages[basic][price]"]').value;
             const standardVal = document.querySelector('input[name="packages[standard][price]"]').value;
             const premiumVal = document.querySelector('input[name="packages[premium][price]"]').value;
@@ -503,37 +533,84 @@
             const premium = parseInt(premiumVal, 10);
 
             if (![basicVal, standardVal, premiumVal].every(v => /^\d+$/.test(v))) {
-                e.preventDefault();
                 alert('Package prices must be numbers only (no decimals or symbols).');
                 return;
             }
 
             if ([basic, standard, premium].some(v => v <= 0)) {
-                e.preventDefault();
                 alert('All package prices must be greater than 0.');
                 return;
             }
 
             if ([basic, standard, premium].some(v => v > MAX_PACKAGE_PRICE)) {
-                e.preventDefault();
                 alert('Package price cannot exceed NPR 2,00,00,000.');
                 return;
             }
 
             if (basic >= MAX_PACKAGE_PRICE || standard >= MAX_PACKAGE_PRICE) {
-                e.preventDefault();
                 alert('Only premium package can be set to NPR 2,00,00,000. Basic and standard must be lower.');
                 return;
             }
 
             if (!(basic < standard && standard < premium)) {
-                e.preventDefault();
                 alert('Price order must be: Basic < Standard < Premium.');
+                return;
+            }
+
+            // ─────────────── API SUBMISSION ───────────────
+            const form = this;
+            const formData = new FormData(form);
+            const isEdit = <?php echo $isEdit ? 'true' : 'false'; ?>;
+            const eventId = <?php echo $isEdit ? (int)$event['id'] : 'null'; ?>;
+            
+            // Show loading state
+            const submitBtns = form.querySelectorAll('button[type="submit"]');
+            submitBtns.forEach(btn => btn.disabled = true);
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) {
+                overlay.textContent = isEdit ? 'Updating event...' : 'Creating event...';
+                overlay.style.display = 'flex';
+            }
+
+            // Add status from the button clicked
+            const status = e.submitter ? e.submitter.value : 'draft';
+            formData.set('status', status);
+
+            if (window.emsApi) {
+                const endpoint = isEdit ? `/api/v1/events/${eventId}` : '/api/v1/events';
+                
+                if (isEdit) {
+                    formData.append('_method', 'PUT'); 
+                }
+
+                try {
+                    const res = await window.emsApi.apiFetch(endpoint, {
+                        method: 'POST', 
+                        body: formData
+                    });
+                    
+                    if (res.success) {
+                        window.location.href = '/EventManagementSystem/public/organizer/events?success=1';
+                    } else {
+                        throw new Error(res.error?.message || 'Submission failed');
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                    if(overlay) overlay.style.display = 'none';
+                    submitBtns.forEach(btn => btn.disabled = false);
+                }
+            } else {
+                form.submit(); // Fallback
             }
         });
     </script>
-
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script>
+        window.addEventListener('load', () => {
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) overlay.style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

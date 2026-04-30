@@ -17,6 +17,8 @@ class DashboardService
                 'total_users' => $userModel->countAll(),
                 'pending_requests' => $bookingModel->countByStatus('pending'),
                 'revenue' => $bookingModel->getTotalSystemRevenue(),
+                'recent_bookings' => $bookingModel->getRecent(5),
+                'upcoming_events' => $eventModel->getUpcoming(5),
             ],
         ];
     }
@@ -26,6 +28,19 @@ class DashboardService
         $eventModel = new Event();
         $bookingModel = new Booking();
 
+        $recentBookings = $bookingModel->getRecentByOrganizer($organizerId, 5);
+        $today = date('Y-m-d');
+        foreach ($recentBookings as &$b) {
+            $dateStr = $b['event_date'] ?? null;
+            $isPast = ($dateStr && $dateStr < $today);
+            $displayStatus = strtolower($b['status']);
+            if ($displayStatus === 'confirmed' && $isPast) {
+                $displayStatus = 'completed';
+            }
+            $b['display_status'] = $displayStatus;
+        }
+        unset($b);
+
         return [
             'ok' => true,
             'status' => 200,
@@ -34,6 +49,13 @@ class DashboardService
                 'total_bookings' => $bookingModel->countByOrganizer($organizerId),
                 'pending_requests' => $bookingModel->countByStatusForOrganizer($organizerId, 'pending'),
                 'revenue' => $bookingModel->getRevenueByOrganizer($organizerId),
+                'status_summary' => [
+                    'confirmed' => $bookingModel->countByStatusForOrganizer($organizerId, 'confirmed'),
+                    'pending' => $bookingModel->countByStatusForOrganizer($organizerId, 'pending'),
+                    'cancelled' => $bookingModel->countByStatusForOrganizer($organizerId, 'cancelled')
+                ],
+                'recent_bookings' => $recentBookings,
+                'upcoming_events' => $eventModel->getUpcomingEvents($organizerId, 5),
             ],
         ];
     }

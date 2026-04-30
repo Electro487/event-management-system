@@ -41,6 +41,10 @@ class Request
             return $_POST[$key];
         }
 
+        if (array_key_exists($key, $_FILES)) {
+            return $_FILES[$key];
+        }
+
         if (array_key_exists($key, $_GET)) {
             return $_GET[$key];
         }
@@ -54,7 +58,8 @@ class Request
             self::capture();
         }
 
-        return self::$jsonBody;
+        // Return merged body for comprehensive data access
+        return array_merge(self::$jsonBody, $_POST, $_FILES);
     }
 
     public static function param(string $key, $default = null)

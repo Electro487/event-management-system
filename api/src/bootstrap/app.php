@@ -12,6 +12,7 @@ require_once dirname(__DIR__) . '/controllers/BookingApiController.php';
 require_once dirname(__DIR__) . '/controllers/DashboardApiController.php';
 require_once dirname(__DIR__) . '/controllers/PaymentApiController.php';
 require_once dirname(__DIR__) . '/controllers/NotificationApiController.php';
+require_once dirname(__DIR__) . '/controllers/UserApiController.php';
 require_once dirname(__DIR__, 3) . '/app/models/User.php';
 require_once dirname(__DIR__, 3) . '/app/models/Event.php';
 require_once dirname(__DIR__, 3) . '/app/models/Booking.php';
@@ -24,10 +25,17 @@ require_once dirname(__DIR__) . '/services/BookingService.php';
 require_once dirname(__DIR__) . '/services/DashboardService.php';
 require_once dirname(__DIR__) . '/services/PaymentService.php';
 require_once dirname(__DIR__) . '/services/NotificationService.php';
+require_once dirname(__DIR__) . '/services/UserService.php';
 
 $routes = require __DIR__ . '/routes.php';
 
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if ($requestMethod === 'POST' && isset($_POST['_method'])) {
+    $spoofed = strtoupper($_POST['_method']);
+    if (in_array($spoofed, ['PUT', 'PATCH', 'DELETE'])) {
+        $requestMethod = $spoofed;
+    }
+}
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 
 $basePath = '/EventManagementSystem/public';
@@ -86,7 +94,8 @@ try {
     $controller = new $controllerClass();
     $controller->{$controllerMethod}();
 } catch (Throwable $e) {
-    ApiResponse::error('Internal server error', 500, [
+    error_log("API Error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+    ApiResponse::error('Internal server error: ' . $e->getMessage(), 500, [
         'exception' => $e->getMessage(),
     ], 'INTERNAL_SERVER_ERROR');
 }

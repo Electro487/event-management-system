@@ -81,6 +81,31 @@ class AuthApiController
         $this->respond($result);
     }
 
+    public function updateProfile(): void
+    {
+        $authUser = $GLOBALS['api_auth_user'];
+        $result = $this->authService->updateProfile($authUser, trim((string)Request::input('fullname', '')));
+        $this->respond($result);
+    }
+
+    public function updateProfilePicture(): void
+    {
+        $authUser = $GLOBALS['api_auth_user'];
+        if (!isset($_FILES['profile_picture'])) {
+            ApiResponse::error('No image provided', 422);
+            return;
+        }
+        $result = $this->authService->updateProfilePicture($authUser, $_FILES['profile_picture']);
+        $this->respond($result);
+    }
+
+    public function deleteProfilePicture(): void
+    {
+        $authUser = $GLOBALS['api_auth_user'];
+        $result = $this->authService->deleteProfilePicture($authUser);
+        $this->respond($result);
+    }
+
     private function respond(array $result): void
     {
         if (!($result['ok'] ?? false)) {

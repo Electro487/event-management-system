@@ -181,9 +181,27 @@ class EventService
             'event_date' => null,
             'venue_name' => trim((string)($payload['venue_name'] ?? ($existing['venue_name'] ?? ''))),
             'venue_location' => trim((string)($payload['venue_location'] ?? ($existing['venue_location'] ?? ''))),
-            'image_path' => trim((string)($payload['image_path'] ?? ($existing['image_path'] ?? ''))) ?: null,
+            'image_path' => $this->handleImageUpload($payload['image'] ?? null) ?: ($payload['image_path'] ?? ($existing['image_path'] ?? null)),
             'packages' => json_encode($packages),
         ];
+    }
+
+    private function handleImageUpload(?array $fileInfo): ?string
+    {
+        if ($fileInfo && isset($fileInfo['error']) && $fileInfo['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = dirname(__DIR__, 3) . '/public/assets/images/events/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $fileExtension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
+            $fileName = 'event_' . uniqid() . '_' . time() . '.' . $fileExtension;
+            $targetFile = $uploadDir . $fileName;
+
+            if (move_uploaded_file($fileInfo['tmp_name'], $targetFile)) {
+                return '/EventManagementSystem/public/assets/images/events/' . $fileName;
+            }
+        }
+        return null;
     }
 
     private function validatePackagePricing($packages): array

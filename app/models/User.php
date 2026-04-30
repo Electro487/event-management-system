@@ -242,11 +242,22 @@ class User
 
     public function updateProfilePicture($userId, $path)
     {
+        return $this->updateProfile($userId, ['profile_picture' => $path]);
+    }
+
+    public function updateProfile($id, $data)
+    {
         $pdo = $this->db->getConnection();
-        $sql = "UPDATE users SET profile_picture = :path WHERE id = :id";
+        $fields = [];
+        foreach ($data as $key => $val) {
+            $fields[] = "$key = :$key";
+        }
+        $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = :id";
         $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':path', $path);
-        $stmt->bindParam(':id', $userId);
+        $stmt->bindParam(':id', $id);
+        foreach ($data as $key => &$val) {
+            $stmt->bindParam(":$key", $val);
+        }
         return $stmt->execute();
     }
 

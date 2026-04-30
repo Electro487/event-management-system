@@ -13,6 +13,9 @@ return [
     ['POST', '/api/v1/auth/reset-password', [AuthApiController::class, 'resetPassword'], []],
     ['POST', '/api/v1/auth/logout', [AuthApiController::class, 'logout'], []],
     ['GET', '/api/v1/auth/me', [AuthApiController::class, 'me'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/auth/profile', [AuthApiController::class, 'updateProfile'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/auth/profile/picture', [AuthApiController::class, 'updateProfilePicture'], [JwtAuthMiddleware::class]],
+    ['DELETE', '/api/v1/auth/profile/picture', [AuthApiController::class, 'deleteProfilePicture'], [JwtAuthMiddleware::class]],
 
     // Events
     ['GET', '/api/v1/events', [EventApiController::class, 'index'], [JwtAuthMiddleware::class]],
@@ -50,4 +53,9 @@ return [
     ['PATCH', '/api/v1/notifications/mark-all-unread', [NotificationApiController::class, 'markAllUnread'], [JwtAuthMiddleware::class]],
     ['DELETE', '/api/v1/notifications/{id}', [NotificationApiController::class, 'deleteOne'], [JwtAuthMiddleware::class]],
     ['DELETE', '/api/v1/notifications', [NotificationApiController::class, 'deleteAll'], [JwtAuthMiddleware::class]],
+
+    // Admin User Management
+    ['GET', '/api/v1/admin/users', [UserApiController::class, 'index'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/admin/users/update-role', [UserApiController::class, 'updateRole'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/admin/users/toggle-block', [UserApiController::class, 'toggleBlock'], [JwtAuthMiddleware::class]],
 ];

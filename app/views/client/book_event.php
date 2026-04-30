@@ -451,7 +451,8 @@ if (empty($items)) {
 
                                 if (confirm("Notice: Your booking will remain 'PENDING' and is NOT secured until the 50% advance is received. You can pay this later from your 'My Bookings' dashboard. Do you want to proceed and book now?")) {
                                     document.getElementById('pay_later_flag').value = '1';
-                                    form.submit();
+                                    // Trigger the submit event listener which handles the API call
+                                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
                                 }
                             }
                         </script>
@@ -494,6 +495,14 @@ if (empty($items)) {
 
                 if (!form.reportValidity()) return;
 
+                // Disable buttons
+                const submitBtns = form.querySelectorAll('button');
+                submitBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                    btn.style.cursor = 'not-allowed';
+                });
+
                 const fd = new FormData(form);
                 const payLater = (fd.get('pay_later') === '1');
 
@@ -528,8 +537,14 @@ if (empty($items)) {
                     if (!url) throw new Error('Checkout created but missing checkout_url.');
                     window.location.href = url;
                 } catch (err) {
-                    console.error('API booking flow failed, falling back to MVC submit.', err);
-                    form.submit();
+                    console.error('API booking flow failed:', err);
+                    alert('Error: ' + err.message);
+                    // Re-enable buttons on error
+                    submitBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                    });
                 }
             });
         })();

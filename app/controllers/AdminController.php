@@ -91,18 +91,6 @@ class AdminController
     public function users()
     {
         $this->checkAuth();
-        require_once dirname(__DIR__) . '/models/User.php';
-        $userModel = new User();
-
-        $users = $userModel->getAll();
-
-        $stats = [
-            'total' => count($users),
-            'clients' => $userModel->countByRole('client'),
-            'organizers' => $userModel->countByRole('organizer'),
-            'blocked' => $userModel->countBlocked()
-        ];
-
         require_once dirname(__DIR__) . '/views/admin/user_management.php';
     }
 

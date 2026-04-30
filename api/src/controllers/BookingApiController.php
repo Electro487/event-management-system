@@ -26,7 +26,7 @@ class BookingApiController
 
     public function cancel(): void
     {
-        $this->respond($this->service->cancelByClient($GLOBALS['api_auth_user'] ?? [], (int)Request::param('id', 0)));
+        $this->respond($this->service->cancel($GLOBALS['api_auth_user'] ?? [], (int)Request::param('id', 0)));
     }
 
     public function approve(): void

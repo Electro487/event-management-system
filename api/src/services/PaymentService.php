@@ -33,6 +33,15 @@ class PaymentService
         $advanceTarget = (float)$booking['total_amount'] * 0.50;
         $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
+
+        // Stripe minimum charge for NPR is 50. If remaining is less than that, we can't charge it.
+        // We consider it complete if the remaining balance is negligible (< 50 NPR) and they've already paid something.
+        // Treat as complete if remaining balance is negligible (< 50 NPR)
+        // Treat as complete if remaining balance is negligible (< 50 NPR)
+        if ($remainingAdvance < 50 && $paidAdvance > 0) {
+            return ['ok' => false, 'status' => 409, 'message' => 'Advance target already completed. Any tiny remaining balance will be settled offline on the event day.'];
+        }
+
         if ($remainingAdvance <= 0.009) {
             return ['ok' => false, 'status' => 409, 'message' => 'Advance target already completed.'];
         }
@@ -172,7 +181,7 @@ class PaymentService
                 'advance_target' => $advanceTarget,
                 'paid_advance' => $paidAdvance,
                 'remaining_advance' => $remainingAdvance,
-                'is_advance_complete' => $remainingAdvance <= 0.009,
+                'is_advance_complete' => ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $paidAdvance > 0),
                 'next_installment_amount' => min($remainingAdvance, 999999.99),
             ],
         ];

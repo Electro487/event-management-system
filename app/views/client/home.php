@@ -4,14 +4,17 @@
  *  @var int $totalBookings @var int $upcomingCount @var int $completedCount @var int $pendingCount */
 
 $initials = '';
-$nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+$fullName = trim($_SESSION['user_fullname'] ?? '');
+if (!$fullName) $fullName = 'User';
+$nameParts = explode(' ', $fullName);
+
 foreach ($nameParts as $p) {
     if (!empty($p)) $initials .= strtoupper(substr($p, 0, 1));
 }
 if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
 $firstName   = $nameParts[0] ?? '';
 $lastName    = count($nameParts) > 1 ? end($nameParts) : '';
-$displayName = $_SESSION['user_fullname'] ?? 'User';
+$displayName = $fullName;
 ?>
 <!DOCTYPE html>
 <html lang="en">

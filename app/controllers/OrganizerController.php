@@ -47,57 +47,21 @@ class OrganizerController
     public function dashboard()
     {
         $this->checkAuth();
-        $organizer_id = $_SESSION['user_id'];
-
-        require_once dirname(__DIR__) . '/models/Event.php';
-        require_once dirname(__DIR__) . '/models/Booking.php';
-
-        $eventModel = new Event();
-        $bookingModel = new Booking();
-
-        // Fetch Real Statistics
-        $totalEvents = $eventModel->getTotalEvents($organizer_id);
-        $totalBookings = $bookingModel->countByOrganizer($organizer_id);
-        $pendingRequests = $bookingModel->countByStatusForOrganizer($organizer_id, 'pending');
-
-        // Fetch Recent Bookings (Limit 5)
-        $recentBookings = $bookingModel->getRecentByOrganizer($organizer_id, 5);
-
-        // Status logic for recent bookings
-        $today = date('Y-m-d');
-        foreach ($recentBookings as &$b) {
-            $dateStr = $b['event_date'] ?? null;
-            $isPast = ($dateStr && $dateStr < $today);
-            $displayStatus = strtolower($b['status']);
-            if ($displayStatus === 'confirmed' && $isPast) {
-                $displayStatus = 'completed';
-            }
-            $b['display_status'] = $displayStatus;
-        }
-        unset($b);
-
-        // Fetch Upcoming Events with Confirmed Bookings (Limit 5)
-        $upcomingEvents = $eventModel->getUpcomingEvents($organizer_id, 5);
-
-        // Status Summary
-        $statusSummary = [
-            'confirmed' => $bookingModel->countByStatusForOrganizer($organizer_id, 'confirmed'),
-            'pending' => $pendingRequests,
-            'cancelled' => $bookingModel->countByStatusForOrganizer($organizer_id, 'cancelled')
-        ];
-
+        // Data is now fetched via API in the view
         require_once dirname(__DIR__) . '/views/organizer/dashboard.php';
+    }
+
+    public function bookings()
+    {
+        $this->checkAuth();
+        // Data is now fetched via API in the view
+        require_once dirname(__DIR__) . '/views/organizer/bookings.php';
     }
 
     public function events()
     {
         $this->checkAuth();
-
-        require_once dirname(__DIR__) . '/models/Event.php';
-        /** @var \Event $eventModel */
-        $eventModel = new Event();
-        $events = $eventModel->getAllByOrganizer($_SESSION['user_id']);
-
+        // Data is now fetched via API in the view
         require_once dirname(__DIR__) . '/views/organizer/events.php';
     }
 
@@ -342,75 +306,10 @@ class OrganizerController
         exit;
     }
 
-    public function bookings()
-    {
-        $this->checkAuth();
-
-        require_once dirname(__DIR__) . '/models/Booking.php';
-        $bookingModel = new Booking();
-
-        $bookings = $bookingModel->getByOrganizer($_SESSION['user_id']);
-
-        $totalBookings = count($bookings);
-        $confirmedCount = 0;
-        $pendingCount = 0;
-        $cancelledCount = 0;
-        $completedCount = 0;
-
-        $today = date('Y-m-d');
-        foreach ($bookings as &$b) {
-            $dateStr = $b['event_date'] ?: ($b['event_start_date'] ?? '9999-12-31');
-            $isPast = ($dateStr < $today);
-
-            $displayStatus = strtolower($b['status']);
-            if ($displayStatus === 'confirmed' && $isPast) {
-                $displayStatus = 'completed';
-            }
-            $b['display_status'] = $displayStatus;
-
-            if ($displayStatus === 'confirmed')
-                $confirmedCount++;
-            if ($displayStatus === 'pending')
-                $pendingCount++;
-            if ($displayStatus === 'cancelled')
-                $cancelledCount++;
-            if ($displayStatus === 'completed')
-                $completedCount++;
-        }
-        unset($b); // Important: break the reference to the last element
-
-        require_once dirname(__DIR__) . '/views/organizer/bookings.php';
-    }
-
     public function viewBookingDetails()
     {
         $this->checkAuth();
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            header('Location: /EventManagementSystem/public/organizer/bookings');
-            exit;
-        }
-
-        require_once dirname(__DIR__) . '/models/Booking.php';
-        $bookingModel = new Booking();
-        $booking = $bookingModel->getById($id);
-
-        if (!$booking || $booking['organizer_id'] != $_SESSION['user_id']) {
-            header('Location: /EventManagementSystem/public/organizer/bookings');
-            exit;
-        }
-
-        // Dynamic Status Logic: Past confirmed bookings reflect as 'completed'
-        $today = date('Y-m-d');
-        $dateStr = $booking['event_date'] ?: ($booking['event_start_date'] ?? '9999-12-31');
-        $isPast = ($dateStr < $today);
-
-        $displayStatus = strtolower($booking['status']);
-        if ($displayStatus === 'confirmed' && $isPast) {
-            $displayStatus = 'completed';
-        }
-        $booking['display_status'] = $displayStatus;
-
+        // Data is now fetched via API in the view
         require_once dirname(__DIR__) . '/views/organizer/booking_detail.php';
     }
 

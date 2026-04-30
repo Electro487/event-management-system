@@ -10,6 +10,7 @@ class AuthController
         // Need to require User.php inside index.php or here.
         require_once dirname(__DIR__) . '/models/User.php';
         require_once dirname(__DIR__) . '/helpers/MailHelper.php';
+        require_once APP_ROOT . '/../api/src/utils/JwtHelper.php';
         $this->userModel = new User();
 
         // Start session if not started
@@ -150,8 +151,6 @@ class AuthController
                         $_SESSION['user_email'] = $user['email'];
                         $_SESSION['user_role'] = $user['role'];
                         $_SESSION['user_fullname'] = $user['fullname'];
-                        $_SESSION['user_profile_pic'] = $user['profile_picture'] ?? null;
-
                         // Redirect based on role
                         $role = $user['role'];
                         if ($role === 'admin') {
@@ -161,6 +160,16 @@ class AuthController
                         } else {
                             $redirect = '/EventManagementSystem/public/client/home';
                         }
+
+                        // Generate JWT for API compatibility
+                        $token = JwtHelper::issue([
+                            'id' => $user['id'],
+                            'email' => $user['email'],
+                            'role' => $user['role'],
+                            'fullname' => $user['fullname']
+                        ]);
+                        setcookie('ems_jwt', $token, time() + (7 * 24 * 60 * 60), '/', '', false, true);
+
                         header('Location: ' . $redirect);
                         exit;
                     }
@@ -285,11 +294,16 @@ class AuthController
 
     public function logout()
     {
+        // Clear PHP Session
         unset($_SESSION['user_id']);
         unset($_SESSION['user_email']);
         unset($_SESSION['user_fullname']);
         unset($_SESSION['user_role']);
         session_destroy();
+
+        // Clear JWT Cookie
+        setcookie('ems_jwt', '', time() - 3600, '/');
+
         header('Location: /EventManagementSystem/public/login');
         exit;
     }

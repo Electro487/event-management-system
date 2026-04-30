@@ -4,86 +4,12 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Data Preparation
-$id = $booking['id'];
-$status = strtolower($booking['status']);
-$displayStatus = $booking['display_status'] ?? $status;
-$fullName = $booking['full_name'] ?: 'Unknown Client';
-$clientInitials = strtoupper(substr($fullName, 0, 1) . substr(strrchr($fullName, ' '), 1, 1));
-if (strlen($clientInitials) < 2) $clientInitials = strtoupper(substr($fullName, 0, 2));
-
-$eventTitle = $booking['event_title'];
-$category = $booking['event_category'];
-$packageTier = strtoupper($booking['package_tier']);
-$eventDateStr = $booking['event_date'] ?: $booking['event_start_date'];
-$eventDate = new DateTime($eventDateStr);
-$guestCount = $booking['guest_count'];
-$venueName = $booking['venue_name'] ?: 'Royal Palace';
-$venueLocation = $booking['venue_location'] ?: 'Bhaktapur';
-$eventImage = $booking['event_image'] ?: '/EventManagementSystem/public/assets/images/placeholder.jpg';
-
-// Package Features logic
-$allPackages = json_decode($booking['event_packages'] ?? '[]', true);
-$features = [];
-$packageDesc = "Most popular for " . strtolower($packageTier) . " events";
-
-$tierKey = strtolower($booking['package_tier']);
-if (isset($allPackages[$tierKey])) {
-    $pkg = $allPackages[$tierKey];
-    $items = $pkg['items'] ?? [];
-    $features = array_map(function($item) {
-        return $item['title'];
-    }, $items);
-    
-    if (!empty($pkg['description'])) {
-        $packageDesc = $pkg['description'];
-    }
-}
-
-$totalAmount = $booking['total_amount'];
-$basePrice = $totalAmount;
-
-// Timeline Logic
-$currentDate = new DateTime();
-$todayStr = $currentDate->format('Y-m-d');
-$eventDateStr = $eventDate->format('Y-m-d');
-
-function getStepClass($stepKey, $currentStatus, $currentDate, $eventDate) {
-    if ($currentStatus === 'cancelled') return '';
-    
-    $todayStr = $currentDate->format('Y-m-d');
-    $eventDateStr = $eventDate->format('Y-m-d');
-    
-    switch ($stepKey) {
-        case 'received':
-        case 'review':
-            return 'completed';
-        case 'confirmed':
-            if ($currentStatus === 'confirmed' || $currentStatus === 'completed') return 'completed';
-            return '';
-        case 'event':
-            if ($currentStatus !== 'confirmed' && $currentStatus !== 'completed') return '';
-            if ($todayStr === $eventDateStr) return 'active';
-            if ($todayStr > $eventDateStr) return 'completed';
-            return '';
-        case 'completed':
-            if ($currentStatus !== 'confirmed' && $currentStatus !== 'completed') return '';
-            return ($todayStr > $eventDateStr) ? 'completed' : '';
-        default:
-            return '';
-    }
-}
-
-$steps = [
-    ['label' => 'Received', 'desc' => 'Booking received successfully', 'key' => 'received'],
-    ['label' => 'Under Review', 'desc' => ($status === 'cancelled') ? 'Booking cancelled' : 'Reviewing event details', 'key' => 'review'],
-    ['label' => 'Confirmed', 'desc' => ($status === 'confirmed' || $status === 'completed') ? 'Booking confirmed' : 'Awaiting confirmation', 'key' => 'confirmed'],
-    ['label' => 'Event Day', 'desc' => 'Scheduled for ' . $eventDate->format('M d, Y'), 'key' => 'event'],
-    ['label' => 'Completed', 'desc' => ($todayStr > $eventDateStr && $status !== 'cancelled') ? 'Event successfully completed' : 'Pending event day', 'key' => 'completed']
-];
+$id = $_GET['id'] ?? 0;
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,29 +20,34 @@ $steps = [
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking-detail.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
+
 <body>
 
-    <?php 
-        $activePage = 'bookings';
-        include_once dirname(__DIR__) . "/admin/partials/sidebar.php"; 
+    <?php
+    $activePage = 'bookings';
+    include_once dirname(__DIR__) . "/admin/partials/sidebar.php";
     ?>
 
     <main class="main-content">
         <header class="detail-header">
             <div class="header-left-info">
                 <div class="breadcrumb-container">
-                    <a href="/EventManagementSystem/public/admin/bookings" class="bc-link">Bookings</a> 
-                    <span class="separator">❯</span> 
-                    <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $id; ?>" class="bc-link current">Booking Detail</a>
+                    <a href="/EventManagementSystem/public/admin/bookings" class="bc-link">Bookings</a>
+                    <span class="separator">❯</span>
+                    <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $id; ?>"
+                        class="bc-link current">Booking Detail</a>
                 </div>
                 <div class="title-section">
-                    <h1>Booking #BK-<?php echo str_pad($id, 3, '0', STR_PAD_LEFT); ?> <span class="badge-status <?php echo $displayStatus; ?>"><?php echo strtoupper($displayStatus); ?></span></h1>
-                    <p class="sub-title"><?php echo htmlspecialchars($eventTitle); ?> — <?php echo ucfirst(strtolower($packageTier)); ?> Package</p>
+                    <h1>Booking #BK-<span id="booking-id-pad">...</span> <span class="badge-status"
+                            id="booking-status-badge">...</span></h1>
+                    <p class="sub-title"><span id="event-title-display">...</span> - <span
+                            id="package-tier-display">...</span> Package</p>
                 </div>
             </div>
 
             <div class="header-right-actions">
-                <a href="/EventManagementSystem/public/admin/bookings" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Bookings</a>
+                <a href="/EventManagementSystem/public/admin/bookings" class="back-link"><i
+                        class="fa-solid fa-arrow-left"></i> Back to Bookings</a>
                 <div class="header-icons-center">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
@@ -135,7 +66,8 @@ $steps = [
                                 </div>
                             </div>
                             <div class="nd-footer">
-                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
+                                    Notifications <i class="fa-solid fa-arrow-right"></i></a>
                             </div>
                         </div>
                     </div>
@@ -155,18 +87,16 @@ $steps = [
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="client-info-main">
-                        <div class="client-avatar-large <?php echo $tierKey; ?>-av">
-                            <?php if (!empty($booking['client_profile_pic'])): ?>
-                                <img src="<?php echo htmlspecialchars($booking['client_profile_pic']); ?>" alt="Client" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
-                            <?php else: ?>
-                                <?php echo $clientInitials; ?>
-                            <?php endif; ?>
+                        <div class="client-avatar-large" id="client-avatar-display">
+                            --
                         </div>
                         <div class="client-details">
-                            <h3><?php echo htmlspecialchars($fullName); ?></h3>
+                            <h3 id="client-name-display">...</h3>
                             <div class="contact-row">
-                                <span><i class="fa-solid fa-phone"></i> <?php echo htmlspecialchars($booking['phone'] ?: '+977 9801234567'); ?></span>
-                                <span><i class="fa-solid fa-envelope"></i> <?php echo htmlspecialchars($booking['email']); ?></span>
+                                <span><i class="fa-solid fa-phone"></i> <span
+                                        id="client-phone-display">...</span></span>
+                                <span><i class="fa-solid fa-envelope"></i> <span
+                                        id="client-email-display">...</span></span>
                             </div>
                         </div>
                     </div>
@@ -175,30 +105,31 @@ $steps = [
                 <!-- Event Overview Card -->
                 <div class="card event-overview-card">
                     <div class="event-hero">
-                        <img src="<?php echo $eventImage; ?>" alt="Event">
+                        <img src="/EventManagementSystem/public/assets/images/placeholder.jpg" alt="Event"
+                            id="event-hero-img">
                         <div class="event-hero-overlay">
-                            <span class="cat-chip"><?php echo htmlspecialchars($category); ?></span>
-                            <h2><?php echo htmlspecialchars($eventTitle); ?></h2>
-                            <p class="event-hero-desc"><?php echo htmlspecialchars($booking['event_description'] ?? 'Curating timeless moments for your once-in-a-lifetime celebration with architectural precision.'); ?></p>
+                            <span class="cat-chip" id="event-category-display">...</span>
+                            <h2 id="event-hero-title-display">...</h2>
+                            <p class="event-hero-desc" id="event-desc-display">...</p>
                         </div>
                     </div>
-                    
+
                     <div class="quick-stats">
                         <div class="stat-item">
                             <label>Date</label>
-                            <span><?php echo $eventDate->format('F d, Y'); ?></span>
+                            <span id="event-date-display">...</span>
                         </div>
                         <div class="stat-item">
                             <label>Guests</label>
-                            <span><?php echo $guestCount; ?> Persons</span>
+                            <span id="guest-count-display">...</span>
                         </div>
                         <div class="stat-item">
                             <label>Venue</label>
-                            <span><?php echo htmlspecialchars($venueName); ?></span>
+                            <span id="venue-name-display">...</span>
                         </div>
                         <div class="stat-item">
                             <label>Location</label>
-                            <span><?php echo htmlspecialchars($venueLocation); ?></span>
+                            <span id="venue-location-display">...</span>
                         </div>
                     </div>
                 </div>
@@ -207,29 +138,17 @@ $steps = [
                 <div class="card package-card">
                     <div class="pkg-header">
                         <div class="pkg-title">
-                            <h3><?php echo ucfirst(strtolower($packageTier)); ?> Package</h3>
-                            <p><?php echo $packageDesc; ?></p>
+                            <h3 id="pkg-tier-name">... Package</h3>
+                            <p id="pkg-desc">...</p>
                         </div>
                         <div class="pkg-price">
                             <span class="lbl">Price</span>
-                            <span class="amt">Rs. <?php echo number_format($basePrice, 0); ?></span>
+                            <span class="amt" id="pkg-price-display">Rs. 0</span>
                         </div>
                     </div>
 
-                    <div class="features-grid">
-                        <?php if(!empty($features)): ?>
-                            <?php foreach($features as $feat): ?>
-                                <div class="feature-box">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                    <span><?php echo htmlspecialchars($feat); ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="feature-box"><i class="fa-solid fa-circle-check"></i> <span>Basic Event Management</span></div>
-                            <div class="feature-box"><i class="fa-solid fa-circle-check"></i> <span>Standard Decoration</span></div>
-                            <div class="feature-box"><i class="fa-solid fa-circle-check"></i> <span>Venue Coordination</span></div>
-                            <div class="feature-box"><i class="fa-solid fa-circle-check"></i> <span>Essential Refreshments</span></div>
-                        <?php endif; ?>
+                    <div class="features-grid" id="pkg-features-list">
+                        <div class="feature-box"><span>Loading features...</span></div>
                     </div>
                 </div>
             </div>
@@ -237,137 +156,70 @@ $steps = [
             <div class="grid-right-col">
                 <!-- Booking Journey -->
                 <div class="card">
-                    <div class="card-header-small"><h4>Booking Journey</h4></div>
-                    <div class="timeline">
-                        <?php foreach($steps as $step): 
-                            $cls = getStepClass($step['key'], $displayStatus, $currentDate, $eventDate);
-                        ?>
-                        <div class="timeline-item <?php echo $cls; ?>">
-                            <div class="tl-dot">
-                                <div class="dot-inner"><i class="fa-solid fa-check"></i></div>
-                            </div>
+                    <div class="card-header-small">
+                        <h4>Booking Journey</h4>
+                    </div>
+                    <div class="timeline" id="booking-timeline">
+                        <div class="timeline-item">
                             <div class="tl-content">
-                                <h5><?php echo $step['label']; ?></h5>
-                                <p><?php echo $step['desc']; ?></p>
+                                <p>Loading timeline...</p>
                             </div>
                         </div>
-                        <?php endforeach; ?>
                     </div>
                 </div>
 
-                <!-- Manage Status -->
-                <?php 
-                    $pStat = strtolower($booking['payment_status'] ?? 'unpaid');
-                    $hasButtons = ($displayStatus === 'pending' || ($displayStatus === 'confirmed' && $pStat !== 'paid'));
-                ?>
-                <div class="card <?php echo (!$hasButtons) ? 'card-status-empty' : ''; ?>">
-                    <?php if (!$hasButtons): ?>
-                        <div class="status-centered-box">
-                            <h4>Manage Status</h4>
-                            <span class="badge-status-lg <?php echo $displayStatus; ?>"><?php echo strtoupper($displayStatus); ?></span>
-                        </div>
-                    <?php else: ?>
-                        <div class="card-header-small">
-                            <h4>Manage Status</h4>
-                            <span class="badge-status <?php echo $displayStatus; ?>"><?php echo strtoupper($displayStatus); ?></span>
-                        </div>
-                        
-                        <?php 
-                            $canConfirm = ($pStat === 'paid' || $pStat === 'partially_paid');
-                        ?>
-                        
-                        <?php if($status === 'pending'): ?>
-                            <form action="/EventManagementSystem/public/admin/bookings/approve" method="POST" 
-                                  onsubmit="return confirm('Are you sure you want to CONFIRM this booking?')">
-                                <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
-                                <button type="submit" class="btn-manage btn-confirm" <?php echo !$canConfirm ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
-                                    <i class="fa-solid fa-circle-check"></i> 
-                                    <?php echo $canConfirm ? 'Confirm Booking' : 'Advance Payment Required'; ?>
-                                </button>
-                                <?php if(!$canConfirm): ?>
-                                    <p style="color: #ef4444; font-size: 11px; margin-top: 8px; font-weight: 500; display: flex; align-items: center; gap: 5px;">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> 
-                                        Wait for client to pay 50% advance first.
-                                    </p>
-                                <?php endif; ?>
-                            </form>
-                        <?php endif; ?>
-                        
-                        <?php if($status !== 'cancelled' && $pStat === 'partially_paid'): ?>
-                            <form action="/EventManagementSystem/public/admin/bookings/mark-paid" method="POST"
-                                  onsubmit="return confirm('Confirm that you have received the remaining 50% cash balance for this booking?')">
-                                <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
-                                <button type="submit" class="btn-manage" style="background: #10b981; color: white;">
-                                    <i class="fa-solid fa-money-bill-check"></i> Mark as Fully Paid (Cash)
-                                </button>
-                            </form>
-                        <?php endif; ?>
-
-                        <?php if(($status === 'pending' || $status === 'confirmed') && $pStat !== 'paid'): ?>
-                            <form action="/EventManagementSystem/public/admin/bookings/cancel" method="POST"
-                                  onsubmit="return confirm('Are you sure you want to CANCEL this booking? This action cannot be undone.')">
-                                <input type="hidden" name="booking_id" value="<?php echo $id; ?>">
-                                <button type="submit" class="btn-manage btn-cancel"><i class="fa-solid fa-circle-xmark"></i> Cancel Booking</button>
-                            </form>
-                        <?php endif; ?>
-                    <?php endif; ?>
+                <div class="card" id="manage-status-card">
+                    <div class="card-header-small">
+                        <h4>Manage Status</h4>
+                        <span class="badge-status" id="manage-status-badge">...</span>
+                    </div>
+                    <div id="status-actions-container" style="padding-top: 15px;">
+                        <!-- Actions injected via JS -->
+                    </div>
                 </div>
 
                 <!-- Financial Summary -->
                 <div class="card">
-                    <div class="card-header-small"><h4>Financial Summary</h4></div>
+                    <div class="card-header-small">
+                        <h4>Financial Summary</h4>
+                    </div>
                     <div class="finance-row">
                         <span>Total Amount</span>
-                        <span>Rs. <?php echo number_format($totalAmount, 0); ?></span>
+                        <span id="finance-total-amount">Rs. 0</span>
                     </div>
-
-                    <?php 
-                        $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                        $advance = $totalAmount * 0.5;
-                        $balance = $totalAmount * 0.5;
-                    ?>
 
                     <div class="finance-row">
                         <span>Advance (50% Online)</span>
-                        <span style="color: <?php echo ($payStatus !== 'unpaid') ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
-                            Rs. <?php echo number_format($advance, 0); ?> 
-                            <?php if($payStatus !== 'unpaid'): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        <span id="finance-advance-display">
+                            Rs. 0
                         </span>
                     </div>
 
                     <div class="finance-row">
                         <span>Remaining (50% Cash)</span>
-                        <span style="color: <?php echo ($payStatus === 'paid') ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
-                            Rs. <?php echo number_format($balance, 0); ?>
-                            <?php if($payStatus === 'paid'): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        <span id="finance-remaining-display">
+                            Rs. 0
                         </span>
                     </div>
 
                     <div class="payment-status">
                         <span class="lbl">Current Status</span>
-                        <?php 
-                            if ($payStatus === 'paid') {
-                                $payLabel = 'FULLY PAID';
-                                $payCls = 'paid';
-                            } elseif ($payStatus === 'partially_paid') {
-                                $payLabel = 'ADVANCE RECEIVED';
-                                $payCls = 'pending'; // Using orange for partial
-                            } else {
-                                $payLabel = 'NOT PAID';
-                                $payCls = 'pending';
-                            }
-                        ?>
-                        <span class="val <?php echo $payCls; ?>" style="<?php echo ($payStatus === 'partially_paid') ? 'background:#fff7ed; color:#f59e0b; border:1px solid #ffedd5;' : ''; ?>">
-                            <?php echo $payLabel; ?>
-                        </span>
+                        <span class="val" id="finance-status-label">...</span>
                     </div>
                 </div>
 
-                <button class="btn-manage btn-message" disabled><i class="fa-regular fa-paper-plane"></i> Send Message to Client</button>
+                <button class="btn-manage btn-message" disabled><i class="fa-regular fa-paper-plane"></i> Send Message
+                    to Client</button>
             </div>
         </div>
     </main>
 
+    <script>
+        window.BOOKING_ID = <?php echo (int) ($id ?? 0); ?>;
+    </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/admin/booking_detail.js?v=<?php echo time(); ?>"></script>
 </body>
+
 </html>

@@ -112,8 +112,9 @@
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalBtnText;
                     } else {
-                        showStatus('API Unavailable. Falling back to standard verification...');
-                        setTimeout(() => form.submit(), 1500);
+                        showStatus('API Service Error: ' + err.message);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
                     }
                 }
             });

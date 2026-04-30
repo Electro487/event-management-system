@@ -98,6 +98,8 @@ class AuthService
             'sub' => (int)$user['id'],
             'email' => $user['email'],
             'role' => $user['role'],
+            'name' => $user['fullname'] ?? '',
+            'profile_pic' => $user['profile_picture'] ?? null,
         ]);
 
         return [
@@ -187,5 +189,55 @@ class AuthService
             'status' => 200,
             'data' => ['user' => $authUser],
         ];
+    }
+
+    public function updateProfile(array $authUser, string $fullname): array
+    {
+        if (empty($fullname)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Full name cannot be empty.'];
+        }
+
+        if ($this->userModel->updateProfile($authUser['id'], ['fullname' => $fullname])) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === (int)$authUser['id']) {
+                $_SESSION['user_fullname'] = $fullname;
+            }
+            return ['ok' => true, 'status' => 200, 'message' => 'Profile updated successfully.', 'data' => ['fullname' => $fullname]];
+        }
+        return ['ok' => false, 'status' => 500, 'message' => 'Failed to update profile.'];
+    }
+
+    public function updateProfilePicture(array $authUser, array $file): array
+    {
+        $uploadDir = dirname(__DIR__, 3) . '/public/assets/images/profiles/';
+        if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'profile_' . $authUser['id'] . '_' . time() . '.' . $ext;
+        $target = $uploadDir . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $target)) {
+            $path = '/EventManagementSystem/public/assets/images/profiles/' . $filename;
+            if ($this->userModel->updateProfile($authUser['id'], ['profile_picture' => $path])) {
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === (int)$authUser['id']) {
+                    $_SESSION['user_profile_pic'] = $path;
+                }
+                return ['ok' => true, 'status' => 200, 'message' => 'Profile picture updated.', 'data' => ['path' => $path]];
+            }
+        }
+        return ['ok' => false, 'status' => 500, 'message' => 'Upload failed.'];
+    }
+
+    public function deleteProfilePicture(array $authUser): array
+    {
+        if ($this->userModel->updateProfile($authUser['id'], ['profile_picture' => null])) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === (int)$authUser['id']) {
+                $_SESSION['user_profile_pic'] = null;
+            }
+            return ['ok' => true, 'status' => 200, 'message' => 'Profile picture removed.'];
+        }
+        return ['ok' => false, 'status' => 500, 'message' => 'Operation failed.'];
     }
 }

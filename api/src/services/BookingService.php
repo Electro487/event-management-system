@@ -42,6 +42,7 @@ class BookingService
             return ['ok' => false, 'status' => 403, 'message' => 'Forbidden.'];
         }
 
+        $booking['paid_amount'] = (float)$this->paymentModel->getSucceededTotalByBookingId($id);
         return ['ok' => true, 'status' => 200, 'data' => ['booking' => $booking]];
     }
 
@@ -61,10 +62,25 @@ class BookingService
             return ['ok' => false, 'status' => 404, 'message' => 'Event not found.'];
         }
 
+        // Prepare Snapshots
+        $tierKey = (string)($payload['package_tier'] ?? 'basic');
+        $allPackages = json_decode($event['packages'] ?? '{}', true);
+        $selectedPackage = $allPackages[$tierKey] ?? null;
+
+        $eventSnapshot = [
+            'title' => $event['title'],
+            'category' => $event['category'],
+            'venue_name' => $event['venue_name'],
+            'venue_location' => $event['venue_location'],
+            'image_path' => $event['image_path']
+        ];
+
         $data = [
             'event_id' => $eventId,
+            'event_snapshot' => json_encode($eventSnapshot),
             'client_id' => $authUser['id'],
-            'package_tier' => (string)($payload['package_tier'] ?? ''),
+            'package_tier' => $tierKey,
+            'package_snapshot' => json_encode($selectedPackage),
             'event_date' => (string)($payload['event_date'] ?? ''),
             'guest_count' => (int)($payload['guest_count'] ?? 0),
             'full_name' => (string)($payload['full_name'] ?? ''),
@@ -97,26 +113,45 @@ class BookingService
         return ['ok' => true, 'status' => 201, 'data' => ['booking_id' => (int)$bookingId]];
     }
 
-    public function cancelByClient(array $authUser, int $id): array
+    public function cancel(array $authUser, int $id): array
     {
-        if ($authUser['role'] !== 'client') {
-            return ['ok' => false, 'status' => 403, 'message' => 'Only client can cancel via this endpoint.'];
-        }
-
         $booking = $this->bookingModel->getById($id);
-        if (!$booking || (int)$booking['client_id'] !== (int)$authUser['id']) {
+        if (!$booking) {
             return ['ok' => false, 'status' => 404, 'message' => 'Booking not found.'];
         }
 
-        $bStatus = strtolower($booking['status'] ?? 'pending');
-        $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-        if ($bStatus === 'confirmed' && $payStatus !== 'unpaid') {
-            return ['ok' => false, 'status' => 409, 'message' => 'Confirmed and paid/partially-paid booking cannot be cancelled.'];
+        // Permission Check
+        $isOwner = (int)$booking['client_id'] === (int)$authUser['id'];
+        $isOrganizerOfEvent = (int)$booking['organizer_id'] === (int)$authUser['id'] && $authUser['role'] === 'organizer';
+        $isAdmin = $authUser['role'] === 'admin';
+
+        if (!$isOwner && !$isOrganizerOfEvent && !$isAdmin) {
+            return ['ok' => false, 'status' => 403, 'message' => 'Forbidden.'];
         }
 
-        $this->bookingModel->cancel($id, $authUser['id']);
-        $message = ($authUser['fullname'] ?? 'A user') . " has cancelled their booking for '{$booking['event_title']}'.";
-        $this->notificationModel->create($booking['organizer_id'], 'Booking Cancelled', $message, 'booking_cancel', $id);
+        // Clients can only cancel if not confirmed/paid
+        if ($isOwner && !$isAdmin && !$isOrganizerOfEvent) {
+            $bStatus = strtolower($booking['status'] ?? 'pending');
+            $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+            if ($bStatus === 'confirmed' && $payStatus !== 'unpaid') {
+                return ['ok' => false, 'status' => 409, 'message' => 'Confirmed and paid booking cannot be cancelled by client.'];
+            }
+        }
+
+        // Perform cancellation
+        // Note: we use updateStatus since bModel->cancel is tied to client_id
+        $this->bookingModel->updateStatus($id, 'cancelled');
+        
+        $actorName = $authUser['fullname'] ?? 'A user';
+        $message = "{$actorName} has cancelled the booking for '{$booking['event_title']}'.";
+        
+        // Notify involved parties
+        if ($isOwner) {
+            $this->notificationModel->create($booking['organizer_id'], 'Booking Cancelled by Client', $message, 'booking_cancel', $id);
+        } else {
+            $this->notificationModel->create($booking['client_id'], 'Booking Cancelled', "Your booking for '{$booking['event_title']}' was cancelled by the organizer/admin.", 'booking_cancel', $id);
+        }
+        
         foreach ($this->userModel->getAdmins() as $admin) {
             $this->notificationModel->create($admin['id'], 'Booking Cancelled', $message, 'booking_cancel', $id);
         }

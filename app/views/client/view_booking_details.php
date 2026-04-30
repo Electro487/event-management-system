@@ -1,11 +1,20 @@
 <?php
-$bgImage = !empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
-$eventTitle = htmlspecialchars($booking['event_title']);
+// Snapshots
+$eSnap = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
+$pSnap = !empty($booking['package_snapshot']) ? json_decode($booking['package_snapshot'], true) : null;
+
+$bgImage = !empty($eSnap['image_path']) ? $eSnap['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg');
+$eventTitle = $eSnap['title'] ?? htmlspecialchars($booking['event_title']);
+$eventCategory = $eSnap['category'] ?? ($booking['event_category'] ?: 'Event');
+$venueName = $eSnap['venue_name'] ?? ($booking['venue_name'] ?: 'Venue TBD');
+$venueLocation = $eSnap['venue_location'] ?? ($booking['venue_location'] ?: 'Address will be confirmed shortly.');
+
 $displayStatus = $booking['display_status'] ?? strtolower($booking['status']);
 $statusStr = strtoupper($displayStatus);
 $statusClass = "status-" . strtolower($displayStatus);
 
 // Parse package features
+$selectedPackage = $pSnap ?? ($selectedPackage ?? []);
 $items = $selectedPackage['items'] ?? [];
 if (empty($items)) {
     if ($booking['package_tier'] == 'premium') {
@@ -278,8 +287,8 @@ $steps = [
         <img src="<?php echo htmlspecialchars($bgImage); ?>" alt="Event Background">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <span class="category-tag"><?php echo htmlspecialchars($booking['event_category'] ?: 'Event'); ?></span>
-            <h1><?php echo $eventTitle; ?></h1>
+            <span class="category-tag"><?php echo htmlspecialchars($eventCategory); ?></span>
+            <h1><?php echo htmlspecialchars($eventTitle); ?></h1>
             <p>Your curated architectural event experience is <?php echo strtolower($statusStr); ?>.</p>
         </div>
     </div>
@@ -369,9 +378,9 @@ $steps = [
                         <div class="info-item" style="border-left-color: #ffc241;">
                             <span class="info-label">Venue</span>
                             <span
-                                class="info-val"><?php echo htmlspecialchars($booking['venue_name'] ?: 'Venue TBD'); ?></span>
+                                class="info-val"><?php echo htmlspecialchars($venueName); ?></span>
                             <span style="display:block; font-size:12px; color:var(--text-gray); margin-top:4px;">
-                                <?php echo htmlspecialchars($booking['venue_location'] ?: 'Address will be confirmed shortly.'); ?>
+                                <?php echo htmlspecialchars($venueLocation); ?>
                             </span>
                         </div>
                         <div class="info-item" style="border-left-color: #ffc241;">
@@ -416,10 +425,16 @@ $steps = [
 
                     <?php
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                    $advance = $advanceTarget;
-                    $balance = $booking['total_amount'] * 0.5;
                     $hasAnyAdvancePaid = ($paidAdvance > 0.009);
-                    $isAdvanceComplete = ($remainingAdvance <= 0.009);
+                    $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $hasAnyAdvancePaid);
+                    
+                    if ($isAdvanceComplete) {
+                        $remainingAdvance = 0;
+                    }
+
+                    $advance = $advanceTarget;
+                    // The balance is whatever is left of the total amount after all payments
+                    $balance = $booking['total_amount'] - $paidAdvance;
 
                     $isPartiallyPaid = ($payStatus === 'partially_paid');
                     $isFullyPaid = ($payStatus === 'paid');
@@ -473,7 +488,7 @@ $steps = [
                     <div class="policy-note" style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
                         <span style="font-size:12px; color:#0369a1; display:flex; gap:8px; line-height:1.4;">
                             <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i>
-                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer on the day of the event.</span>
+                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer by or on the day of the event.</span>
                         </span>
                     </div>
 
@@ -540,8 +555,8 @@ $steps = [
                         await window.emsApi.apiFetch(`/api/v1/bookings/${id}/cancel`, { method: 'PATCH' });
                         window.location.href = '/EventManagementSystem/public/client/events#my-bookings';
                     } catch (err) {
-                        console.error('Cancel via API failed, falling back to MVC submit.', err);
-                        cancelForm.submit();
+                        console.error('Cancel via API failed:', err);
+                        alert('Error: ' + err.message);
                     }
                 });
             }

@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/manage-events.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <script src="/EventManagementSystem/public/assets/js/dropdown-manager.js?v=<?php echo time(); ?>" defer></script>
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/admin-common.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
@@ -21,11 +20,10 @@
 
     <main class="main-content">
         <header class="header">
-            <form action="/EventManagementSystem/public/admin/events" method="GET" class="search-bar">
+            <div class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" name="search" placeholder="Search system-wide..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
-                <button type="submit" style="display:none;"></button>
-            </form>
+                <input type="text" id="globalSearchInput" placeholder="Search system-wide events..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+            </div>
             <div class="header-icons">
                 <div class="notifications-wrapper">
                     <div class="notification-bell-btn" id="notification-bell">
@@ -81,93 +79,25 @@
                         <?php 
                         $cats = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
                         foreach($cats as $cat): ?>
-                            <div class="dropdown-item" data-value="<?php echo $cat; ?>"><?php echo $cat; ?></div>
+                            <div class="dropdown-item" data-value="<?php echo strtolower($cat); ?>"><?php echo $cat; ?></div>
                         <?php endforeach; ?>
                     </div>
                 </div>
             </div>
             <div class="status-info">
-                <span id="eventsCount">Showing <?php echo count($events); ?> system campaigns</span>
+                <span id="eventsCountLabel">Showing 0 system campaigns</span>
             </div>
         </section>
 
         <div class="events-grid" id="eventsGrid">
-            <?php if (!empty($events)): ?>
-                <?php foreach ($events as $event): ?>
-                <div class="event-card" data-status="<?php echo strtolower($event['status']); ?>" data-category="<?php echo $event['category']; ?>">
-                    <div class="event-image">
-                        <img src="<?php echo $event['image_path'] ?: '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
-                        <span class="status-badge <?php echo strtolower($event['status']); ?>"><?php echo ucfirst($event['status']); ?></span>
-                        <span class="category-tag"><?php echo htmlspecialchars($event['category']); ?></span>
-                    </div>
-                    <div class="event-details">
-                        <h3 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h3>
-                        <span class="organizer-tag"><i class="fas fa-user-tie"></i> <?php echo htmlspecialchars($event['organizer_name']); ?></span>
-                        <p class="event-desc" style="margin-top: 10px;"><?php echo htmlspecialchars(substr($event['description'], 0, 80)) . '...'; ?></p>
-                        
-                        <div class="event-actions" style="margin-top: 15px;">
-                            <a href="/EventManagementSystem/public/admin/events/edit?id=<?php echo $event['id']; ?>" class="btn-action edit">
-                                <i class="fa-solid fa-pen-to-square"></i> Edit
-                            </a>
-
-                            <a href="/EventManagementSystem/public/admin/events/delete?id=<?php echo $event['id']; ?>" class="btn-action delete" onclick="return confirm('ADMIN: Delete this user\'s event?')">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="no-events-message" style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #999;">
-                    <p>No system events found.</p>
-                </div>
-            <?php endif; ?>
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #999;">
+                <p>Loading system events...</p>
+            </div>
         </div>
     </main>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const categorySelect = document.getElementById('categoryFilter');
-    const eventCards = document.querySelectorAll('.event-card');
-    const countLabel = document.getElementById('eventsCount');
-
-    let currentStatus = 'all';
-    let currentCategory = 'all';
-
-    function filterEvents() {
-        let visibleCount = 0;
-        eventCards.forEach(card => {
-            const status = card.dataset.status;
-            const category = card.dataset.category;
-            const statusMatch = (currentStatus === 'all' || status === currentStatus);
-            const categoryMatch = (currentCategory === 'all' || category === currentCategory);
-
-            if (statusMatch && categoryMatch) {
-                card.style.display = 'block';
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-        countLabel.textContent = `Showing ${visibleCount} system campaigns`;
-    }
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentStatus = this.dataset.filterStatus;
-            filterEvents();
-        });
-    });
-
-    DropdownManager.onSelect('categoryFilter', (val) => {
-        currentCategory = val;
-        filterEvents();
-    });
-});
-</script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/admin/events.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

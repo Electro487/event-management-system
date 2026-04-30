@@ -261,7 +261,7 @@ $searchQuery = $_GET['search'] ?? '';
             </div>
 
             <!-- Showing Count -->
-            <div style="margin-bottom: 20px; color: var(--text-gray); font-size: 14px; font-weight: 500;">
+            <div id="event-search-count" style="margin-bottom: 20px; color: var(--text-gray); font-size: 14px; font-weight: 500;">
                 Showing <?php echo count($events); ?> of <?php echo $totalActiveEvents; ?> event campaigns
             </div>
 
@@ -784,72 +784,17 @@ $searchQuery = $_GET['search'] ?? '';
         </div>
     </footer>
 
-    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script>
         window.API_MODE_CLIENT = <?php echo defined('API_MODE_CLIENT') ? (int)API_MODE_CLIENT : 0; ?>;
     </script>
-    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script src="/EventManagementSystem/public/assets/js/client/browse_events.js?v=<?php echo time(); ?>"></script>
 
     <script>
         (function () {
-            if (!window.API_MODE_CLIENT || !window.emsApi) return;
-            // Optional: refresh browse events list from API (keeps PHP render as initial paint)
-            const grid = document.querySelector('.event-grid');
-            if (grid) {
-                const params = new URLSearchParams(window.location.search);
-                const category = params.get('category') || 'All';
-                const search = params.get('search') || '';
-                const page = Number(params.get('page') || 1);
-                const limit = 6;
-
-                window.emsApi.apiFetch(`/api/v1/events?category=${encodeURIComponent(category)}&search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`)
-                    .then(res => {
-                        const items = res?.data?.items || [];
-                        if (!Array.isArray(items)) return;
-
-                        grid.innerHTML = items.map(ev => {
-                            const image = ev.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
-                            const cat = ev.category || 'Event';
-                            const title = ev.title || '';
-                            const desc = ev.description || '';
-                            const loc = ev.venue_location || 'Location TBD';
-
-                            // packages may be JSON string
-                            let packages = ev.packages;
-                            try {
-                                if (typeof packages === 'string') packages = JSON.parse(packages);
-                            } catch {}
-                            let startPrice = 0;
-                            if (packages && typeof packages === 'object') {
-                                const prices = Object.values(packages).map(p => Number(p?.price || 0)).filter(n => Number.isFinite(n) && n > 0);
-                                if (prices.length) startPrice = Math.min(...prices);
-                            }
-                            const displayPrice = startPrice > 0 ? startPrice.toLocaleString() : '10,000';
-
-                            return `
-                                <div class="event-card">
-                                    <div class="event-image-container">
-                                        <img src="${image}" alt="${title.replace(/\"/g,'&quot;')}" class="event-image">
-                                        <span class="event-category-tag">${cat}</span>
-                                    </div>
-                                    <div class="event-content">
-                                        <h3 class="event-title">${title}</h3>
-                                        <p class="event-description">${desc}</p>
-                                        <div class="event-location">
-                                            <i class="fa-solid fa-location-dot"></i>
-                                            ${loc}
-                                        </div>
-                                        <div class="event-price">Packages from Rs. ${displayPrice}</div>
-                                        <a href="/EventManagementSystem/public/client/events/view?id=${ev.id}" class="btn-view-packages">
-                                            View Packages &rarr;
-                                        </a>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-                    })
-                    .catch(() => { /* keep PHP render */ });
-            }
+            if (!window.emsApi) return;
 
             const cancelForm = document.getElementById('cancel-booking-form');
             if (!cancelForm) return;
@@ -864,8 +809,8 @@ $searchQuery = $_GET['search'] ?? '';
                     await window.emsApi.apiFetch(`/api/v1/bookings/${id}/cancel`, { method: 'PATCH' });
                     window.location.reload();
                 } catch (err) {
-                    console.error('Cancel via API failed, falling back to MVC submit.', err);
-                    cancelForm.submit();
+                    console.error('Cancel via API failed:', err);
+                    alert('Error: ' + err.message);
                 }
             });
         })();
