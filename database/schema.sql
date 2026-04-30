@@ -35,8 +35,10 @@ CREATE TABLE IF NOT EXISTS `events` (
 CREATE TABLE IF NOT EXISTS `bookings` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `event_id` INT NOT NULL,
+    `event_snapshot` TEXT DEFAULT NULL,
     `client_id` INT NOT NULL,
     `package_tier` VARCHAR(50) NOT NULL,
+    `package_snapshot` TEXT DEFAULT NULL,
     `event_date` DATE NOT NULL,
     `guest_count` INT NOT NULL,
     `full_name` VARCHAR(100) NOT NULL,
@@ -66,13 +68,13 @@ CREATE TABLE IF NOT EXISTS `payments` (
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `notifications` (
-  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `type` varchar(50) DEFAULT 'info',
-  `related_id` int(11) DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `message` TEXT NOT NULL,
+  `type` VARCHAR(50) DEFAULT 'info',
+  `related_id` INT DEFAULT NULL,
+  `is_read` TINYINT(1) DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;

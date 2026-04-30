@@ -216,6 +216,8 @@ if (!$booking_id || !$session_id) {
 
                 document.getElementById('view-btn').href = `/EventManagementSystem/public/client/bookings/view?id=${bookingId}`;
 
+
+
             } catch (err) {
                 console.error('Verification failed:', err);
                 window.location.href = `/EventManagementSystem/public/client/payment/error?booking_id=${bookingId}&reason=verification_failed`;
