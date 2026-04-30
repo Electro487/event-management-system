@@ -74,19 +74,19 @@
         <div class="stats-row">
             <div class="stat-box">
                 <p class="stat-title">Total Bookings</p>
-                <h2 class="stat-number dark"><?php echo number_format($totalBookings ?? 0); ?></h2>
+                <h2 class="stat-number dark" id="stat-total-bookings">0</h2>
             </div>
             <div class="stat-box">
                 <p class="stat-title">Confirmed</p>
-                <h2 class="stat-number green"><?php echo number_format($confirmedCount ?? 0); ?></h2>
+                <h2 class="stat-number green" id="stat-confirmed">0</h2>
             </div>
             <div class="stat-box">
                 <p class="stat-title">Pending</p>
-                <h2 class="stat-number orange"><?php echo number_format($pendingCount ?? 0); ?></h2>
+                <h2 class="stat-number orange" id="stat-pending">0</h2>
             </div>
             <div class="stat-box">
                 <p class="stat-title">Cancelled</p>
-                <h2 class="stat-number red"><?php echo number_format($cancelledCount ?? 0); ?></h2>
+                <h2 class="stat-number red" id="stat-cancelled">0</h2>
             </div>
         </div>
 
@@ -137,15 +137,15 @@
         <!-- Secondary Status Tabs -->
         <div class="status-tabs">
             <button class="status-tab active" data-status="all">All <span
-                    class="badge"><?php echo number_format($totalBookings ?? 0); ?></span></button>
+                    class="badge" id="tab-badge-all">0</span></button>
             <button class="status-tab" data-status="pending">Pending <span
-                    class="badge"><?php echo number_format($pendingCount ?? 0); ?></span></button>
+                    class="badge" id="tab-badge-pending">0</span></button>
             <button class="status-tab" data-status="confirmed">Confirmed <span
-                    class="badge"><?php echo number_format($confirmedCount ?? 0); ?></span></button>
+                    class="badge" id="tab-badge-confirmed">0</span></button>
             <button class="status-tab" data-status="completed">Completed <span
-                    class="badge"><?php echo number_format($completedCount ?? 0); ?></span></button>
+                    class="badge" id="tab-badge-completed">0</span></button>
             <button class="status-tab" data-status="cancelled">Cancelled <span
-                    class="badge"><?php echo number_format($cancelledCount ?? 0); ?></span></button>
+                    class="badge" id="tab-badge-cancelled">0</span></button>
         </div>
 
         <!-- Bookings List / Table -->
@@ -163,106 +163,16 @@
                     </tr>
                 </thead>
                 <tbody id="bookingsTableBody">
-                    <?php if (empty($bookings)): ?>
-                        <tr>
-                            <td colspan="7" class="no-data">No bookings found.</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($bookings as $idx => $b):
-                            $clientName = $b['full_name'] ?: ($b['client_user_name'] ?: 'Unknown Client');
-                            $initials = strtoupper(substr($clientName, 0, 2));
-                            if (strpos($clientName, ' ') !== false) {
-                                $parts = explode(' ', $clientName);
-                                $initials = strtoupper(substr($parts[0], 0, 1) . substr($parts[1] ?? '', 0, 1));
-                            }
-                            $rowStatus = strtolower($b['display_status'] ?? $b['status']);
-
-                            $dateObj = new DateTime($b['event_date'] ?: $b['event_start_date']);
-                            $shortDate = $dateObj->format('M d');
-                            $year = $dateObj->format('Y');
-
-                            $packageClass = strtolower($b['package_tier']);
-                            ?>
-                            <tr class="booking-row" data-client="<?php echo strtolower(htmlspecialchars($clientName)); ?>"
-                                data-event="<?php echo strtolower(htmlspecialchars($b['event_title'])); ?>"
-                                data-category="<?php echo strtolower(htmlspecialchars($b['event_category'])); ?>"
-                                data-package="<?php echo strtolower($b['package_tier']); ?>"
-                                data-status="<?php echo $rowStatus; ?>" data-date="<?php echo $dateObj->format('Y-m-d'); ?>">
-
-                                <td style="padding-left:24px;">
-                                    <div class="client-cell" style="display: flex; align-items: center; gap: 12px;">
-                                        <div class="client-avatar <?php echo $packageClass; ?>-av" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;">
-                                            <?php if (!empty($b['client_profile_pic'])): ?>
-                                                <img src="<?php echo htmlspecialchars($b['client_profile_pic']); ?>" alt="Client" style="width: 100%; height: 100%; object-fit: cover;">
-                                            <?php else: ?>
-                                                <?php echo $initials; ?>
-                                            <?php endif; ?>
-                                        </div>
-                                        <span class="client-name" style="font-weight: 600; color: #111827;"><?php echo htmlspecialchars($clientName); ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="event-title-cell"><?php echo htmlspecialchars($b['event_title']); ?></div>
-                                </td>
-                                <td>
-                                    <span
-                                        class="pkg-badge <?php echo $packageClass; ?>"><?php echo strtoupper($b['package_tier']); ?></span>
-                                </td>
-                                <td>
-                                    <div class="date-cell">
-                                        <span class="m-d"><?php echo $shortDate; ?></span>
-                                        <span class="year"><?php echo $year; ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="amount-cell">
-                                        <span class="curr">Rs.</span>
-                                        <span class="val"><?php echo number_format($b['total_amount'], 2); ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="status-cell">
-                                        <span class="dot <?php echo $rowStatus; ?>"></span>
-                                        <span
-                                            class="st-text <?php echo $rowStatus; ?>"><?php echo ucfirst($rowStatus); ?></span>
-                                    </div>
-                                </td>
-                                <td style="text-align:right; padding-right:24px;">
-                                    <div class="action-cell">
-                                        <?php if ($rowStatus == 'pending'): ?>
-                                            <?php 
-                                                $pStat = strtolower($b['payment_status'] ?? 'unpaid');
-                                                $canApprove = ($pStat === 'paid' || $pStat === 'partially_paid');
-                                            ?>
-                                            <form action="/EventManagementSystem/public/organizer/bookings/approve" method="POST"
-                                                style="margin:0; display:inline-block;">
-                                                <input type="hidden" name="booking_id" value="<?php echo $b['id']; ?>">
-                                                <button type="submit" class="btn-approve"
-                                                    <?php echo !$canApprove ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Wait for 50% advance payment"' : 'onclick="return confirm(\'Approve this booking?\')"'; ?>>
-                                                    Approve
-                                                </button>
-                                            </form>
-                                            <a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $b['id']; ?>"
-                                                class="btn-view secondary">View</a>
-                                        <?php elseif ($rowStatus == 'cancelled'): ?>
-                                            <a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $b['id']; ?>"
-                                                class="btn-review">Review</a>
-                                        <?php else: ?>
-                                            <a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $b['id']; ?>"
-                                                class="btn-view">View</a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <tr>
+                        <td colspan="7" class="no-data">Loading bookings...</td>
+                    </tr>
                 </tbody>
             </table>
 
             <div class="pagination-row">
                 <div class="showing-text">
-                    Showing <span id="visibleCount"><?php echo count($bookings); ?></span> of <span
-                        id="totalBookingsSpan"><?php echo number_format($totalBookings ?? 0); ?></span> bookings
+                    Showing <span id="visibleCount">0</span> of <span
+                        id="totalBookingsSpan">0</span> bookings
                 </div>
                 <div class="pagination-controls" id="paginationControls">
                     <!-- Pagination buttons injected via JS -->
@@ -272,9 +182,11 @@
 
     </main>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const rows = Array.from(document.querySelectorAll('.booking-row'));
             const topSearch = document.getElementById('topSearchInput');
             const filterSearch = document.getElementById('filterSearchInput');
             const dateFilter = document.getElementById('dateFilter');
@@ -282,137 +194,218 @@
             const visibleCountLabel = document.getElementById('visibleCount');
             const totalBookingsSpan = document.getElementById('totalBookingsSpan');
             const paginationControls = document.getElementById('paginationControls');
+            const tbody = document.getElementById('bookingsTableBody');
 
             let currentStatus = 'all';
             let currentCategory = 'all';
             let currentPackage = 'all';
             let currentPage = 1;
-            const itemsPerPage = 5;
+            const itemsPerPage = 8;
+            let allBookings = [];
+            let filteredBookings = [];
 
-            // Custom Dropdown Handling
-            function initCustomDropdown(id, callback) {
-                const dropdown = document.getElementById(id);
-                const trigger = dropdown.querySelector('.dropdown-trigger');
-                const menu = dropdown.querySelector('.dropdown-menu');
-                const items = dropdown.querySelectorAll('.dropdown-item');
-                const selectedText = dropdown.querySelector('.selected-val');
-
-                trigger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    // Close other dropdowns
-                    document.querySelectorAll('.custom-premium-dropdown').forEach(d => {
-                        if (d !== dropdown) d.classList.remove('open');
-                    });
-                    dropdown.classList.toggle('open');
-                });
-
-                items.forEach(item => {
-                    item.addEventListener('click', () => {
-                        const val = item.dataset.value;
-                        selectedText.textContent = item.textContent;
-                        items.forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-                        dropdown.classList.remove('open');
-                        callback(val);
-                    });
-                });
-            }
-
-            // Close dropdowns on outside click
-            // Removed redundant local listener blocks
-
-            DropdownManager.onSelect('eventDropdown', (val) => {
-                currentCategory = val;
-                currentPage = 1;
-                applyFilters();
-            });
-            DropdownManager.onSelect('packageDropdown', (val) => {
-                currentPackage = val;
-                currentPage = 1;
-                applyFilters();
-            });
-
-            // Sync search inputs
-            topSearch.addEventListener('input', function () {
-                filterSearch.value = this.value;
-                currentPage = 1;
-                applyFilters();
-            });
-            filterSearch.addEventListener('input', function () {
-                topSearch.value = this.value;
-                currentPage = 1;
-                applyFilters();
-            });
-
-            dateFilter.addEventListener('change', () => { currentPage = 1; applyFilters(); });
-
-            statusTabs.forEach(tab => {
-                tab.addEventListener('click', function () {
-                    statusTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    currentStatus = this.dataset.status;
-                    currentPage = 1;
+            async function fetchBookings() {
+                if (!window.emsApi) return;
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/bookings');
+                    console.log('Bookings API response:', res);
+                    allBookings = res.data?.items || res.data || [];
                     applyFilters();
-                });
-            });
+                } catch (err) {
+                    console.error('Failed to fetch bookings:', err);
+                    tbody.innerHTML = `<tr><td colspan="7" class="no-data" style="color:red;">Error loading bookings: ${err.message}</td></tr>`;
+                }
+            }
 
             function applyFilters() {
                 const searchQ = filterSearch.value.toLowerCase();
                 const dtFilter = dateFilter.value;
+                const today = new Date();
+                today.setHours(0,0,0,0);
 
-                let visibleRows = [];
+                let confirmedCount = 0, pendingCount = 0, cancelledCount = 0, completedCount = 0;
 
-                rows.forEach(row => {
-                    const client = row.dataset.client || '';
-                    const event = row.dataset.event || '';
-                    const category = row.dataset.category || '';
-                    const pkg = row.dataset.package || '';
-                    const status = row.dataset.status || '';
-                    const date = row.dataset.date || '';
+                filteredBookings = (Array.isArray(allBookings) ? allBookings : []).filter(b => {
+                    const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                    const eTitle = eSnap?.title || b.event_title || '';
+                    const eCat = eSnap?.category || b.event_category || '';
 
-                    let matchSearch = client.includes(searchQ) || event.includes(searchQ);
-                    let matchCategory = currentCategory === 'all' || category === currentCategory;
-                    let matchPkg = currentPackage === 'all' || pkg === currentPackage;
-                    let matchDate = dtFilter === '' || date === dtFilter;
-                    let matchStatus = currentStatus === 'all' || status === currentStatus;
-
-                    if (matchSearch && matchCategory && matchPkg && matchDate && matchStatus) {
-                        visibleRows.push(row);
-                    } else {
-                        row.style.display = 'none';
+                    const clientName = (b.full_name || b.client_user_name || '').toLowerCase();
+                    const eventTitle = (eTitle).toLowerCase();
+                    const category = (eCat).toLowerCase().trim();
+                    const pkg = (b.package_tier || '').toLowerCase().trim();
+                    const dateStr = (b.event_date || b.event_start_date || '').split(' ')[0];
+                    
+                    let status = (b.status || '').toLowerCase().trim();
+                    const bDate = new Date(dateStr);
+                    if (status === 'confirmed' && bDate < today) {
+                        status = 'completed';
                     }
-                });
 
-                visibleCountLabel.textContent = visibleRows.length;
-                renderPagination(visibleRows);
+                    const matchSearch = clientName.includes(searchQ) || eventTitle.includes(searchQ);
+                    const matchCategory = currentCategory === 'all' || category === currentCategory;
+                    const matchPkg = currentPackage === 'all' || pkg === currentPackage;
+                    const matchDate = dtFilter === '' || dateStr === dtFilter;
+                    const matchStatus = currentStatus === 'all' || status === currentStatus;
+
+                    // Deep debug for specific mismatches
+                    if (currentCategory !== 'all' || currentPackage !== 'all') {
+                        console.log(`Checking booking ${b.id}: Cat("${category}" vs "${currentCategory}") Match:${matchCategory}, Pkg("${pkg}" vs "${currentPackage}") Match:${matchPkg}`);
+                    }
+
+                    if (matchCategory) {
+                        if (status === 'confirmed') confirmedCount++;
+                        else if (status === 'pending') pendingCount++;
+                        else if (status === 'cancelled') cancelledCount++;
+                        else if (status === 'completed') completedCount++;
+                    }
+
+                    return matchSearch && matchCategory && matchPkg && matchDate && matchStatus;
+                });
+                console.log(`Filtered: ${filteredBookings.length}/${allBookings.length}. Search: "${searchQ}", Date: "${dtFilter}", Cat: "${currentCategory}", Pkg: "${currentPackage}", Stat: "${currentStatus}"`);
+
+                // Update Stats (top row)
+                document.getElementById('stat-total-bookings').textContent = allBookings.length.toLocaleString();
+                document.getElementById('stat-confirmed').textContent = allBookings.filter(b => b.status === 'confirmed').length.toLocaleString();
+                document.getElementById('stat-pending').textContent = allBookings.filter(b => b.status === 'pending').length.toLocaleString();
+                document.getElementById('stat-cancelled').textContent = allBookings.filter(b => b.status === 'cancelled').length.toLocaleString();
+
+                // Update Badges
+                const badgeAll = document.getElementById('tab-badge-all');
+                if (badgeAll) {
+                    badgeAll.textContent = allBookings.filter(b => {
+                        const cat = (b.event_category || '').toLowerCase().trim();
+                        return currentCategory === 'all' || cat === currentCategory;
+                    }).length.toLocaleString();
+                }
+                
+                const badgePending = document.getElementById('tab-badge-pending');
+                const badgeConfirmed = document.getElementById('tab-badge-confirmed');
+                const badgeCompleted = document.getElementById('tab-badge-completed');
+                const badgeCancelled = document.getElementById('tab-badge-cancelled');
+
+                if (badgePending) badgePending.textContent = pendingCount.toLocaleString();
+                if (badgeConfirmed) badgeConfirmed.textContent = confirmedCount.toLocaleString();
+                if (badgeCompleted) badgeCompleted.textContent = completedCount.toLocaleString();
+                if (badgeCancelled) badgeCancelled.textContent = cancelledCount.toLocaleString();
+
+                visibleCountLabel.textContent = filteredBookings.length;
+                totalBookingsSpan.textContent = allBookings.length;
+                
+                currentPage = 1;
+                renderTable();
             }
 
-            function renderPagination(visibleRows) {
-                const totalVisible = visibleRows.length;
-                const totalPages = Math.ceil(totalVisible / itemsPerPage);
-
-                // Hide all rows first
-                rows.forEach(row => row.style.display = 'none');
-
-                if (totalPages === 0) {
+            function renderTable() {
+                if (filteredBookings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="no-data">No bookings found.</td></tr>`;
                     paginationControls.innerHTML = '';
                     return;
                 }
 
-                if (currentPage > totalPages) currentPage = totalPages;
-                if (currentPage < 1) currentPage = 1;
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                const pageItems = filteredBookings.slice(start, end);
+                const today = new Date();
+                today.setHours(0,0,0,0);
 
-                // Show visible rows for current page
-                const startIdx = (currentPage - 1) * itemsPerPage;
-                const endIdx = startIdx + itemsPerPage;
-                for (let i = startIdx; i < endIdx && i < totalVisible; i++) {
-                    visibleRows[i].style.display = 'table-row';
+                tbody.innerHTML = pageItems.map(b => {
+                    const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                    const eventTitle = eSnap?.title || b.event_title || '';
+
+                    const clientName = b.full_name || b.client_user_name || 'Unknown Client';
+                    let initials = clientName.substring(0,2).toUpperCase();
+                    if (clientName.includes(' ')) {
+                        const parts = clientName.split(' ');
+                        initials = (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+                    }
+                    
+                    const dateStr = b.event_date || b.event_start_date || '';
+                    const dateObj = new Date(dateStr);
+                    const shortDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const year = dateObj.getFullYear();
+                    
+                    let status = (b.status || '').toLowerCase();
+                    if (status === 'confirmed' && dateObj < today) {
+                        status = 'completed';
+                    }
+
+                    const packageClass = (b.package_tier || '').toLowerCase();
+                    const avatar = b.client_profile_pic 
+                        ? `<img src="${b.client_profile_pic}" alt="Client" style="width: 100%; height: 100%; object-fit: cover;">`
+                        : initials;
+                    
+                    const amt = parseFloat(b.total_amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                    let actionHtml = '';
+                    if (status === 'pending') {
+                        const pStat = (b.payment_status || 'unpaid').toLowerCase();
+                        const canApprove = (pStat === 'paid' || pStat === 'partially_paid');
+                        actionHtml = `
+                        <button type="button" class="btn-approve" ${!canApprove ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Wait for 50% advance payment"' : `onclick="approveBooking(${b.id}, this)"`}>
+                                Approve
+                            </button>
+                            <a href="/EventManagementSystem/public/organizer/bookings/view?id=${b.id}" class="btn-view secondary">View</a>
+                        `;
+                    } else if (status === 'cancelled') {
+                        actionHtml = `<a href="/EventManagementSystem/public/organizer/bookings/view?id=${b.id}" class="btn-review">Review</a>`;
+                    } else {
+                        actionHtml = `<a href="/EventManagementSystem/public/organizer/bookings/view?id=${b.id}" class="btn-view">View</a>`;
+                    }
+
+                    return `
+                        <tr class="booking-row">
+                            <td style="padding-left:24px;">
+                                <div class="client-cell" style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="client-avatar ${packageClass}-av" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;">
+                                        ${avatar}
+                                    </div>
+                                    <span class="client-name" style="font-weight: 600; color: #111827;">${clientName}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="event-title-cell">${eventTitle}</div>
+                            </td>
+                            <td>
+                                <span class="pkg-badge ${packageClass}">${(b.package_tier || '').toUpperCase()}</span>
+                            </td>
+                            <td>
+                                <div class="date-cell">
+                                    <span class="m-d">${shortDate}</span>
+                                    <span class="year">${year}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="amount-cell">
+                                    <span class="curr">Rs.</span>
+                                    <span class="val">${amt}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="status-cell">
+                                    <span class="dot ${status}"></span>
+                                    <span class="st-text ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                                </div>
+                            </td>
+                            <td style="text-align:right; padding-right:24px;">
+                                <div class="action-cell">${actionHtml}</div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                renderPagination();
+            }
+
+            function renderPagination() {
+                const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+                if (totalPages <= 1) {
+                    paginationControls.innerHTML = '';
+                    return;
                 }
 
-                // Render buttons
                 let html = '';
-
-                html += `<button class="p-btn prev ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}"><i class="fa-solid fa-angle-left"></i></button>`;
+                html += `<button class="p-btn prev ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(${currentPage - 1})"><i class="fa-solid fa-angle-left"></i></button>`;
 
                 for (let i = 1; i <= totalPages; i++) {
                     if (totalPages > 5) {
@@ -422,27 +415,86 @@
                             continue;
                         }
                     }
-                    html += `<button class="p-btn num ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    html += `<button class="p-btn num ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
                 }
 
-                html += `<button class="p-btn next ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}"><i class="fa-solid fa-angle-right"></i></button>`;
+                html += `<button class="p-btn next ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(${currentPage + 1})"><i class="fa-solid fa-angle-right"></i></button>`;
 
                 paginationControls.innerHTML = html;
-
-                // Re-bind click events
-                paginationControls.querySelectorAll('.p-btn:not(.disabled)').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        currentPage = parseInt(this.dataset.page);
-                        renderPagination(visibleRows);
-                    });
-                });
             }
 
-            // Init
-            applyFilters();
+            window.changePage = (p) => {
+                const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+                if (p < 1 || p > totalPages) return;
+                currentPage = p;
+                renderTable();
+            };
+
+            window.approveBooking = async (id, btn) => {
+                if (!confirm('Approve this booking?')) return;
+                
+                // Disable button and show loading
+                if(btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.6';
+                    btn.textContent = 'Processing...';
+                }
+
+                try {
+                    await window.emsApi.apiFetch(`/api/v1/bookings/${id}/approve`, { method: 'PATCH' });
+                    fetchBookings(); // Refresh
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.textContent = 'Approve';
+                    }
+                }
+            };
+
+            // Filters
+            topSearch.addEventListener('input', function () {
+                filterSearch.value = this.value;
+                applyFilters();
+            });
+            filterSearch.addEventListener('input', function () {
+                topSearch.value = this.value;
+                applyFilters();
+            });
+            dateFilter.addEventListener('change', applyFilters);
+
+            statusTabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    statusTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentStatus = this.dataset.status;
+                    applyFilters();
+                });
+            });
+
+            // Direct Dropdown listeners for robustness
+            document.querySelectorAll('#eventDropdown .dropdown-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const val = this.dataset.value || 'all';
+                    console.log('Direct Event Category selected:', val);
+                    currentCategory = val.toLowerCase().trim();
+                    applyFilters();
+                });
+            });
+
+            document.querySelectorAll('#packageDropdown .dropdown-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const val = this.dataset.value || 'all';
+                    console.log('Direct Package selected:', val);
+                    currentPackage = val.toLowerCase().trim();
+                    applyFilters();
+                });
+            });
+
+            fetchBookings();
         });
     </script>
-    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>

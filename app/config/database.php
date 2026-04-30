@@ -1,5 +1,6 @@
 <?php
-class Database {
+class Database
+{
     private $host;
     private $user;
     private $pass;
@@ -8,7 +9,8 @@ class Database {
     private $pdo;
     private $error;
 
-    public function __construct() {
+    public function __construct()
+    {
         $envFile = dirname(dirname(dirname(__FILE__))) . '/.env';
         if (file_exists($envFile)) {
             $env = parse_ini_file($envFile);
@@ -33,7 +35,7 @@ class Database {
 
         try {
             $this->pdo = new PDO($dsn, $this->user, $this->pass, $options);
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             $this->error = $e->getMessage();
             throw new Exception("Database Connection Failed: " . $this->error);
         }
@@ -43,7 +45,8 @@ class Database {
      * Get the PDO database connection
      * @return PDO
      */
-    public function getConnection() {
+    public function getConnection()
+    {
         return $this->pdo;
     }
 }

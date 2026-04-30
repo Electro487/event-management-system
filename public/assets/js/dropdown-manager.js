@@ -13,11 +13,19 @@ class DropdownManager {
                 const parent = trigger.closest('.custom-premium-dropdown');
                 if (parent) {
                     const isOpen = parent.classList.contains('open');
+                    
                     // Close all dropdowns
-                    allDropdowns.forEach(d => d.classList.remove('open'));
+                    allDropdowns.forEach(d => {
+                        d.classList.remove('open');
+                        const row = d.closest('tr');
+                        if (row) row.classList.remove('dropdown-open-row');
+                    });
+
                     // If the one we clicked wasn't open, open it
                     if (!isOpen) {
                         parent.classList.add('open');
+                        const activeRow = parent.closest('tr');
+                        if (activeRow) activeRow.classList.add('dropdown-open-row');
                     }
                 }
                 return;
@@ -58,7 +66,11 @@ class DropdownManager {
             }
 
             // 3. Clicked completely outside any dropdown trigger or item
-            allDropdowns.forEach(d => d.classList.remove('open'));
+            allDropdowns.forEach(d => {
+                d.classList.remove('open');
+                const row = d.closest('tr');
+                if (row) row.classList.remove('dropdown-open-row');
+            });
         });
     }
 

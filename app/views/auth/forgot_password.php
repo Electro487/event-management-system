@@ -28,5 +28,34 @@
 
         <a href="/EventManagementSystem/public/login" class="back-link">&larr; Back to Login</a>
     </div>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function() {
+            const form = document.querySelector('form');
+            if (!form || !window.emsApi) return;
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const email = document.getElementById('email')?.value?.trim() || '';
+                if (!email) return;
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/auth/forgot-password', {
+                        method: 'POST',
+                        body: { email }
+                    });
+
+                    if (res?.ok || res?.data?.email) {
+                        // Redirect to OTP verification
+                        window.location.href = '/EventManagementSystem/public/verify-otp';
+                    }
+                } catch (err) {
+                    console.error('API Forgot Password failed, falling back to MVC:', err);
+                    form.submit();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

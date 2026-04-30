@@ -1,51 +1,48 @@
-<?php
-// $notifications and $role are passed from NotificationController@allNotifications
-
-$typeCounts = [];
-foreach ($notifications as $n) {
-    $t = $n['type'] ?: 'info';
-    $typeCounts[$t] = ($typeCounts[$t] ?? 0) + 1;
-}
-$totalCount = count($notifications);
-$bookingCount = ($typeCounts['booking'] ?? 0) + ($typeCounts['booking_cancel'] ?? 0);
-$eventCount = ($typeCounts['event'] ?? 0) + ($typeCounts['event_update'] ?? 0);
-$messageCount = ($typeCounts['message'] ?? 0);
-$approvedCount = ($typeCounts['booking_approve'] ?? 0);
-$cancelledCount = ($typeCounts['booking_cancel'] ?? 0);
-$paymentCount = ($typeCounts['payment_alert'] ?? 0);
-
-$activeFilter = $_GET['type'] ?? 'all';
-
-// Organizer sidebar requires $activePage
-$activePage = 'notifications';
-?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Notifications — Organizer Panel</title>
+    <title>All Notifications - Organizer Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <link rel="stylesheet"
         href="/EventManagementSystem/public/assets/css/all-notifications.css?v=<?php echo time(); ?>">
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-weight: 600;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="loadingOverlay" class="loading-overlay">Loading notifications...</div>
 
-    <?php include_once __DIR__ . '/partials/sidebar.php'; ?>
+    <?php
+    $activePage = 'notifications';
+    include_once __DIR__ . '/partials/sidebar.php';
+    ?>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent" style="display: none;">
         <!-- Minimal Header -->
         <header class="header">
-            <form action="/EventManagementSystem/public/organizer/events" method="GET" class="search-bar">
+            <div class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" name="search" placeholder="Search your events...">
-                <button type="submit" style="display:none;"></button>
-            </form>
+                <input type="text" id="searchInput" placeholder="Search your events...">
+            </div>
             <div class="header-icons">
                 <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
@@ -60,256 +57,364 @@ $activePage = 'notifications';
                 <h1>My Notifications</h1>
                 <p>Track all booking requests, client actions, and event updates relevant to your events.</p>
             </div>
-            <div class="np-hero-right">
+            <div class="np-hero-right" id="heroActions">
                 <div class="np-hero-badge">
                     <i class="fa-solid fa-calendar-check"></i>
-                    <span><?php echo $totalCount; ?> Notification<?php echo $totalCount !== 1 ? 's' : ''; ?></span>
+                    <span id="heroCount">0 Notifications</span>
                 </div>
-                <?php if ($totalCount > 0): ?>
-                    <button class="np-unread-all-btn" onclick="confirmMarkAllUnread()">
-                        <i class="fa-solid fa-envelope-open"></i> Mark all as unread
-                    </button>
-                    <button class="np-clear-all-btn" onclick="confirmClearAll()">
-                        <i class="fa-solid fa-trash-can"></i> Clear All
-                    </button>
-                <?php endif; ?>
+                <button class="np-unread-all-btn" id="markAllReadBtn">
+                    <i class="fa-solid fa-check-double"></i> Mark all as read
+                </button>
+                <button class="np-unread-all-btn" id="markAllUnreadBtn">
+                    <i class="fa-solid fa-envelope-open"></i> Mark all as unread
+                </button>
+                <button class="np-clear-all-btn" id="clearAllBtn">
+                    <i class="fa-solid fa-trash-can"></i> Clear All
+                </button>
             </div>
         </div>
 
         <!-- STATS -->
         <div class="np-stats-row">
-            <div class="np-stat-card">
+            <div class="np-stat-card" data-filter="all">
                 <div class="np-stat-icon green"><i class="fa-solid fa-bell"></i></div>
                 <div class="np-stat-info">
                     <div class="np-stat-label">Total</div>
-                    <div class="np-stat-value" id="stat-total"><?php echo $totalCount; ?></div>
+                    <div class="np-stat-value" id="stat-total">0</div>
                 </div>
             </div>
-            <div class="np-stat-card">
+            <div class="np-stat-card" data-filter="booking">
                 <div class="np-stat-icon green"><i class="fa-solid fa-bookmark"></i></div>
                 <div class="np-stat-info">
                     <div class="np-stat-label">Booking Requests</div>
-                    <div class="np-stat-value" id="stat-booking"><?php echo ($typeCounts['booking'] ?? 0); ?></div>
+                    <div class="np-stat-value" id="stat-booking">0</div>
                 </div>
             </div>
-            <div class="np-stat-card">
+            <div class="np-stat-card" data-filter="booking_cancel">
                 <div class="np-stat-icon green"><i class="fa-solid fa-circle-xmark"></i></div>
                 <div class="np-stat-info">
                     <div class="np-stat-label">Cancellations</div>
-                    <div class="np-stat-value" id="stat-cancel"><?php echo $cancelledCount; ?></div>
+                    <div class="np-stat-value" id="stat-cancel">0</div>
                 </div>
             </div>
-            <div class="np-stat-card">
+            <div class="np-stat-card" data-filter="event_update">
                 <div class="np-stat-icon green"><i class="fa-regular fa-calendar-alt"></i></div>
                 <div class="np-stat-info">
                     <div class="np-stat-label">Event Updates</div>
-                    <div class="np-stat-value" id="stat-update"><?php echo $eventCount; ?></div>
+                    <div class="np-stat-value" id="stat-update">0</div>
                 </div>
             </div>
-            <div class="np-stat-card">
+            <div class="np-stat-card" data-filter="message">
                 <div class="np-stat-icon green"><i class="fa-solid fa-message"></i></div>
                 <div class="np-stat-info">
                     <div class="np-stat-label">Messages</div>
-                    <div class="np-stat-value" id="stat-message"><?php echo $messageCount; ?></div>
+                    <div class="np-stat-value" id="stat-message">0</div>
                 </div>
             </div>
-            <div class="np-stat-card">
+            <div class="np-stat-card" data-filter="payment_alert">
                 <div class="np-stat-icon green"><i class="fa-solid fa-credit-card"></i></div>
                 <div class="np-stat-info">
                     <div class="np-stat-label">Payments</div>
-                    <div class="np-stat-value" id="stat-payment"><?php echo $paymentCount; ?></div>
+                    <div class="np-stat-value" id="stat-payment">0</div>
                 </div>
             </div>
         </div>
 
         <!-- FILTER BAR -->
-        <div class="np-filter-bar">
-            <a href="/EventManagementSystem/public/notifications/all"
-                class="np-filter-tab <?php echo ($activeFilter === 'all') ? 'active' : ''; ?>">
+        <div class="np-filter-bar" id="filterBar">
+            <button class="np-filter-tab active" data-filter="all">
                 <i class="fa-solid fa-border-all"></i> All
-                <span class="np-filter-count" id="count-all"><?php echo $totalCount; ?></span>
-            </a>
-            <a href="/EventManagementSystem/public/notifications/all?type=booking"
-                class="np-filter-tab <?php echo ($activeFilter === 'booking') ? 'active' : ''; ?>">
+                <span class="np-filter-count" id="count-all">0</span>
+            </button>
+            <button class="np-filter-tab" data-filter="booking">
                 <i class="fa-solid fa-bookmark"></i> Booking Requests
-                <span class="np-filter-count" id="count-booking"><?php echo ($typeCounts['booking'] ?? 0); ?></span>
-            </a>
-            <a href="/EventManagementSystem/public/notifications/all?type=booking_cancel"
-                class="np-filter-tab <?php echo ($activeFilter === 'booking_cancel') ? 'active' : ''; ?>">
+                <span class="np-filter-count" id="count-booking">0</span>
+            </button>
+            <button class="np-filter-tab" data-filter="booking_cancel">
                 <i class="fa-solid fa-circle-xmark"></i> Cancellations
-                <span class="np-filter-count" id="count-cancel"><?php echo $cancelledCount; ?></span>
-            </a>
-            <a href="/EventManagementSystem/public/notifications/all?type=event_update"
-                class="np-filter-tab <?php echo ($activeFilter === 'event_update') ? 'active' : ''; ?>">
+                <span class="np-filter-count" id="count-cancel">0</span>
+            </button>
+            <button class="np-filter-tab" data-filter="event_update">
                 <i class="fa-solid fa-pen-to-square"></i> Event Updates
-                <span class="np-filter-count" id="count-update"><?php echo ($typeCounts['event_update'] ?? 0); ?></span>
-            </a>
-            <a href="/EventManagementSystem/public/notifications/all?type=message"
-                class="np-filter-tab <?php echo ($activeFilter === 'message') ? 'active' : ''; ?>">
+                <span class="np-filter-count" id="count-update">0</span>
+            </button>
+            <button class="np-filter-tab" data-filter="message">
                 <i class="fa-solid fa-message"></i> Messages
-                <span class="np-filter-count" id="count-message"><?php echo ($typeCounts['message'] ?? 0); ?></span>
-            </a>
-            <a href="/EventManagementSystem/public/notifications/all?type=payment_alert"
-                class="np-filter-tab <?php echo ($activeFilter === 'payment_alert') ? 'active' : ''; ?>">
+                <span class="np-filter-count" id="count-message">0</span>
+            </button>
+            <button class="np-filter-tab" data-filter="payment_alert">
                 <i class="fa-solid fa-credit-card"></i> Payments
-                <span class="np-filter-count" id="count-payment"><?php echo $paymentCount; ?></span>
-            </a>
+                <span class="np-filter-count" id="count-payment">0</span>
+            </button>
         </div>
 
         <!-- LIST -->
-        <?php if (empty($notifications)): ?>
-            <div class="np-empty-state">
+        <div id="notificationsContainer">
+            <div class="np-empty-state" id="emptyState" style="display: none;">
                 <div class="np-empty-icon"><i class="fa-regular fa-bell-slash"></i></div>
                 <h3>No Notifications Yet</h3>
                 <p>When clients book your events or make changes, you'll see alerts here.</p>
             </div>
-        <?php else: ?>
             <div class="np-list" id="np-list">
-                <?php
-                $prevDate = null;
-                foreach ($notifications as $n):
-                    $type = $n['type'] ?: 'info';
-                    $isUnread = !$n['is_read'];
-                    $createdAt = new DateTime($n['created_at']);
-                    $today = new DateTime('today');
-                    $yesterday = new DateTime('yesterday');
-
-                    if ($createdAt >= $today) {
-                        $groupLabel = 'Today';
-                    } elseif ($createdAt >= $yesterday) {
-                        $groupLabel = 'Yesterday';
-                    } else {
-                        $groupLabel = $createdAt->format('F j, Y');
-                    }
-
-                    if ($groupLabel !== $prevDate):
-                        $prevDate = $groupLabel;
-                        ?>
-                        <div class="np-date-group"><?php echo $groupLabel; ?></div>
-                    <?php endif; ?>
-
-                    <div class="np-item <?php echo $isUnread ? 'unread' : ''; ?>" id="np-item-<?php echo $n['id']; ?>"
-                        data-id="<?php echo $n['id']; ?>" data-action="read">
-                        <?php if ($isUnread): ?>
-                            <div class="np-unread-dot"></div>
-                        <?php endif; ?>
-
-                        <div class="np-icon-bubble <?php echo htmlspecialchars($type); ?>">
-                            <?php
-                            $icons = [
-                                'booking' => 'fa-solid fa-bookmark',
-                                'booking_approve' => 'fa-solid fa-circle-check',
-                                'booking_cancel' => 'fa-solid fa-circle-xmark',
-                                'event' => 'fa-regular fa-calendar-plus',
-                                'event_update' => 'fa-solid fa-pen-to-square',
-                                'event_delete' => 'fa-solid fa-trash-can',
-                                'message' => 'fa-solid fa-message',
-                                'payment' => 'fa-solid fa-credit-card',
-                                'payment_alert' => 'fa-solid fa-credit-card',
-                                'system' => 'fa-solid fa-gear',
-                                'info' => 'fa-solid fa-circle-info',
-                            ];
-                            $icon = $icons[$type] ?? 'fa-regular fa-bell';
-                            ?>
-                            <i class="<?php echo $icon; ?>"></i>
-                        </div>
-
-                        <div class="np-item-body">
-                            <div class="np-item-title">
-                                <?php echo htmlspecialchars($n['title']); ?>
-                                <?php if ($isUnread): ?><span class="np-new-badge">New</span><?php endif; ?>
-                            </div>
-                            <div class="np-item-msg"><?php echo nl2br(htmlspecialchars($n['message'])); ?></div>
-                            <div class="np-item-footer">
-                                <span class="np-time-tag">
-                                    <i class="fa-regular fa-clock"></i>
-                                    <?php echo $createdAt->format('M j, Y · g:i A'); ?>
-                                </span>
-                                <span class="np-type-pill <?php echo htmlspecialchars($type); ?>">
-                                    <?php echo ucfirst(str_replace('_', ' ', $type)); ?>
-                                </span>
-                                <?php if (!empty($n['related_id']) && $type === 'booking'): ?>
-                                    <a href="/EventManagementSystem/public/organizer/bookings/view?id=<?php echo $n['related_id']; ?>"
-                                        style="font-size:12px; color: var(--brand); font-weight:600; display:flex; align-items:center; gap:4px;">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View Booking
-                                    </a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <?php if (!$isUnread): ?>
-                            <button class="np-unread-toggle" data-id="<?php echo $n['id']; ?>" data-action="unread"
-                                title="Mark as unread">
-                                <i class="fa-solid fa-envelope-open"></i>
-                            </button>
-                        <?php endif; ?>
-
-                        <button class="np-delete-btn" data-id="<?php echo $n['id']; ?>" data-action="delete" title="Dismiss">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                <?php endforeach; ?>
+                <!-- Notifications injected -->
             </div>
-        <?php endif; ?>
+        </div>
+
+        <div class="pagination-row" id="paginationWrapper" style="display: none;">
+            <div class="showing-text" id="showingText">
+                Showing <span id="visibleCount">0</span> of <span id="totalNotifSpan">0</span> alerts
+            </div>
+            <div class="pagination-controls" id="paginationControls">
+                <!-- Pagination injected -->
+            </div>
+        </div>
 
     </main>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
-    <script>
-        window.deleteNotification = function(id) {
-            if (!confirm("Dismiss this notification?")) return;
 
-            fetch('/EventManagementSystem/public/notifications/delete?id=' + id)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        const el = document.getElementById('np-item-' + id);
-                        if (el) {
-                            el.style.opacity = '0';
-                            el.style.transform = 'translateX(30px)';
-                            el.style.transition = 'all .3s ease';
-                            setTimeout(() => el.remove(), 300);
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const container = document.getElementById('np-list');
+            const emptyState = document.getElementById('emptyState');
+            const paginationControls = document.getElementById('paginationControls');
+            const paginationWrapper = document.getElementById('paginationWrapper');
+            const visibleCountLabel = document.getElementById('visibleCount');
+            const totalNotifSpan = document.getElementById('totalNotifSpan');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const mainContent = document.getElementById('mainContent');
+
+            let allNotifications = [];
+            let currentFilter = new URLSearchParams(window.location.search).get('type') || 'all';
+            let currentPage = 1;
+            const itemsPerPage = 10;
+            let filteredNotifications = [];
+
+            async function fetchNotifications() {
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/notifications');
+                    allNotifications = res.data?.notifications || [];
+                    updateUI();
+                    loadingOverlay.style.display = 'none';
+                    mainContent.style.display = 'block';
+                } catch (err) {
+                    console.error(err);
+                    loadingOverlay.innerHTML = `<p style="color:red;">Error loading notifications: ${err.message}</p>`;
+                }
+            }
+
+            function updateUI() {
+                // Update Counts
+                const counts = {
+                    all: allNotifications.length,
+                    booking: 0,
+                    booking_cancel: 0,
+                    event_update: 0,
+                    message: 0,
+                    payment_alert: 0
+                };
+
+                allNotifications.forEach(n => {
+                    if (counts[n.type] !== undefined) counts[n.type]++;
+                    else if (n.type === 'booking_request') counts.booking++; // Alias handling if needed
+                });
+
+                document.getElementById('heroCount').textContent = `${counts.all} Notification${counts.all !== 1 ? 's' : ''}`;
+                document.getElementById('stat-total').textContent = counts.all;
+                document.getElementById('stat-booking').textContent = counts.booking;
+                document.getElementById('stat-cancel').textContent = counts.booking_cancel;
+                document.getElementById('stat-update').textContent = counts.event_update;
+                document.getElementById('stat-message').textContent = counts.message;
+                document.getElementById('stat-payment').textContent = counts.payment_alert;
+
+                document.getElementById('count-all').textContent = counts.all;
+                document.getElementById('count-booking').textContent = counts.booking;
+                document.getElementById('count-cancel').textContent = counts.booking_cancel;
+                document.getElementById('count-update').textContent = counts.event_update;
+                document.getElementById('count-message').textContent = counts.message;
+                document.getElementById('count-payment').textContent = counts.payment_alert;
+
+                // Render List
+                filteredNotifications = currentFilter === 'all'
+                    ? allNotifications
+                    : allNotifications.filter(n => n.type === currentFilter);
+
+                if (filteredNotifications.length === 0) {
+                    container.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    if (paginationWrapper) paginationWrapper.style.display = 'none';
+                } else {
+                    emptyState.style.display = 'none';
+                    if (paginationWrapper) paginationWrapper.style.display = 'flex';
+                    let html = '';
+                    let prevGroup = '';
+
+                    const icons = {
+                        booking: 'fa-solid fa-bookmark',
+                        booking_approve: 'fa-solid fa-circle-check',
+                        booking_cancel: 'fa-solid fa-circle-xmark',
+                        event: 'fa-regular fa-calendar-plus',
+                        event_update: 'fa-solid fa-pen-to-square',
+                        message: 'fa-solid fa-message',
+                        payment_alert: 'fa-solid fa-credit-card',
+                        info: 'fa-solid fa-circle-info'
+                    };
+
+                    const start = (currentPage - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    const pageItems = filteredNotifications.slice(start, end);
+
+                    pageItems.forEach(n => {
+                        const date = new Date(n.created_at);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+
+                        let group = '';
+                        if (date >= today) group = 'Today';
+                        else if (date >= yesterday) group = 'Yesterday';
+                        else group = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+                        if (group !== prevGroup) {
+                            html += `<div class="np-date-group">${group}</div>`;
+                            prevGroup = group;
+                        }
+
+                        const isUnread = !n.is_read;
+                        const icon = icons[n.type] || 'fa-regular fa-bell';
+
+                        html += `
+                            <div class="np-item ${isUnread ? 'unread' : ''}" id="np-item-${n.id}">
+                                ${isUnread ? '<div class="np-unread-dot"></div>' : ''}
+                                <div class="np-icon-bubble ${n.type}">
+                                    <i class="${icon}"></i>
+                                </div>
+                                <div class="np-item-body">
+                                    <div class="np-item-title">
+                                        ${n.title}
+                                        ${isUnread ? '<span class="np-new-badge">New</span>' : ''}
+                                    </div>
+                                    <div class="np-item-msg">${n.message}</div>
+                                    <div class="np-item-footer">
+                                        <span class="np-time-tag">
+                                            <i class="fa-regular fa-clock"></i>
+                                            ${date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                                        </span>
+                                        <span class="np-type-pill ${n.type}">
+                                            ${n.type.replace(/_/g, ' ')}
+                                        </span>
+                                        ${n.related_id && n.type === 'booking' ? `
+                                            <a href="/EventManagementSystem/public/organizer/bookings/view?id=${n.related_id}" style="font-size:12px; color: var(--brand); font-weight:600; display:flex; align-items:center; gap:4px;">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i> View Booking
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                ${!isUnread ? `
+                                    <button class="np-unread-toggle" onclick="markUnread(${n.id})" title="Mark as unread">
+                                        <i class="fa-solid fa-envelope-open"></i>
+                                    </button>
+                                ` : `
+                                    <button class="np-unread-toggle" onclick="markRead(${n.id})" title="Mark as read">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </button>
+                                `}
+                                <button class="np-delete-btn" onclick="deleteNotification(${n.id})" title="Dismiss">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    renderPagination();
+                }
+
+                if (visibleCountLabel) visibleCountLabel.textContent = filteredNotifications.length;
+                if (totalNotifSpan) totalNotifSpan.textContent = allNotifications.length;
+
+                // Update active tab
+                document.querySelectorAll('.np-filter-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.filter === currentFilter);
+                });
+            }
+
+            function renderPagination() {
+                const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
+                if (totalPages <= 1) {
+                    paginationControls.innerHTML = '';
+                    return;
+                }
+
+                let html = '';
+                html += `<button class="p-btn prev ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(${currentPage - 1})"><i class="fa-solid fa-angle-left"></i></button>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    if (totalPages > 5) {
+                        if (i > 1 && i < totalPages && Math.abs(i - currentPage) > 1) {
+                            if (i === 2 && currentPage > 3) html += `<span class="dots">...</span>`;
+                            if (i === totalPages - 1 && currentPage < totalPages - 2) html += `<span class="dots">...</span>`;
+                            continue;
                         }
                     }
-                });
-        }
+                    html += `<button class="p-btn num ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                }
 
-        function confirmClearAll() {
-            if (confirm('Clear all notifications? This action cannot be undone.')) {
-                fetch('/EventManagementSystem/public/notifications/clear-all', { method: 'POST' })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) location.reload();
-                    });
+                html += `<button class="p-btn next ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(${currentPage + 1})"><i class="fa-solid fa-angle-right"></i></button>`;
+
+                paginationControls.innerHTML = html;
             }
-        }
 
-        function confirmMarkAllUnread() {
-            fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        // Instant UI update
-                        document.querySelectorAll('.np-item').forEach(item => {
-                            item.classList.add('unread');
-                            if (!item.querySelector('.np-unread-dot')) {
-                                const dot = document.createElement('div');
-                                dot.className = 'np-unread-dot';
-                                item.prepend(dot);
-                            }
-                            if (!item.querySelector('.np-new-badge')) {
-                                const title = item.querySelector('.np-item-title');
-                                const badge = document.createElement('span');
-                                badge.className = 'np-new-badge';
-                                badge.textContent = 'New';
-                                title.appendChild(badge);
-                            }
-                            const toggle = item.querySelector('.np-unread-toggle');
-                            if (toggle) toggle.remove();
-                        });
-                    }
+            window.changePage = (p) => {
+                const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
+                if (p < 1 || p > totalPages) return;
+                currentPage = p;
+                updateUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            window.markRead = async (id) => {
+                await window.emsApi.apiFetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH' });
+                fetchNotifications();
+            };
+
+            window.markUnread = async (id) => {
+                await window.emsApi.apiFetch(`/api/v1/notifications/${id}/unread`, { method: 'PATCH' });
+                fetchNotifications();
+            };
+
+            window.deleteNotification = async (id) => {
+                await window.emsApi.apiFetch(`/api/v1/notifications/${id}`, { method: 'DELETE' });
+                fetchNotifications();
+            };
+
+            document.getElementById('markAllReadBtn').addEventListener('click', async () => {
+                await window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' });
+                fetchNotifications();
+            });
+
+            document.getElementById('markAllUnreadBtn').addEventListener('click', async () => {
+                await window.emsApi.apiFetch('/api/v1/notifications/mark-all-unread', { method: 'PATCH' });
+                fetchNotifications();
+            });
+
+            document.getElementById('clearAllBtn').addEventListener('click', async () => {
+                if (!confirm('Clear all notifications?')) return;
+                await window.emsApi.apiFetch('/api/v1/notifications', { method: 'DELETE' });
+                fetchNotifications();
+            });
+
+            document.querySelectorAll('.np-filter-tab, .np-stat-card').forEach(el => {
+                el.addEventListener('click', () => {
+                    currentFilter = el.dataset.filter;
+                    currentPage = 1; // Reset to page 1
+                    updateUI();
                 });
-        }
+            });
+
+            fetchNotifications();
+        });
     </script>
 </body>
 

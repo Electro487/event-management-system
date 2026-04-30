@@ -132,10 +132,30 @@ class User
 
         if ($user) {
             // Check password (assume it's hashed using password_hash during registration)
-            // Included a fallback to plain text check during dev in case legacy data is present
-            if (password_verify($password, $user['password'])) {
+            $stored = (string)($user['password'] ?? '');
+            if (password_verify($password, $stored)) {
                 return $user;
-            } else if ($password === $user['password']) {
+            }
+
+            // Compatibility upgrade: if a legacy plaintext password exists, allow one successful login
+            // and immediately re-hash it to align with password_hash() storage.
+            $looksHashed = str_starts_with($stored, '$2y$')
+                || str_starts_with($stored, '$2a$')
+                || str_starts_with($stored, '$argon2');
+
+            if (!$looksHashed && $stored !== '' && hash_equals($stored, (string)$password)) {
+                $newHash = password_hash((string)$password, PASSWORD_DEFAULT);
+                $up = $pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
+                $up->bindParam(':password', $newHash);
+                $up->bindParam(':id', $user['id']);
+                $up->execute();
+
+                $user['password'] = $newHash;
+                return $user;
+            }
+
+            // Fallback for admin and organizer with old plain-text passwords
+            if (($user['role'] === 'admin' || $user['role'] === 'organizer') && $password === $user['password']) {
                 return $user;
             }
         }
@@ -227,6 +247,22 @@ class User
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':path', $path);
         $stmt->bindParam(':id', $userId);
+        return $stmt->execute();
+    }
+
+    public function updateProfile($id, $data)
+    {
+        $pdo = $this->db->getConnection();
+        $fields = [];
+        foreach ($data as $key => $val) {
+            $fields[] = "$key = :$key";
+        }
+        $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        foreach ($data as $key => &$val) {
+            $stmt->bindParam(":$key", $val);
+        }
         return $stmt->execute();
     }
 

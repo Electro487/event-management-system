@@ -4,7 +4,94 @@
 let _seenIds = new Set();
 let _isFirstLoad = true;
 
+function _useApi() {
+    // Prefer explicit flag if present; otherwise use JWT presence as signal.
+    try {
+        return (typeof window.API_MODE_CLIENT !== 'undefined' ? !!window.API_MODE_CLIENT : !!(window.emsApi && window.emsApi.getToken && window.emsApi.getToken()));
+    } catch {
+        return false;
+    }
+}
+
 // ---- Global API calls ----
+window.markAllRead = function () {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' })
+            .then(() => {
+                window.fetchNotifications();
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            });
+    } else {
+        fetch('/EventManagementSystem/public/notifications/mark-all-read', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts && window.fetchNotificationCounts();
+                }
+            });
+    }
+};
+
+window.markAllUnread = function () {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch('/api/v1/notifications/mark-all-unread', { method: 'PATCH' })
+            .then(() => {
+                window.fetchNotifications();
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            });
+    } else {
+        fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts && window.fetchNotificationCounts();
+                }
+            });
+    }
+};
+
+window.deleteAllNotifications = function () {
+    if (!confirm('Clear all notifications? This cannot be undone.')) return;
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch('/api/v1/notifications/clear-all', { method: 'DELETE' })
+            .then(() => {
+                window.fetchNotifications();
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            });
+    } else {
+        fetch('/EventManagementSystem/public/notifications/clear-all', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts && window.fetchNotificationCounts();
+                }
+            });
+    }
+};
+
+window.deleteNotification = function (id) {
+    if (!id) return;
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch(`/api/v1/notifications/${id}`, { method: 'DELETE' })
+            .then(() => {
+                window.fetchNotifications();
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            });
+    } else {
+        fetch('/EventManagementSystem/public/notifications/delete?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts && window.fetchNotificationCounts();
+                }
+            });
+    }
+};
+
 window.markAsRead = function (id) {
     if (!id) return;
 
@@ -31,15 +118,24 @@ window.markAsRead = function (id) {
         }
     }
 
-    fetch('/EventManagementSystem/public/notifications/read?id=' + id)
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH' })
+            .then(() => {
                 window.fetchNotifications();
-                window.fetchNotificationCounts(); // Sync counters too
-            }
-        })
-        .catch(err => console.error('markAsRead error:', err));
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            })
+            .catch(err => console.error('markAsRead api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/read?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts(); // Sync counters too
+                }
+            })
+            .catch(err => console.error('markAsRead error:', err));
+    }
 };
 
 window.markAsUnread = function (id) {
@@ -58,58 +154,135 @@ window.markAsUnread = function (id) {
         if (toggle) toggle.remove();
     }
 
-    fetch('/EventManagementSystem/public/notifications/unread?id=' + id)
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch(`/api/v1/notifications/${id}/unread`, { method: 'PATCH' })
+            .then(() => {
                 window.fetchNotifications();
-                window.fetchNotificationCounts();
-            }
-        })
-        .catch(err => console.error('markAsUnread error:', err));
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            })
+            .catch(err => console.error('markAsUnread api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/unread?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.fetchNotifications();
+                    window.fetchNotificationCounts();
+                }
+            })
+            .catch(err => console.error('markAsUnread error:', err));
+    }
 };
 
 window.fetchNotifications = function () {
-    fetch('/EventManagementSystem/public/notifications')
-        .then(r => r.json())
+    const fetchFn = (_useApi() && window.emsApi)
+        ? () => window.emsApi.apiFetch('/api/v1/notifications/latest')
+        : () => fetch('/EventManagementSystem/public/notifications').then(r => r.json());
+
+    fetchFn()
         .then(data => {
-            if (!data || !data.notifications) return;
+            // Support both MVC response and API wrapped response
+            const actualData = data.data || data;
+            if (!actualData || !actualData.notifications) return;
 
             if (_isFirstLoad) {
-                data.notifications.forEach(n => {
+                actualData.notifications.forEach(n => {
                     _seenIds.add(n.id); // Remember all existing notifications
                 });
                 _isFirstLoad = false;
             } else {
-                data.notifications.forEach(n => {
+                actualData.notifications.forEach(n => {
                     if (n.is_read == 0 && !_seenIds.has(n.id)) {
                         _showToast(n);
                         _seenIds.add(n.id);
                     }
                 });
             }
-            _updateUI(data);
+            _updateUI(actualData);
 
-            // If we're on the full notification page, separately fetch ALL notifications
-            // so items beyond the dropdown's 3-item limit also get their state updated.
+            // If we're on the full notification page, update its UI too
             const npList = document.getElementById('np-list');
             if (npList) {
-                // Detect current filter from URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const filterType = urlParams.get('type');
-                const fetchUrl = '/EventManagementSystem/public/notifications/all-json' + (filterType ? '?type=' + filterType : '');
+                const pageFetchFn = (_useApi() && window.emsApi)
+                    ? () => window.emsApi.apiFetch('/api/v1/notifications' + (filterType ? '?type=' + filterType : ''))
+                    : () => fetch('/EventManagementSystem/public/notifications/all-json' + (filterType ? '?type=' + filterType : '')).then(r => r.json());
 
-                fetch(fetchUrl)
-                    .then(r => r.json())
+                pageFetchFn()
                     .then(allData => {
-                        if (allData && allData.notifications) {
-                            _updatePageUI(allData);
+                        const actualAllData = allData.data || allData;
+                        if (actualAllData && actualAllData.notifications) {
+                            _updatePageUI(actualAllData);
                         }
                     })
-                    .catch(() => { }); // Silent fail — page items still work via init-scan
+                    .catch(() => { });
             }
         })
         .catch(err => console.error('fetchNotifications error:', err));
+};
+
+window.deleteNotification = function (id) {
+    if (!id || !confirm("Remove this notification?")) return;
+
+    // Optimistic UI
+    const item = document.getElementById(`np-item-${id}`);
+    if (item) item.remove();
+
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch(`/api/v1/notifications/${id}`, { method: 'DELETE' })
+            .then(() => {
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            })
+            .catch(err => console.error('deleteNotification api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/delete?id=' + id, { method: 'POST' })
+            .then(() => {
+                window.fetchNotificationCounts && window.fetchNotificationCounts();
+            })
+            .catch(err => console.error('deleteNotification error:', err));
+    }
+};
+
+window.markAllRead = function () {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' })
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(err => console.error('markAllRead api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/mark-all-read', { method: 'POST' })
+            .then(() => window.location.reload());
+    }
+};
+
+window.markAllUnread = function () {
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch('/api/v1/notifications/mark-all-unread', { method: 'PATCH' })
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(err => console.error('markAllUnread api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
+            .then(() => window.location.reload());
+    }
+};
+
+window.deleteAllNotifications = function () {
+    if (!confirm("Are you sure you want to clear all notifications? This cannot be undone.")) return;
+
+    if (_useApi() && window.emsApi) {
+        window.emsApi.apiFetch('/api/v1/notifications', { method: 'DELETE' })
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(err => console.error('deleteAllNotifications api error:', err));
+    } else {
+        fetch('/EventManagementSystem/public/notifications/clear-all', { method: 'POST' })
+            .then(() => window.location.reload());
+    }
 };
 
 /**
@@ -119,9 +292,13 @@ window.fetchNotificationCounts = function () {
     const statTotal = document.getElementById('stat-total');
     if (!statTotal) return; // Only run if on the notifications page
 
-    fetch('/EventManagementSystem/public/notifications/counts')
-        .then(r => r.json())
-        .then(data => {
+    const fetchFn = (_useApi() && window.emsApi)
+        ? () => window.emsApi.apiFetch('/api/v1/notifications/counts')
+        : () => fetch('/EventManagementSystem/public/notifications/counts').then(r => r.json());
+
+    fetchFn()
+        .then(res => {
+            const data = res.data || res;
             if (!data || data.error) return;
 
             // Update Stat Cards (Top row)
@@ -425,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const list = document.getElementById('nd-list');
     const markAllBtn = document.getElementById('mark-all-read');
 
-    // Start polling immediately — works on EVERY page (notification page + others)
+    // Start polling immediately - works on EVERY page (notification page + others)
     window.fetchNotifications();
     setInterval(window.fetchNotifications, 10000); // 10s for dropdown/toasts
 
@@ -442,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const id = target.getAttribute('data-id');
         const action = target.getAttribute('data-action');
-        if (!id || !action) return;
+        if (!action) return;
 
         e.stopPropagation();
 
@@ -453,41 +630,57 @@ document.addEventListener('DOMContentLoaded', function () {
             window.markAsUnread(id);
         } else if (action === 'delete') {
             window.deleteNotification && window.deleteNotification(id);
+        } else if (action === 'mark-all-read') {
+            window.markAllRead && window.markAllRead();
+        } else if (action === 'mark-all-unread') {
+            window.markAllUnread && window.markAllUnread();
+        } else if (action === 'clear-all') {
+            window.deleteAllNotifications && window.deleteAllNotifications();
         }
     });
 
     // The rest only applies to pages that have the bell/dropdown
     if (!bellBtn || !dropdown) return;
 
-    bellBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('show');
-        if (dropdown.classList.contains('show')) window.fetchNotifications();
-    });
+    if (bellBtn && dropdown) {
+        bellBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+            if (dropdown.classList.contains('show')) window.fetchNotifications();
+        });
 
-    document.addEventListener('click', function (e) {
-        if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
-            dropdown.classList.remove('show');
-        }
-    });
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    }
 
     if (markAllBtn) {
-        markAllBtn.textContent = 'Mark all as unread';
+        markAllBtn.textContent = 'Mark all as read';
         markAllBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
-            fetch('/EventManagementSystem/public/notifications/mark-all-unread', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
+            if (_useApi() && window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' })
+                    .then(() => {
                         window.fetchNotifications();
                         window.fetchNotificationCounts && window.fetchNotificationCounts();
-                    }
-                });
+                    });
+            } else {
+                fetch('/EventManagementSystem/public/notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.fetchNotifications();
+                            window.fetchNotificationCounts && window.fetchNotificationCounts();
+                        }
+                    });
+            }
         });
     }
 });

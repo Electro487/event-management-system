@@ -28,5 +28,36 @@
             <button type="submit" class="btn">Update Password</button>
         </form>
     </div>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script>
+        (function() {
+            const form = document.querySelector('form');
+            if (!form || !window.emsApi) return;
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const password = document.getElementById('password')?.value || '';
+                const confirm_password = document.getElementById('confirm_password')?.value || '';
+                const email = "<?php echo $_SESSION['otp_email'] ?? ''; ?>";
+
+                if (!password || !confirm_password || !email) return;
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/auth/reset-password', {
+                        method: 'POST',
+                        body: { email, password, confirm_password }
+                    });
+
+                    if (res?.ok || res?.data?.password_reset) {
+                        window.location.href = '/EventManagementSystem/public/login';
+                    }
+                } catch (err) {
+                    console.error('API Reset Password failed, falling back to MVC:', err);
+                    form.submit();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

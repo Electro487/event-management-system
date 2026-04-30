@@ -176,71 +176,89 @@ if (empty($items)) {
                         const formData = new FormData();
                         formData.append('profile_picture', input.files[0]);
                         
-                        fetch('/EventManagementSystem/public/client/profile/update', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<img src="' + data.path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                        if (window.emsApi) {
+                            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const path = data.data?.path || data.path;
+                                    // Update header avatar
+                                    let headerIcon = document.getElementById('profile-icon');
+                                    headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                    
+                                    // Update dropdown avatar
+                                    let dropdownAvatar = document.querySelector('.pd-avatar');
+                                    dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
 
-                                // Add delete icon if not exists
-                                if (!document.querySelector('.pd-delete-icon')) {
-                                    let avatarContainer = document.querySelector('.pd-avatar-container');
-                                    let deleteBtn = document.createElement('div');
-                                    deleteBtn.className = 'pd-delete-icon';
-                                    deleteBtn.title = 'Remove Photo';
-                                    deleteBtn.onclick = deleteProfilePicture;
-                                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                    avatarContainer.appendChild(deleteBtn);
+                                    // Add delete icon if not exists
+                                    if (!document.querySelector('.pd-delete-icon')) {
+                                        let avatarContainer = document.querySelector('.pd-avatar-container');
+                                        let deleteBtn = document.createElement('div');
+                                        deleteBtn.className = 'pd-delete-icon';
+                                        deleteBtn.title = 'Remove Photo';
+                                        deleteBtn.onclick = deleteProfilePicture;
+                                        deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                        avatarContainer.appendChild(deleteBtn);
+                                    }
+                                } else {
+                                    alert(data.message || 'Error uploading image.');
                                 }
-                            } else {
-                                alert(data.message || 'Error uploading image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred during upload.');
-                        });
+                            })
+                            .catch(error => {
+                                console.error('API Error:', error);
+                                alert('An error occurred during upload: ' + error.message);
+                            });
+                        } else {
+                            fetch('/EventManagementSystem/public/client/profile/update', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) location.reload();
+                                else alert(data.message || 'Error uploading image.');
+                            })
+                            .catch(error => alert('An error occurred.'));
+                        }
                     }
                 }
 
                 function deleteProfilePicture() {
                     if (confirm('Are you sure you want to remove your profile picture?')) {
-                        fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                            method: 'POST'
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                
-                                // Update header avatar
-                                let headerIcon = document.getElementById('profile-icon');
-                                headerIcon.innerHTML = initialsElement;
-                                
-                                // Update dropdown avatar
-                                let dropdownAvatar = document.querySelector('.pd-avatar');
-                                dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                
-                                // Remove delete icon if exists
-                                let deleteIcon = document.querySelector('.pd-delete-icon');
-                                if (deleteIcon) deleteIcon.remove();
-                            } else {
-                                alert('Error removing image.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred.');
-                        });
+                        if (window.emsApi) {
+                            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                method: 'DELETE'
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                    let headerIcon = document.getElementById('profile-icon');
+                                    headerIcon.innerHTML = initialsElement;
+                                    let dropdownAvatar = document.querySelector('.pd-avatar');
+                                    dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                    let deleteIcon = document.querySelector('.pd-delete-icon');
+                                    if (deleteIcon) deleteIcon.remove();
+                                } else {
+                                    alert('Error removing image.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('API Error:', error);
+                                alert('An error occurred: ' + error.message);
+                            });
+                        } else {
+                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                method: 'POST'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) location.reload();
+                                else alert('Error removing image.');
+                            })
+                            .catch(error => alert('An error occurred.'));
+                        }
                     }
                 }
                 </script>
@@ -451,7 +469,8 @@ if (empty($items)) {
 
                                 if (confirm("Notice: Your booking will remain 'PENDING' and is NOT secured until the 50% advance is received. You can pay this later from your 'My Bookings' dashboard. Do you want to proceed and book now?")) {
                                     document.getElementById('pay_later_flag').value = '1';
-                                    form.submit();
+                                    // Trigger the submit event listener which handles the API call
+                                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
                                 }
                             }
                         </script>
@@ -477,7 +496,74 @@ if (empty($items)) {
         </div>
     </footer>
 
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+        (function () {
+            if (!window.emsApi) return;
+            const form = document.querySelector('form.booking-grid');
+            if (!form) return;
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                if (!form.reportValidity()) return;
+
+                // Disable buttons
+                const submitBtns = form.querySelectorAll('button');
+                submitBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                    btn.style.cursor = 'not-allowed';
+                });
+
+                const fd = new FormData(form);
+                const payLater = (fd.get('pay_later') === '1');
+
+                const payload = {
+                    event_id: Number(fd.get('event_id')),
+                    package_tier: String(fd.get('package_tier') || ''),
+                    event_date: String(fd.get('event_date') || ''),
+                    guest_count: Number(fd.get('guest_count') || 0),
+                    full_name: String(fd.get('full_name') || ''),
+                    email: String(fd.get('email') || ''),
+                    phone: String(fd.get('phone') || ''),
+                    checkin_time: String(fd.get('checkin_time') || ''),
+                    total_amount: Number(fd.get('total_amount') || 0),
+                };
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/bookings', { method: 'POST', body: payload });
+                    const bookingId = res?.data?.booking_id;
+                    if (!bookingId) throw new Error('Booking created but missing booking_id.');
+
+                    if (payLater) {
+                        window.location.href = `/EventManagementSystem/public/client/events?booking_success=1#my-bookings`;
+                        return;
+                    }
+
+                    const checkout = await window.emsApi.apiFetch('/api/v1/payments/checkout', {
+                        method: 'POST',
+                        body: { booking_id: Number(bookingId) }
+                    });
+
+                    const url = checkout?.data?.checkout_url;
+                    if (!url) throw new Error('Checkout created but missing checkout_url.');
+                    window.location.href = url;
+                } catch (err) {
+                    console.error('API booking flow failed:', err);
+                    alert('Error: ' + err.message);
+                    // Re-enable buttons on error
+                    submitBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                    });
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

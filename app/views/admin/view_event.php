@@ -59,12 +59,11 @@ if (empty($includedItemsList)) {
         
         <!-- Hero Section -->
         <div class="hero">
-            <?php $image = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>
-            <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
+            <img src="/EventManagementSystem/public/assets/images/placeholder.jpg" alt="Event" id="hero-img">
             <div class="hero-content">
-                <span class="category-tag"><?php echo htmlspecialchars($event['category'] ?: 'Event'); ?></span>
-                <h1><?php echo htmlspecialchars($event['title']); ?></h1>
-                <p>Curating timeless moments for your once-in-a-lifetime celebration with architectural precision.</p>
+                <span class="category-tag" id="event-category-label">...</span>
+                <h1 id="event-title-header">...</h1>
+                <p id="event-tagline">...</p>
             </div>
         </div>
 
@@ -74,14 +73,8 @@ if (empty($includedItemsList)) {
             <!-- Left Column -->
             <div class="left-col">
                 <h2 class="section-title">About This Event</h2>
-                <div class="about-text">
-                    <?php 
-                        if (!empty($event['description'])) {
-                            echo nl2br(htmlspecialchars($event['description']));
-                        } else {
-                            echo "Your event is a tapestry of moments that define your journey together. At e-Plan, we specialize in transforming your vision into an architectural masterpiece of floral arrangements, curated catering, and seamless logistical execution. We handle the structural foundation so you can focus on the heart of the celebration.";
-                        }
-                    ?>
+                <div class="about-text" id="event-description-body">
+                    Loading description...
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -89,17 +82,7 @@ if (empty($includedItemsList)) {
                     <span id="whats-included-subtitle" style="font-size: 13px; font-weight: 600; color: #bfa15f; text-transform: uppercase;">All Packages Scope</span>
                 </div>
                 <div class="included-grid" id="includedGrid">
-                    <?php foreach ($includedItemsList as $item): ?>
-                        <div class="included-item">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <div style="display: flex; flex-direction: column;">
-                                <span><?php echo htmlspecialchars($item['title']); ?></span>
-                                <?php if (!empty($item['description'])): ?>
-                                    <span style="font-size: 11px; color: var(--text-gray); font-weight: normal; margin-top: 2px;"><?php echo htmlspecialchars($item['description']); ?></span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                    <div class="included-item"><span>Loading details...</span></div>
                 </div>
 
                 <div class="details-box">
@@ -107,12 +90,12 @@ if (empty($includedItemsList)) {
                     <div class="details-grid">
                         <div class="detail-col">
                             <h4>Location</h4>
-                            <p><?php echo htmlspecialchars($event['venue_name'] ?: $event['venue_location'] ?: 'Location TBD'); ?></p>
-                            <span style="font-size:11px; color:#6b7280;"><?php echo htmlspecialchars($event['venue_location']); ?></span>
+                            <p id="event-venue-name">...</p>
+                            <span style="font-size:11px; color:#6b7280;" id="event-venue-location">...</span>
                         </div>
                         <div class="detail-col">
                             <h4>Status</h4>
-                            <p class="status-open"><?php echo $event['status'] === 'active' ? 'Booking Open' : ucfirst(htmlspecialchars($event['status'])); ?></p>
+                            <p class="status-open" id="event-status-label">...</p>
                         </div>
                     </div>
                 </div>
@@ -122,42 +105,9 @@ if (empty($includedItemsList)) {
             <div class="right-col">
                 <div class="packages-box">
                     <h3>Service Tier Configuration</h3>
-
-                    <?php 
-                    if (empty($packages)) {
-                        echo '<p class="no-data">No package information configured for this event.</p>';
-                    }
-
-                    $tiersToRender = ['basic', 'standard', 'premium'];
-                    
-                    foreach ($tiersToRender as $tierKey):
-                        if (isset($packages[$tierKey])):
-                            $pkgData = $packages[$tierKey];
-                            
-                            $cssClass = '';
-                            if ($tierKey === 'standard') $cssClass = 'standard';
-                            if ($tierKey === 'premium') $cssClass = 'premium';
-                            
-                            $priceValue = $pkgData['price'] ?? ($pkgData['price_range'] ?? '');
-                            $priceDisplay = !empty($priceValue) ? 'Rs. ' . number_format((float)str_replace(['Rs.', ',', ' '], '', $priceValue), 0) : 'Custom Pricing';
-                    ?>
-                    <div class="package-tier <?php echo $cssClass; ?>" onclick="selectPackage('<?php echo $tierKey; ?>', this)">
-                        <?php if ($tierKey === 'standard'): ?>
-                            <div class="most-popular-badge">Most Popular</div>
-                        <?php endif; ?>
-
-                        <div class="package-header">
-                            <div class="tier-name"><?php echo ucfirst($tierKey); ?></div>
-                            <div class="tier-price"><?php echo htmlspecialchars($priceDisplay); ?></div>
-                        </div>
-                        <div class="tier-desc">
-                            <?php echo htmlspecialchars($pkgData['description'] ?: 'Complete set of services curated for this tier.'); ?>
-                        </div>
+                    <div id="packages-list-container">
+                        <p class="no-data">Loading packages...</p>
                     </div>
-                    <?php 
-                        endif;
-                    endforeach; 
-                    ?>
                     <p class="tax-note" style="margin-top: 20px;">* Read-only view for administrative oversight.</p>
                 </div>
 
@@ -170,60 +120,10 @@ if (empty($includedItemsList)) {
     </main>
 
     <script>
-        // Pass PHP packages array to JS
-        const packagesData = <?php echo json_encode($packages); ?>;
-        const globalItemsHtml = document.getElementById('includedGrid').innerHTML;
-
-        function selectPackage(tierKey, element) {
-            // Remove active class from all tiers
-            document.querySelectorAll('.package-tier').forEach(el => {
-                el.classList.remove('active-tier');
-            });
-
-            // Add active class to clicked tier
-            if (element) {
-                element.classList.add('active-tier');
-            }
-
-            const includedGrid = document.getElementById('includedGrid');
-            const subtitle = document.getElementById('whats-included-subtitle');
-
-            if (!tierKey || !packagesData[tierKey] || !packagesData[tierKey].items || packagesData[tierKey].items.length === 0) {
-                includedGrid.innerHTML = globalItemsHtml;
-                subtitle.innerText = "All Packages Scope";
-                return;
-            }
-
-            const items = packagesData[tierKey].items;
-            subtitle.innerText = tierKey.charAt(0).toUpperCase() + tierKey.slice(1) + " Package Scope";
-
-            let html = '';
-            items.forEach(item => {
-                const title = escapeHtml(item.title);
-                const desc = item.description ? escapeHtml(item.description) : '';
-
-                html += `
-                <div class="included-item">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div style="display: flex; flex-direction: column;">
-                        <span>${title}</span>
-                        ${desc ? `<span style="font-size: 11px; color: var(--text-gray); font-weight: normal; margin-top: 2px;">${desc}</span>` : ''}
-                    </div>
-                </div>
-            `;
-            });
-
-            includedGrid.innerHTML = html;
-        }
-
-        function escapeHtml(unsafe) {
-            return (unsafe || "").toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+        window.EVENT_ID = <?php echo (int)($event['id'] ?? 0); ?>;
     </script>
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script src="/EventManagementSystem/public/assets/js/admin/view_event.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
