@@ -79,9 +79,7 @@
             statusDiv.style.color = isError ? '#d9534f' : '#2d5a27';
         }
 
-        let isSyncing = false;
         form.addEventListener('submit', async function(e) {
-            if (isSyncing) return; // Allow standard form submit to proceed
             e.preventDefault();
 
             const email = document.getElementById('email')?.value?.trim() || '';
@@ -110,7 +108,6 @@
                 window.emsApi.setToken(token);
                 showStatus('Authentication successful! Redirecting...', false);
 
-                // No longer need to submit the form. The AuthBridge will handle the PHP session via cookie.
                 const user = res?.data?.user;
                 const role = user?.role || 'client';
                 
@@ -123,10 +120,17 @@
             } catch (err) {
                 console.warn('%c[API Auth] Failed:', 'color: #e67e22; font-weight: bold;', err.message);
                 
-                // Always show API error instead of falling back
                 showStatus(err.message);
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
+
+                // Handle unverified accounts (403 + requires_otp flag in meta)
+                if (err.status === 403 && err.payload?.error?.meta?.requires_otp) {
+                    setTimeout(() => {
+                        window.location.href = '/EventManagementSystem/public/verify-otp';
+                    }, 1500);
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
             }
         });
     })();
