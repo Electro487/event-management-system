@@ -242,7 +242,12 @@ class User
 
     public function updateProfilePicture($userId, $path)
     {
-        return $this->updateProfile($userId, ['profile_picture' => $path]);
+        $pdo = $this->db->getConnection();
+        $sql = "UPDATE users SET profile_picture = :path WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':path', $path);
+        $stmt->bindParam(':id', $userId);
+        return $stmt->execute();
     }
 
     public function updateProfile($id, $data)
