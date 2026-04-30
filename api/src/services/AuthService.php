@@ -9,6 +9,13 @@ class AuthService
         $this->userModel = new User();
     }
 
+    private function startSessionIfNeeded(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+
     public function register(string $firstName, string $lastName, string $email, string $password): array
     {
         $data = [
@@ -54,6 +61,11 @@ class AuthService
             return ['ok' => false, 'status' => 500, 'message' => 'Failed to send verification email. Please try again.'];
         }
 
+        // Bridge to MVC Verification Page
+        $this->startSessionIfNeeded();
+        $_SESSION['otp_email'] = $data['email'];
+        $_SESSION['otp_type'] = 'registration';
+
         return [
             'ok' => true,
             'status' => 201,
@@ -85,6 +97,11 @@ class AuthService
             $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
             $this->userModel->updateOTP($user['email'], $otp, $expiresAt);
             MailHelper::sendOTP($user['email'], $otp);
+
+            // Bridge to MVC Verification Page
+            $this->startSessionIfNeeded();
+            $_SESSION['otp_email'] = $user['email'];
+            $_SESSION['otp_type'] = 'registration';
 
             return [
                 'ok' => false,
@@ -137,6 +154,11 @@ class AuthService
         if (!MailHelper::sendOTP($email, $otp)) {
             return ['ok' => false, 'status' => 500, 'message' => 'Failed to send OTP. Please try again later.'];
         }
+
+        // Bridge to MVC Verification Page
+        $this->startSessionIfNeeded();
+        $_SESSION['otp_email'] = $email;
+        $_SESSION['otp_type'] = 'password_reset';
 
         return [
             'ok' => true,

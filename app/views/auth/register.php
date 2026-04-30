@@ -140,7 +140,19 @@
                     }
                 } catch (err) {
                     console.warn('%c[API Auth] Registration Failed:', 'color: #e67e22; font-weight: bold;', err.message);
-                    showStatus(err.message);
+                    
+                    let displayMsg = err.message;
+                    
+                    // The API returns errors in err.payload.error.meta (from ApiResponse::error)
+                    const errorObj = err.payload?.error;
+                    if (errorObj && errorObj.meta) {
+                        const metaErrors = errorObj.meta;
+                        // Get the first error message from the meta object
+                        const firstError = Object.values(metaErrors)[0];
+                        if (firstError) displayMsg = firstError;
+                    }
+                    
+                    showStatus(displayMsg);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
                 }
