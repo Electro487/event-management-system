@@ -22,21 +22,46 @@
 }
 
 .btn-primary {
-    background-color: #246A55;
-    /* Architectural green */
-    color: white;
+    background-color: #1D644D;
+    /* Matched to brand green */
+    color: white !important;
     padding: 12px 20px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background-color: #1a4d3e;
+    background-color: #164D3B;
+    color: white !important;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 100, 77, 0.2);
+}
+
+/* Admin side button */
+.btn-create-admin {
+    background-color: #1D644D;
+    color: white !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-create-admin:hover {
+    background-color: #164D3B;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 100, 77, 0.2);
 }
 
 /* Filters Bar */
@@ -97,7 +122,7 @@
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
 }

@@ -54,7 +54,7 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="header-actions">
+                <div class="header-icons">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
                             <i class="fa-regular fa-bell"></i>
@@ -77,9 +77,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="user-avatar-small">
-                        <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
-                    </div>
+                    <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                 </div>
             </div>
         </header>

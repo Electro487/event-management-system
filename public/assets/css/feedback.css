@@ -1,0 +1,321 @@
+:root {
+    --primary-green: #1a4d2e;
+    --secondary-green: #4f6f52;
+    --accent-gold: #ffcf96;
+    --soft-white: #f5f5f5;
+    --dark-text: #333;
+    --light-gray: #e0e0e0;
+}
+
+.feedback-container {
+    padding: 3rem 2rem;
+    max-width: 1200px;
+    /* Exact parity with notification page */
+    margin: 0 auto;
+}
+
+.feedback-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.feedback-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+    width: 100%;
+}
+
+.feedback-client {
+    margin-bottom: 1.5rem;
+}
+
+.client-info h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-green);
+}
+
+.client-info span {
+    font-size: 13px;
+    color: #999;
+}
+
+.rating-display {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.feedback-comment {
+    background: #f9f9f9;
+    /* Light grey bubble */
+    padding: 20px;
+    border-radius: 12px;
+    color: #444;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    border: none;
+    position: relative;
+}
+
+/* Threaded Replies (Matching the picture's bubble look) */
+.replies-thread {
+    margin-top: 1.5rem;
+    padding-left: 0;
+    border-left: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.reply-item {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    position: relative;
+}
+
+.reply-item.admin-reply {
+    background: #f0f7f3;
+    /* Light green bubble */
+    border-left: 4px solid var(--primary-green);
+}
+
+.reply-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.client-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e6fcf0; /* Optional: adds a nice clean border to client images */
+}
+
+.reply-content {
+    flex: 1;
+}
+
+.reply-user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.reply-user-info h5 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin: 0;
+}
+
+.reply-text {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.reply-time {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 8px;
+    display: block;
+    text-align: right;
+}
+
+/* Form Styling */
+.reply-textarea {
+    width: 100%;
+    border: 1px solid #eee;
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 14px;
+    resize: none;
+    font-family: inherit;
+}
+
+.btn-inline-reply {
+    color: var(--primary-green);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #f0f7f3;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-inline-reply:hover {
+    background: #e6f0eb;
+    text-decoration: none;
+}
+
+.reply-box {
+    margin-top: 15px;
+    display: none;
+}
+
+.reply-box.active {
+    display: block;
+}
+
+.reply-submit-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-mini-send {
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-mini-cancel {
+    background: #eee;
+    color: #666;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Interactive Star Rating */
+.star-rating label:hover,
+.star-rating label:hover~label,
+.star-rating input:checked~label {
+    color: #FFC24A !important;
+}
+
+.star-rating label:active {
+    transform: scale(0.9);
+}
+
+.btn-edit-inline {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-edit-inline:hover {
+    background: #f1f5f9;
+    color: #246A55;
+}
+
+.reply-hidden {
+    display: none !important;
+}
+
+.btn-more-replies {
+    background: transparent;
+    border: none;
+    color: #246A55;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-more-replies:hover {
+    background: #f0f7f3;
+    text-decoration: underline;
+}
+
+/* Initials Avatar fallback for Feedbacks */
+.default-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    border-radius: 50%;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    background: #246A55; /* Matching the header primary color exactly */
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.default-avatar.staff {
+    background: #246A55;
+}
+
+.default-avatar.client {
+    background: #246A55;
+}
+
+/* Specific sizing overrides using existing classes */
+.default-avatar.reply-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px !important;
+}
+
+.default-avatar.client-img {
+    width: 50px;
+    height: 50px;
+    font-size: 18px !important;
+}
+/* Mention Dropdown */
+.mention-dropdown {
+    position: absolute;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: none;
+    min-width: 150px;
+    padding: 8px 0;
+}
+.mention-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.mention-item:hover, .mention-item.selected {
+    background: #f0fdf4;
+    color: #1a4d2e;
+}
+.mention-item.selected i {
+    color: #1a4d2e !important;
+}

@@ -311,7 +311,7 @@ body {
     padding: 100px 80px;
     text-align: center;
     background: #f6f8f6;
-    
+
 }
 
 .about-section h2 {
@@ -335,7 +335,7 @@ body {
     margin: 0 auto;
     background: #ffffff;
     border: 2px solid #fce8b6;
-    
+
     border-radius: 20px;
     padding: 30px;
     display: flex;
@@ -399,7 +399,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    
+
     gap: 40px;
     flex-wrap: wrap;
 }
@@ -450,6 +450,87 @@ body {
     color: #ffc247;
 }
 
+/* Sleek Review Section */
+.review-section {
+    padding: 60px 100px;
+    background-color: #ffffff; /* Clean white */
+    border-top: 1px solid #eef2f0;
+    border-bottom: 1px solid #eef2f0;
+}
+
+.review-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-light);
+    border-radius: 16px;
+    padding: 40px 60px;
+    border: 1px solid rgba(12, 43, 34, 0.05);
+}
+
+.review-text {
+    flex: 1;
+    padding-right: 50px;
+    text-align: left;
+}
+
+.review-text h2 {
+    font-size: 32px;
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.review-text p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+    max-width: none;
+    margin: 0;
+}
+
+.review-stats {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    background: #ffffff;
+    padding: 25px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid #f0f4f2;
+}
+
+.review-score-large {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+    margin: 0;
+}
+
+.review-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.review-stars-new {
+    color: var(--accent-color);
+    font-size: 20px;
+    display: flex;
+    gap: 4px;
+}
+
+.review-meta {
+    font-size: 13px;
+    color: #888;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 @media (max-width: 1024px) {
     .header {
         padding: 15px 40px;
@@ -474,5 +555,15 @@ body {
     .footer-top {
         flex-direction: column;
         text-align: center;
+    }
+
+    .review-container {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px;
+        gap: 30px;
+    }
+    .review-text {
+        padding-right: 0;
     }
 }

@@ -746,3 +746,57 @@ a {
         padding: 16px 18px;
     }
 }
+
+/* ---- Shared Pagination ---- */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pg-btn {
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.pg-btn:hover:not([disabled]) {
+    border-color: #246A55;
+    color: #246A55;
+    background: #f0fdf4;
+    transform: translateY(-2px);
+}
+
+.pg-btn.active {
+    background: #246A55;
+    color: #ffffff;
+    border-color: #246A55;
+    box-shadow: 0 4px 12px rgba(36, 106, 85, 0.2);
+}
+
+.pg-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+.pg-dots {
+    color: #94a3b8;
+    font-weight: 600;
+}

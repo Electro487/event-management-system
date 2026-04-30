@@ -361,7 +361,10 @@ function _showToast(n) {
         'event_delete': 'fa-solid fa-trash-can',
         'message': 'fa-solid fa-message',
         'system': 'fa-solid fa-gear',
-        'info': 'fa-solid fa-circle-info'
+        'info': 'fa-solid fa-circle-info',
+        'feedback': 'fa-solid fa-comment-dots',
+        'feedback_reply': 'fa-solid fa-reply',
+        'feedback_mention': 'fa-solid fa-at'
     };
     const iconClass = icons[n.type] || 'fa-solid fa-bell';
 
@@ -510,7 +513,10 @@ function _updatePageUI(data) {
             'event_delete': 'fa-solid fa-trash-can',
             'message': 'fa-solid fa-message',
             'system': 'fa-solid fa-circle-info',
-            'info': 'fa-solid fa-circle-info'
+            'info': 'fa-solid fa-circle-info',
+            'feedback': 'fa-solid fa-comment-dots',
+            'feedback_reply': 'fa-solid fa-reply',
+            'feedback_mention': 'fa-solid fa-at'
         };
         const iconClass = icons[n.type] || 'fa-regular fa-bell';
 

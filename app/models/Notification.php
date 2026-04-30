@@ -68,6 +68,9 @@ class Notification
         if ($type === 'event_updates') {
             $stmt = $this->db->prepare("SELECT * FROM notifications WHERE user_id = ? AND type IN ('event_update', 'event_delete') ORDER BY created_at DESC");
             $stmt->execute([$userId]);
+        } elseif ($type === 'feedback') {
+            $stmt = $this->db->prepare("SELECT * FROM notifications WHERE user_id = ? AND type IN ('feedback', 'feedback_reply') ORDER BY created_at DESC");
+            $stmt->execute([$userId]);
         } elseif ($type) {
             $stmt = $this->db->prepare("SELECT * FROM notifications WHERE user_id = ? AND type = ? ORDER BY created_at DESC");
             $stmt->execute([$userId, $type]);

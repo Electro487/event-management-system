@@ -150,6 +150,9 @@ if (empty($items)) {
                                 <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
                             </div>
                             
+                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
+                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
+                            </a>
                             <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
