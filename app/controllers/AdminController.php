@@ -85,6 +85,11 @@ class AdminController
             'cancelled' => $bookingModel->countByStatus('cancelled')
         ];
 
+        // Initials for avatar fallback
+        $fullName = $_SESSION['user_fullname'] ?? 'Admin';
+        $parts = explode(' ', trim($fullName));
+        $initials = strtoupper(substr($parts[0], 0, 1) . (count($parts) > 1 ? substr(end($parts), 0, 1) : ''));
+
         require_once dirname(__DIR__) . '/views/admin/dashboard.php';
     }
 

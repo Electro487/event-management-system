@@ -115,7 +115,7 @@ function initBrowseEvents() {
         }
 
         eventGrid.innerHTML = events.map(event => {
-            const image = event.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            const image = event.image_path ? (event.image_path[0] === '/' ? event.image_path : '/EventManagementSystem/public/assets/images/events/' + event.image_path) : '/EventManagementSystem/public/assets/images/placeholder.jpg';
             const category = event.category || 'Event';
             
             // Calculate starting price

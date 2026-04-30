@@ -290,7 +290,11 @@ $searchQuery = $_GET['search'] ?? '';
                         <div class="event-card">
                             <div class="event-image-container">
                                 <?php
-                                $image = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                if (!empty($event['image_path'])) {
+                                    $image = ($event['image_path'][0] === '/') ? $event['image_path'] : '/EventManagementSystem/public/assets/images/events/' . $event['image_path'];
+                                } else {
+                                    $image = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                }
                                 ?>
                                 <img src="<?php echo htmlspecialchars($image); ?>"
                                     alt="<?php echo htmlspecialchars($event['title']); ?>" class="event-image">
@@ -437,7 +441,8 @@ $searchQuery = $_GET['search'] ?? '';
                                 $eSnapList = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
                                 $bListTitle = $eSnapList['title'] ?? $booking['event_title'];
                                 $bListCat = $eSnapList['category'] ?? ($booking['event_category'] ?: 'Event');
-                                $image = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'); 
+                                $rawImg = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'); 
+                                $image = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
                                 ?>
                                 <img src="<?php echo htmlspecialchars($image); ?>" alt="Event Cover" class="b-img">
 
@@ -566,14 +571,18 @@ $searchQuery = $_GET['search'] ?? '';
 
         function showMyBookings(e) {
             if (e) e.preventDefault();
-            document.getElementById('browse-events-view').style.display = 'none';
-            document.getElementById('my-bookings-view').style.display = 'block';
+            const browseView = document.getElementById('browse-events-view');
+            const bookingsView = document.getElementById('my-bookings-view');
+            
+            if (browseView) browseView.style.display = 'none';
+            if (bookingsView) bookingsView.style.display = 'block';
+            if (typeof updateBookingsUI === 'function') updateBookingsUI();
 
             let btnBrowse = document.getElementById('nav-btn-browse');
             if (btnBrowse) btnBrowse.classList.remove('active');
-            document.getElementById('nav-btn-bookings').classList.add('active');
+            let btnBookings = document.getElementById('nav-btn-bookings');
+            if (btnBookings) btnBookings.classList.add('active');
 
-            // Set URL Hash so reloading stays on Bookings
             history.pushState(null, null, '/EventManagementSystem/public/client/events#my-bookings');
         }
 
@@ -620,7 +629,11 @@ $searchQuery = $_GET['search'] ?? '';
 
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
             
-            let imgUrl = eSnap?.image_path || data.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            let rawImg = eSnap?.image_path || data.event_image || '';
+            let imgUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            if (rawImg) {
+                imgUrl = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+            }
             document.getElementById('sb-img').src = imgUrl;
 
             const dispStatus = data.display_status || data.status;

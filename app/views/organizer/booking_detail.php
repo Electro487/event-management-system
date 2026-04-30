@@ -294,7 +294,11 @@
                 document.getElementById('clientEmail').innerHTML = `<i class="fa-solid fa-envelope"></i> ${b.email}`;
 
                 // Event Overview
-                const eImage = eSnap?.image_path || b.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                let rawImg = eSnap?.image_path || b.event_image || '';
+                let eImage = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                if (rawImg) {
+                    eImage = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+                }
                 document.getElementById('eventHeroImg').src = eImage;
                 document.getElementById('categoryChip').textContent = eSnap?.category || b.event_category;
                 document.getElementById('eventHeroTitle').textContent = eTitle;

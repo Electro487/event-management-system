@@ -47,7 +47,12 @@ class OrganizerController
     public function dashboard()
     {
         $this->checkAuth();
-        // Data is now fetched via API in the view
+        
+        // Initials for avatar fallback
+        $fullName = $_SESSION['user_fullname'] ?? 'Organizer';
+        $parts = explode(' ', trim($fullName));
+        $initials = strtoupper(substr($parts[0], 0, 1) . (count($parts) > 1 ? substr(end($parts), 0, 1) : ''));
+
         require_once dirname(__DIR__) . '/views/organizer/dashboard.php';
     }
 
@@ -141,7 +146,8 @@ class OrganizerController
     public function viewBookingDetails()
     {
         $this->checkAuth();
-        // Data is now fetched via API in the view
+        // Define defaults for API-driven view
+        $booking = null;
         require_once dirname(__DIR__) . '/views/organizer/booking_detail.php';
     }
 

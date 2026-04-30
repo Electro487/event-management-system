@@ -3,8 +3,10 @@
 $eSnap = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
 $pSnap = !empty($booking['package_snapshot']) ? json_decode($booking['package_snapshot'], true) : null;
 
-$bgImage = !empty($eSnap['image_path']) ? $eSnap['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg');
-$eventTitle = $eSnap['title'] ?? htmlspecialchars($booking['event_title']);
+$rawBg = !empty($eSnap['image_path']) ? $eSnap['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '');
+$bgImage = !empty($rawBg) ? ($rawBg[0] === '/' ? $rawBg : '/EventManagementSystem/public/assets/images/events/' . $rawBg) : '/EventManagementSystem/public/assets/images/placeholder.jpg';
+
+$eventTitle = $eSnap['title'] ?? ($booking['event_title'] ?? 'Event');
 $eventCategory = $eSnap['category'] ?? ($booking['event_category'] ?: 'Event');
 $venueName = $eSnap['venue_name'] ?? ($booking['venue_name'] ?: 'Venue TBD');
 $venueLocation = $eSnap['venue_location'] ?? ($booking['venue_location'] ?: 'Address will be confirmed shortly.');

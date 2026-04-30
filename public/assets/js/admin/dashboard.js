@@ -107,7 +107,11 @@ function renderUpcomingEvents(events) {
     today.setHours(0,0,0,0);
 
     container.innerHTML = events.map(e => {
-        const eventImg = e.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+        let rawImg = e.image_path || '';
+        let eventImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+        if (rawImg) {
+            eventImg = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+        }
         
         let daysText = "Ongoing";
         if (e.event_date) {

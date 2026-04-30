@@ -170,7 +170,12 @@
             function populateUI(e) {
                 document.getElementById('eventTitle').textContent = e.title;
                 document.getElementById('categoryTag').textContent = e.category || 'Event';
-                document.getElementById('eventHeroImg').src = e.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                let rawImg = e.image_path || '';
+                let imgUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                if (rawImg) {
+                    imgUrl = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+                }
+                document.getElementById('eventHeroImg').src = imgUrl;
                 document.getElementById('eventDescription').innerHTML = (e.description || 'No description provided.').replace(/\n/g, '<br>');
                 document.getElementById('venueName').textContent = e.venue_name || 'Venue TBD';
                 document.getElementById('venueLocation').textContent = e.venue_location || '';

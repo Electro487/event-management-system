@@ -266,7 +266,13 @@ if (empty($includedItemsList)) {
 
         <!-- Hero Section -->
         <div class="hero">
-            <?php $image = !empty($event['image_path']) ? $event['image_path'] : '/EventManagementSystem/public/assets/images/placeholder.jpg'; ?>
+            <?php 
+            if (!empty($event['image_path'])) {
+                $image = ($event['image_path'][0] === '/') ? $event['image_path'] : '/EventManagementSystem/public/assets/images/events/' . $event['image_path'];
+            } else {
+                $image = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            }
+            ?>
             <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
             <div class="hero-content">
                 <span class="category-tag"><?php echo htmlspecialchars($event['category'] ?: 'Event'); ?></span>

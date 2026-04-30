@@ -153,7 +153,13 @@
                             <button type="button" class="btn-upload" id="upload-trigger">Upload Cover Image</button>
                             <p class="upload-note">Recommended: 1920×1080 (Max 10MB)</p>
                         </div>
-                        <img id="image-preview" src="<?php echo $event['image_path'] ?? ''; ?>" alt="Cover Preview" style="<?php echo ($isEdit && !empty($event['image_path'])) ? 'display:block;' : 'display:none;'; ?> max-height:220px; border-radius:10px; object-fit:cover; width:100%;">
+                        <?php 
+                            $previewPath = '';
+                            if (!empty($event['image_path'])) {
+                                $previewPath = ($event['image_path'][0] === '/') ? $event['image_path'] : '/EventManagementSystem/public/assets/images/events/' . $event['image_path'];
+                            }
+                        ?>
+                        <img id="image-preview" src="<?php echo $previewPath; ?>" alt="Cover Preview" style="<?php echo ($isEdit && !empty($event['image_path'])) ? 'display:block;' : 'display:none;'; ?> max-height:220px; border-radius:10px; object-fit:cover; width:100%;">
                         <input type="file" name="image" id="file-input" accept="image/*" hidden>
                         <button type="button" id="remove-image" style="<?php echo ($isEdit && !empty($event['image_path'])) ? 'display:inline-block;' : 'display:none;'; ?>" class="btn-remove-img">✕ Remove Image</button>
                     </div>

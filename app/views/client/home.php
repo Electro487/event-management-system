@@ -212,7 +212,7 @@ $displayName = $fullName;
                                 $eSnapList = !empty($bk['event_snapshot']) ? json_decode($bk['event_snapshot'], true) : null;
                                 $bListTitle = $eSnapList['title'] ?? ($bk['event_title'] ?? '–');
 
-                                $ds = $bk['display_status'];
+                                $ds = $bk['display_status'] ?? $bk['status'] ?? 'pending';
                                 $badgeClass = match ($ds) {
                                     'confirmed'  => 'badge-confirmed',
                                     'pending'    => 'badge-pending',
@@ -252,9 +252,15 @@ $displayName = $fullName;
                     <?php
                     $nSnap = !empty($nextEvent['event_snapshot']) ? json_decode($nextEvent['event_snapshot'], true) : null;
                     
-                    $evImg = !empty($nSnap['image_path']) 
-                        ? htmlspecialchars($nSnap['image_path']) 
-                        : (!empty($nextEvent['event_image']) ? htmlspecialchars($nextEvent['event_image']) : '/EventManagementSystem/public/assets/images/placeholder.png');
+                    $rawImg = !empty($nSnap['image_path']) 
+                        ? $nSnap['image_path'] 
+                        : (!empty($nextEvent['event_image']) ? $nextEvent['event_image'] : '');
+                    
+                    if (!empty($rawImg)) {
+                        $evImg = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
+                    } else {
+                        $evImg = '/EventManagementSystem/public/assets/images/placeholder.png';
+                    }
                     
                     $evCat   = htmlspecialchars($nSnap['category'] ?? ($nextEvent['event_category'] ?? 'Event'));
                     $evTitle = htmlspecialchars($nSnap['title'] ?? ($nextEvent['event_title'] ?? 'Upcoming Event'));
@@ -538,6 +544,69 @@ $displayName = $fullName;
                                 badge.textContent = 'ALL CLEAR';
                             }
                         }
+                    }
+
+                    // Render Recent Bookings Table
+                    const bookingsTbody = document.querySelector('.bookings-table tbody');
+                    const recentBookings = stats.recent_bookings || [];
+                    if (bookingsTbody && recentBookings.length > 0) {
+                        let html = '';
+                        recentBookings.forEach(bk => {
+                            const eSnap = bk.event_snapshot ? (typeof bk.event_snapshot === 'string' ? JSON.parse(bk.event_snapshot) : bk.event_snapshot) : null;
+                            const title = eSnap?.title || bk.event_title || '–';
+                            const tier = bk.package_tier || '–';
+                            const ds = (bk.display_status || bk.status || 'review').toLowerCase();
+                            
+                            let badgeClass = 'badge-review';
+                            if (ds === 'confirmed') badgeClass = 'badge-confirmed';
+                            else if (ds === 'pending') badgeClass = 'badge-pending';
+                            else if (ds === 'completed') badgeClass = 'badge-completed';
+                            else if (ds === 'cancelled') badgeClass = 'badge-cancelled';
+
+                            html += `
+                                <tr>
+                                    <td class="col-event">${title}</td>
+                                    <td class="col-package">${tier.charAt(0).toUpperCase() + tier.slice(1)}</td>
+                                    <td>
+                                        <span class="stat-badge ${badgeClass}">
+                                            ${ds.toUpperCase()}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        bookingsTbody.innerHTML = html;
+                        // Remove empty message if it exists
+                        const emptyMsg = document.querySelector('.table-empty');
+                        if (emptyMsg) emptyMsg.style.display = 'none';
+                        const table = document.querySelector('.bookings-table');
+                        if (table) table.style.display = 'table';
+                    }
+
+                    // Render Next Event Card
+                    const nextEventCard = document.querySelector('.next-event-card');
+                    const nextEvent = stats.next_event;
+                    if (nextEventCard && nextEvent) {
+                        const eSnap = nextEvent.event_snapshot ? (typeof nextEvent.event_snapshot === 'string' ? JSON.parse(nextEvent.event_snapshot) : nextEvent.event_snapshot) : null;
+                        const title = eSnap?.title || nextEvent.event_title || 'Upcoming Event';
+                        const date = nextEvent.event_date ? new Date(nextEvent.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD';
+                        
+                        nextEventCard.innerHTML = `
+                            <div class="card-header">Next Event</div>
+                            <div class="next-event-content">
+                                <div class="ne-date-badge">
+                                    <span class="ne-month">${new Date(nextEvent.event_date).toLocaleString('en-US', {month:'short'}).toUpperCase()}</span>
+                                    <span class="ne-day">${new Date(nextEvent.event_date).getDate()}</span>
+                                </div>
+                                <div class="ne-details">
+                                    <h4 class="ne-title">${title}</h4>
+                                    <p class="ne-meta"><i class="fa-regular fa-clock"></i> Confirmed</p>
+                                </div>
+                            </div>
+                            <div class="ne-footer">
+                                <a href="/EventManagementSystem/public/client/bookings?id=${nextEvent.id}" class="ne-btn">View Details</a>
+                            </div>
+                        `;
                     }
                 })
                 .catch(err => {

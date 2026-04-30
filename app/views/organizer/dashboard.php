@@ -300,7 +300,11 @@
                                     else daysText = "in " + diffDays + " days";
                                 }
                                 
-                                const img = e.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                let rawImg = e.image_path || '';
+                                let img = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                                if (rawImg) {
+                                    img = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+                                }
                                 
                                 return `<a href="/EventManagementSystem/public/organizer/events/view?id=${e.id}" class="event-item" data-title="${e.title?.toLowerCase() || ''}" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; transition: all 0.2s ease;">
                                     <img src="${img}" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/placeholder.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">

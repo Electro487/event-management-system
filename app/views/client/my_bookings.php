@@ -292,7 +292,11 @@
                         $eSnapList = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
                         $bListTitle = $eSnapList['title'] ?? $booking['event_title'];
                         $bListCat = $eSnapList['category'] ?? ($booking['event_category'] ?: 'Event');
-                        $bListImg = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '/EventManagementSystem/public/assets/images/placeholder.jpg');
+                        $rawImg = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '');
+                        $bListImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                        if ($rawImg) {
+                            $bListImg = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
+                        }
                         ?>
                         <div class="b-item" data-status="<?php echo $booking['status']; ?>"
                             data-upcoming="<?php echo $isUpcoming; ?>" data-index="<?php echo $index; ?>"
@@ -463,7 +467,11 @@
             // Populate Sidebar
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
 
-            let imgUrl = eSnap?.image_path || data.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            let rawImg = eSnap?.image_path || data.event_image || '';
+            let imgUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            if (rawImg) {
+                imgUrl = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+            }
             document.getElementById('sb-img').src = imgUrl;
 
             const statusEl = document.getElementById('sb-status');

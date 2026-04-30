@@ -66,8 +66,8 @@
 }
 
 .tab-btn.active {
-    background: #e3ede2;
-    color: var(--primary-color);
+    background: #246A55;
+    color: white;
 }
 
 .category-filter select {
@@ -201,8 +201,9 @@
 }
 
 .status-badge.active {
-    color: #246A55;
-    background: #e8f5e9;
+    color: #1b5343;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
 }
 
 .status-badge.inactive {

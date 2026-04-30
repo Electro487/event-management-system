@@ -53,8 +53,13 @@ function populateUI(booking) {
     }
 
     // Event Hero Image
+    let rawHero = eSnap?.image_path || booking.event_image || '';
+    let heroUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+    if (rawHero) {
+        heroUrl = (rawHero[0] === '/') ? rawHero : '/EventManagementSystem/public/assets/images/events/' + rawHero;
+    }
     const heroImg = document.getElementById('event-hero-img');
-    if (heroImg) heroImg.src = eSnap?.image_path || booking.event_image || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+    if (heroImg) heroImg.src = heroUrl;
     
     document.getElementById('event-category-display').innerText = dispCategory;
     document.getElementById('event-hero-title-display').innerText = dispTitle;

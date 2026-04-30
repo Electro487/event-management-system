@@ -191,7 +191,11 @@
                         card.dataset.status = (event.status || '').toLowerCase();
                         card.dataset.category = event.category || '';
                         
-                        const imgPath = event.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                        let rawImg = event.image_path || '';
+                        let imgPath = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                        if (rawImg) {
+                            imgPath = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+                        }
                         const statusClass = (event.status || '').toLowerCase();
                         const statusText = event.status ? (event.status.charAt(0).toUpperCase() + event.status.slice(1)) : '';
                         

@@ -142,7 +142,11 @@ function renderGrid(events) {
     const paginatedEvents = events.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
     let html = paginatedEvents.map(e => {
-        const img = e.image_path || '/EventManagementSystem/public/assets/images/placeholder.jpg';
+        let rawImg = e.image_path || '';
+        let img = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+        if (rawImg) {
+            img = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+        }
         const status = (e.status || 'draft').toLowerCase();
         const desc = (e.description || '').substring(0, 80) + '...';
 
