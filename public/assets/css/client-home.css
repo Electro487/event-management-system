@@ -895,6 +895,30 @@ footer {
     word-break: break-all;
 }
 
+.pd-rating-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 18px;
+    transition: background 0.2s;
+}
+
+.pd-rating-btn:hover {
+    background: #f0faf6;
+}
+
+.pd-rating-btn i {
+    margin-right: 8px;
+    color: #eab308;
+}
+
 .pd-logout-btn {
     display: flex;
     align-items: center;

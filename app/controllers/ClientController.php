@@ -297,4 +297,10 @@ class ClientController
         echo json_encode(['success' => false, 'message' => 'Endpoint migrated to API.']);
         exit;
     }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/client/feedback.php';
+    }
 }

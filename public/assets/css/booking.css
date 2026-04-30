@@ -711,6 +711,30 @@ body {
     overflow-wrap: break-word;
 }
 
+.pd-rating-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1f6f59;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    border: 2px solid #1f6f59;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 25px;
+    transition: all 0.3s;
+}
+
+.pd-rating-btn:hover {
+    background-color: #f0faf6;
+}
+
+.pd-rating-btn i {
+    margin-right: 8px;
+    color: #eab308;
+}
+
 .pd-logout-btn {
     display: flex;
     align-items: center;
