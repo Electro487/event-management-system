@@ -466,7 +466,7 @@ if (empty($includedItemsList)) {
             if (activeTierEl.classList.contains('standard')) selectedTier = 'standard';
             if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
 
-            window.location.href = `/EventManagementSystem/public/client/book?event_id=${eventId}&package=${selectedTier}`;
+            window.location.href = `/EventManagementSystem/public/client/book?id=${eventId}&package=${selectedTier}`;
         }
     </script>
 
