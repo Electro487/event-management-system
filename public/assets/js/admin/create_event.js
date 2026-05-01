@@ -217,6 +217,36 @@ function initPackageManagement() {
             window.bindRowEventsGlobal(row, tier);
         });
     });
+
+    // ─────────────── PACKAGE PRICE HANDLING ───────────────
+    document.querySelectorAll('.package-price-input').forEach((input) => {
+        // Prevent scientific notation, signs, and decimals
+        input.addEventListener('keydown', (e) => {
+            if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        // Safe input sanitizer (only runs if non-digits are found)
+        input.addEventListener('input', () => {
+            const val = input.value;
+            const clean = val.replace(/[^\d]/g, '');
+            if (val !== clean) {
+                const pos = input.selectionStart;
+                input.value = clean;
+                // Restore cursor position roughly
+                input.setSelectionRange(pos - 1, pos - 1);
+            }
+        });
+
+        // Prevent pasting non-numeric data
+        input.addEventListener('paste', (e) => {
+            const data = e.clipboardData.getData('text');
+            if (!/^\d+$/.test(data)) {
+                e.preventDefault();
+            }
+        });
+    });
 }
 
 window.currentEditRow = null;
@@ -278,9 +308,21 @@ function initFormSubmission() {
         formData.set('status', status);
 
         // Validation
-        const basic = parseInt(formData.get('packages[basic][price]'));
-        const standard = parseInt(formData.get('packages[standard][price]'));
-        const premium = parseInt(formData.get('packages[premium][price]'));
+        const basic = parseInt(formData.get('packages[basic][price]'), 10);
+        const standard = parseInt(formData.get('packages[standard][price]'), 10);
+        const premium = parseInt(formData.get('packages[premium][price]'), 10);
+
+        const MAX_PACKAGE_PRICE = 20000000;
+
+        if (isNaN(basic) || isNaN(standard) || isNaN(premium)) {
+            alert('Please enter valid numeric prices for all packages.');
+            return;
+        }
+
+        if ([basic, standard, premium].some(v => v > MAX_PACKAGE_PRICE)) {
+            alert('Package price cannot exceed NPR 2,00,00,000.');
+            return;
+        }
 
         if (basic >= standard || standard >= premium) {
             alert('Price order must be: Basic < Standard < Premium.');

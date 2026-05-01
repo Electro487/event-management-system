@@ -251,7 +251,7 @@
                                 </div>
                                 <div class="form-group pkg-price-group">
                                     <label>PRICE (NPR)</label>
-                                    <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
+                                    <input type="text" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required inputmode="numeric" pattern="\d*">
                                 </div>
                                 <div class="items-list" data-tier="<?php echo $tierKey; ?>">
                                     <?php foreach ($items as $idx => $item): ?>
@@ -518,9 +518,33 @@
         const eventForm = document.getElementById('createEventForm');
         const MAX_PACKAGE_PRICE = 20000000;
 
+        // ─────────────── PACKAGE PRICE HANDLING ───────────────
         document.querySelectorAll('.package-price-input').forEach((input) => {
+            // Prevent scientific notation, signs, and decimals
+            input.addEventListener('keydown', (e) => {
+                if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            // Safe input sanitizer (only runs if non-digits are found)
             input.addEventListener('input', () => {
-                input.value = input.value.replace(/[^\d]/g, '');
+                const val = input.value;
+                const clean = val.replace(/[^\d]/g, '');
+                if (val !== clean) {
+                    const pos = input.selectionStart;
+                    input.value = clean;
+                    // Restore cursor position roughly
+                    input.setSelectionRange(pos - 1, pos - 1);
+                }
+            });
+
+            // Prevent pasting non-numeric data
+            input.addEventListener('paste', (e) => {
+                const data = e.clipboardData.getData('text');
+                if (!/^\d+$/.test(data)) {
+                    e.preventDefault();
+                }
             });
         });
 
@@ -536,8 +560,8 @@
             const standard = parseInt(standardVal, 10);
             const premium = parseInt(premiumVal, 10);
 
-            if (![basicVal, standardVal, premiumVal].every(v => /^\d+$/.test(v))) {
-                alert('Package prices must be numbers only (no decimals or symbols).');
+            if (isNaN(basic) || isNaN(standard) || isNaN(premium)) {
+                alert('Please enter valid numeric prices for all packages.');
                 return;
             }
 

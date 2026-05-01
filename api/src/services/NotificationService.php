@@ -16,7 +16,7 @@ class NotificationService
             'ok' => true,
             'status' => 200,
             'data' => [
-                'notifications' => $this->notificationModel->getLatestByUser($userId, 3),
+                'notifications' => $this->notificationModel->getLatestByUser($userId, 15),
                 'unreadCount' => (int)$this->notificationModel->getUnreadCount($userId),
             ],
         ];

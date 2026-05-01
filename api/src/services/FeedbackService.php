@@ -103,6 +103,22 @@ class FeedbackService
                 $title = "Response to Your Feedback";
                 $message = "The {$replierRole} has replied to your feedback thread.";
                 $this->notificationModel->create($feedback['client_id'], $title, $message, 'feedback_reply', $feedbackId);
+                
+                // Cross-notification between Admin and Organizer
+                $crossTitle = "{$replierRole} Replied to Feedback";
+                $crossMessage = "{$authUser['fullname']} ({$replierRole}) has replied to a feedback thread.";
+                
+                if ($userRole === 'organizer') {
+                    // Notify all admins when an organizer replies
+                    foreach ($this->userModel->getAdmins() as $admin) {
+                        $this->notificationModel->create($admin['id'], $crossTitle, $crossMessage, 'feedback_reply', $feedbackId);
+                    }
+                } elseif ($userRole === 'admin') {
+                    // Notify all organizers when an admin replies
+                    foreach ($this->userModel->getOrganizers() as $organizer) {
+                        $this->notificationModel->create($organizer['id'], $crossTitle, $crossMessage, 'feedback_reply', $feedbackId);
+                    }
+                }
             }
 
             // Handle Mentions

@@ -442,6 +442,8 @@
             });
 
             fetchNotifications();
+            // Start polling every 10 seconds for live updates
+            setInterval(fetchNotifications, 10000);
         });
     </script>
 </body>

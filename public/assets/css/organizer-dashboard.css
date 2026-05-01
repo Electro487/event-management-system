@@ -204,23 +204,34 @@
 }
 
 .btn-create {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background: white;
-    color: #246A55;
-    padding: 12px 30px;
+    color: #000000 !important;
+    padding: 11px 22px;
     border-radius: 12px;
     text-decoration: none;
     font-weight: 700;
-    font-size: 15px;
-    transition: all 0.3s ease;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-create i {
+    font-size: 12px;
+    color: #000000;
+    line-height: 1;
+    margin-bottom: 1px; /* Subtle adjustment for visual vertical centering */
 }
 
 .btn-create:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     background: #FFC24A;
-    color: #1b5343;
+    color: #000000 !important;
 }
 
 /* Recent Bookings Table Styles */

@@ -213,7 +213,7 @@
                                 </div>
                                 <div class="form-group pkg-price-group">
                                     <label>PRICE (NPR)</label>
-                                    <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
+                                    <input type="text" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required inputmode="numeric" pattern="\d*">
                                 </div>
                                 <div class="items-list" data-tier="<?php echo $tierKey; ?>">
                                     <?php foreach ($items as $idx => $item): ?>

@@ -11,6 +11,9 @@ const itemsPerPage = 10;
 document.addEventListener('DOMContentLoaded', () => {
     loadNotifications();
     initFilters();
+
+    // Start polling every 10 seconds to keep the list live
+    setInterval(loadNotifications, 10000);
 });
 
 async function loadNotifications() {
