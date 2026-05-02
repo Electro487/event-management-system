@@ -1,25 +1,3 @@
-<?php
-// Fallback if variables are not passed from Controller
-if (!isset($avgRating) || !isset($totalReviews)) {
-    try {
-        require_once dirname(__DIR__, 2) . '/config/database.php';
-        if (class_exists('Database')) {
-            $db = new Database();
-            $pdo = $db->getConnection();
-            $stmt = $pdo->query("SELECT COUNT(*) as total_reviews, AVG(rating) as avg_rating FROM feedbacks");
-            $stats = $stmt->fetch(PDO::FETCH_ASSOC);
-            $totalReviews = $stats['total_reviews'] ? (int) $stats['total_reviews'] : 0;
-            $avgRating = $stats['avg_rating'] ? round((float) $stats['avg_rating'], 1) : 0.0;
-        } else {
-            $totalReviews = 0;
-            $avgRating = 0.0;
-        }
-    } catch (Exception $e) {
-        $totalReviews = 0;
-        $avgRating = 0.0;
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -34,9 +12,123 @@ if (!isset($avgRating) || !isset($totalReviews)) {
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/home.css?v=<?php echo time(); ?>">
+    <style>
+        .recent-reviews-section {
+            padding: 40px 100px 100px;
+            background-color: #ffffff;
+        }
+
+        .reviews-grid {
+            display: grid;
+            /* Dynamic grid based on count */
+            grid-template-columns: repeat(var(--review-count, 1), 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .review-card {
+            background: #f8fcfb;
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(12, 43, 34, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border-color: #ffc247;
+        }
+
+        .review-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .review-card-stars {
+            color: #ffc247;
+            font-size: 14px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .review-card-date {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .review-card-comment {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+            font-style: italic;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .review-card-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .review-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0c2b22;
+            color: #ffc247;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            object-fit: cover;
+        }
+
+        .review-user-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #0c2b22;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-subtitle h3 {
+            font-size: 28px;
+            color: #0c2b22;
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 900px) {
+            .reviews-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .recent-reviews-section {
+                padding: 40px 20px 60px;
+            }
+        }
+    </style>
 </head>
 
 <body>
+    <?php if (session_status() == PHP_SESSION_NONE) session_start(); ?>
 
     <header class="header">
         <div class="header-left">
@@ -169,41 +261,31 @@ if (!isset($avgRating) || !isset($totalReviews)) {
             </div>
 
             <div class="review-stats">
-                <div class="review-score-large"><?php echo number_format($avgRating, 1); ?></div>
+                <div class="review-score-large" id="avg-rating">0.0</div>
                 <div class="review-details">
-                    <div class="review-stars-new">
-                        <?php
-                        $fullStars = floor($avgRating);
-                        $halfStar = ($avgRating - $fullStars >= 0.5) ? 1 : 0;
-                        $emptyStars = 5 - $fullStars - $halfStar;
-
-                        for ($i = 0; $i < $fullStars; $i++) {
-                            echo '<i class="fa-solid fa-star"></i>';
-                        }
-                        if ($halfStar) {
-                            echo '<i class="fa-solid fa-star-half-stroke"></i>';
-                        }
-                        for ($i = 0; $i < $emptyStars; $i++) {
-                            echo '<i class="fa-regular fa-star"></i>';
-                        }
-                        ?>
+                    <div class="review-stars-new" id="star-rating-container">
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
                     </div>
-                    <?php
-                    $ratingLabel = 'Good';
-                    if ($avgRating >= 4.5)
-                        $ratingLabel = 'Excellent';
-                    elseif ($avgRating >= 3.5)
-                        $ratingLabel = 'Very Good';
-                    elseif ($avgRating >= 2.5)
-                        $ratingLabel = 'Good';
-                    elseif ($avgRating >= 1.5)
-                        $ratingLabel = 'Fair';
-                    else
-                        $ratingLabel = 'Poor';
-                    ?>
-                    <div class="review-meta">Based on <?php echo $totalReviews; ?> reviews &bull;
-                        <?php echo $ratingLabel; ?></div>
+                    <div class="review-meta"><span id="review-meta-text">Loading reviews...</span></div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Reviews List -->
+    <section class="recent-reviews-section">
+        <div class="section-subtitle">
+            <h3>Recent Testimonials</h3>
+            <p>Real experiences from our elite clientele.</p>
+        </div>
+        <div id="reviews-grid" class="reviews-grid">
+            <!-- Loaded via API -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Curating testimonials...
             </div>
         </div>
     </section>
@@ -246,6 +328,124 @@ if (!isset($avgRating) || !isset($totalReviews)) {
             </div>
         </div>
     </footer>
+
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.emsApi) return;
+            
+            // 1. Fetch Stats
+            window.emsApi.apiFetch('/api/v1/feedback/stats')
+            .then(res => {
+                if (res.success) {
+                    const stats = res.data;
+                    const avg = parseFloat(stats.avg);
+                    const total = parseInt(stats.total);
+                    
+                    document.getElementById('avg-rating').textContent = avg.toFixed(1);
+                    
+                    const starContainer = document.getElementById('star-rating-container');
+                    let starsHtml = '';
+                    const fullStars = Math.floor(avg);
+                    const halfStar = (avg - fullStars >= 0.5) ? 1 : 0;
+                    const emptyStars = 5 - fullStars - halfStar;
+
+                    for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fa-solid fa-star"></i>';
+                    if (halfStar) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+                    for (let i = 0; i < emptyStars; i++) starsHtml += '<i class="fa-regular fa-star"></i>';
+                    
+                    starContainer.innerHTML = starsHtml;
+                    
+                    let label = 'Good';
+                    if (avg >= 4.5) label = 'Excellent';
+                    else if (avg >= 3.5) label = 'Very Good';
+                    else if (avg >= 2.5) label = 'Good';
+                    else if (avg >= 1.5) label = 'Fair';
+                    else label = 'Poor';
+                    
+                    document.getElementById('review-meta-text').innerHTML = `Based on ${total} reviews &bull; ${label}`;
+                }
+            })
+            .catch(err => console.error('Failed to load landing stats:', err));
+
+            // 2. Fetch Recent Reviews
+            window.emsApi.apiFetch('/api/v1/feedback')
+            .then(res => {
+                if (res.success) {
+                    const allReviews = res.data || [];
+                    const grid = document.getElementById('reviews-grid');
+                    
+                    if (allReviews.length === 0) {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No reviews shared yet.</div>';
+                        return;
+                    }
+
+                    // --- SELECTION LOGIC ---
+                    // 1. Sort by rating DESC, then date DESC
+                    const sorted = [...allReviews].sort((a, b) => {
+                        if (b.rating !== a.rating) return b.rating - a.rating;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+
+                    const selected = [];
+                    const seenUsers = new Set();
+
+                    // Pass 1: Prioritize different users (top review for each unique user)
+                    for (const r of sorted) {
+                        if (selected.length >= 3) break;
+                        if (!seenUsers.has(r.client_id)) {
+                            selected.push(r);
+                            seenUsers.add(r.client_id);
+                        }
+                    }
+
+                    // Pass 2: If we still need more to hit 3, pick remaining top reviews even if user is duplicate
+                    if (selected.length < 3) {
+                        for (const r of sorted) {
+                            if (selected.length >= 3) break;
+                            // Check if this specific review object is already selected
+                            if (!selected.some(s => s.id === r.id)) {
+                                selected.push(r);
+                            }
+                        }
+                    }
+
+                    // --- RENDER ---
+                    grid.style.setProperty('--review-count', selected.length);
+                    
+                    grid.innerHTML = selected.map(r => {
+                        const stars = [];
+                        for(let i=1; i<=5; i++) stars.push(`<i class="${i <= r.rating ? 'fas' : 'far'} fa-star"></i>`);
+                        
+                        const nameParts = r.client_name.split(' ');
+                        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : '')).toUpperCase();
+                        
+                        const avatarHtml = r.client_profile_pic 
+                            ? `<img src="${r.client_profile_pic}" class="review-user-avatar">`
+                            : `<div class="review-user-avatar">${initials}</div>`;
+
+                        return `
+                            <div class="review-card">
+                                <div class="review-card-header">
+                                    <div class="review-card-stars">${stars.join('')}</div>
+                                    <div class="review-card-date">${new Date(r.created_at).toLocaleDateString('en-US', {month: 'short', year: 'numeric'})}</div>
+                                </div>
+                                <p class="review-card-comment">"${r.comment}"</p>
+                                <div class="review-card-user">
+                                    ${avatarHtml}
+                                    <span class="review-user-name">${r.client_name}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load reviews:', err);
+                document.getElementById('reviews-grid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Failed to load testimonials.</div>';
+            });
+        });
+    </script>
 
 </body>
 
