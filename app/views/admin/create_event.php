@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -34,7 +35,28 @@
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <i class="fa-regular fa-bell"></i>
+                    <div class="notifications-wrapper">
+                        <div class="notification-bell-btn" id="notification-bell">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                        </div>
+                        <!-- Notifications Dropdown -->
+                        <div class="notifications-dropdown" id="notifications-dropdown">
+                            <div class="nd-header">
+                                <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                                <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                            </div>
+                            <div class="nd-content" id="nd-list">
+                                <div class="nd-empty">
+                                    <i class="fa-regular fa-bell-slash"></i>
+                                    <p>No new notifications</p>
+                                </div>
+                            </div>
+                            <div class="nd-footer">
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-avatar-small">
                         <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                     </div>
@@ -191,7 +213,7 @@
                                 </div>
                                 <div class="form-group pkg-price-group">
                                     <label>PRICE (NPR)</label>
-                                    <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
+                                    <input type="text" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required inputmode="numeric" pattern="\d*">
                                 </div>
                                 <div class="items-list" data-tier="<?php echo $tierKey; ?>">
                                     <?php foreach ($items as $idx => $item): ?>

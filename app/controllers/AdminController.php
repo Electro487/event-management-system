@@ -306,4 +306,11 @@ class AdminController
         header('Location: /EventManagementSystem/public/admin/bookings');
         exit;
     }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        $activePage = 'feedback';
+        require_once dirname(__DIR__) . '/views/admin/feedback.php';
+    }
 }

@@ -53,7 +53,7 @@
                 <a href="/EventManagementSystem/public/organizer/bookings" class="back-link">
                     <i class="fa-solid fa-arrow-left"></i> Back to Bookings
                 </a>
-                <div class="header-icons-center">
+                <div class="header-icons">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
                             <i class="fa-regular fa-bell"></i>

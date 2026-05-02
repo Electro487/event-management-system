@@ -260,12 +260,24 @@ class ClientController
         }
 
         // Calculate payment progress for the view
+        require_once dirname(__DIR__) . '/models/Payment.php';
+        $paymentModel = new Payment();
+        
         $totalAmount = (float)$booking['total_amount'];
         $advanceTarget = $totalAmount * 0.50; // 50% advance policy
-        $paidAdvance = (strtolower($booking['payment_status']) === 'paid' || strtolower($booking['payment_status']) === 'completed') ? $advanceTarget : 0;
+        
+        // Use actual payment history instead of just status
+        $paidAdvance = $paymentModel->getSucceededTotalByBookingId($id);
+        
+        // Cap paidAdvance at advanceTarget for progress display purposes (since extra might be cash)
+        // Actually, if they paid more than 50%, we should show it correctly.
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
+        
+        // Next installment is either the remaining advance or 0 if advance is complete
+        $nextInstallmentAmount = $remainingAdvance;
 
         require_once dirname(__DIR__) . '/views/client/view_booking_details.php';
+
     }
 
     public function updateProfile()
@@ -284,5 +296,11 @@ class ClientController
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Endpoint migrated to API.']);
         exit;
+    }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/client/feedback.php';
     }
 }

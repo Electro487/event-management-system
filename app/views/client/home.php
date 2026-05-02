@@ -29,6 +29,199 @@ $displayName = $fullName;
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/client-home.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
+    <style>
+        /* ── Rating Popup Modal ── */
+        #rating-popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 40, 30, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: rpo-fadein 0.3s ease;
+        }
+        #rating-popup-overlay.show {
+            display: flex;
+        }
+        @keyframes rpo-fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        #rating-popup {
+            background: #fff;
+            border-radius: 20px;
+            padding: 36px 32px 28px;
+            width: 360px;
+            max-width: 94vw;
+            box-shadow: 0 24px 60px rgba(12, 59, 46, 0.22);
+            position: relative;
+            animation: rp-slidein 0.35s cubic-bezier(.22,.68,0,1.2);
+            text-align: center;
+        }
+        @keyframes rp-slidein {
+            from { transform: translateY(40px) scale(0.94); opacity: 0; }
+            to   { transform: translateY(0) scale(1);     opacity: 1; }
+        }
+        #rating-popup .rp-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        #rating-popup .rp-close:hover { color: #1f6f59; }
+        #rating-popup .rp-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1f6f59, #246A55);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 26px;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(31,111,89,0.3);
+        }
+        #rating-popup h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0c3b2e;
+            margin-bottom: 6px;
+        }
+        #rating-popup p.rp-sub {
+            font-size: 13.5px;
+            color: #64748b;
+            margin-bottom: 22px;
+        }
+        /* Star Rating */
+        .rp-stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 22px;
+            direction: ltr;
+        }
+        .rp-stars .rp-star {
+            font-size: 32px;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.15s, transform 0.15s;
+            user-select: none;
+        }
+        .rp-stars .rp-star.active,
+        .rp-stars .rp-star.hover {
+            color: #eab308;
+            transform: scale(1.15);
+        }
+        .rp-stars .rp-star:hover {
+            transform: scale(1.2);
+        }
+        /* Textarea */
+        .rp-label {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        #rp-comment {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13.5px;
+            font-family: inherit;
+            resize: none;
+            color: #1e293b;
+            background: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+        #rp-comment:focus {
+            outline: none;
+            border-color: #1f6f59;
+            box-shadow: 0 0 0 3px rgba(31,111,89,0.12);
+            background: #fff;
+        }
+        #rp-comment::placeholder { color: #94a3b8; }
+        /* Rating label text */
+        #rp-rating-label {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #1f6f59;
+            min-height: 18px;
+            margin-bottom: 16px;
+        }
+        /* Buttons */
+        #rp-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #1f6f59, #246A55);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-bottom: 10px;
+            letter-spacing: 0.2px;
+        }
+        #rp-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+        #rp-submit:active { transform: translateY(0); }
+        #rp-submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        #rp-not-now {
+            width: 100%;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 6px;
+            transition: color 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+        #rp-not-now:hover { color: #1f6f59; }
+        /* Success state */
+        #rp-success {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+        #rp-success .rp-success-icon {
+            font-size: 48px;
+            color: #1f6f59;
+            animation: rp-pop 0.4s cubic-bezier(.22,.68,0,1.4);
+        }
+        @keyframes rp-pop {
+            from { transform: scale(0.3); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+        #rp-success h3 { font-size: 18px; font-weight: 800; color: #0c3b2e; margin: 0; }
+        #rp-success p  { font-size: 13.5px; color: #64748b; margin: 0; }
+        /* Error */
+        #rp-error {
+            color: #dc2626;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -125,6 +318,9 @@ $displayName = $fullName;
                                 <label>EMAIL ADDRESS</label>
                                 <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
                             </div>
+                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
+                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
+                            </a>
                             <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
@@ -614,6 +810,178 @@ $displayName = $fullName;
                 });
         })();
     </script>
+
+    <?php if ($completedCount > 0): ?>
+    <!-- ── Rating Popup Modal ── -->
+    <div id="rating-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="rp-title">
+        <div id="rating-popup">
+            <button class="rp-close" id="rp-close-btn" title="Close" aria-label="Close">&times;</button>
+
+            <!-- Form view -->
+            <div id="rp-form-view">
+                <div class="rp-icon"><i class="fa-solid fa-star"></i></div>
+                <h2 id="rp-title">How do you rate us?</h2>
+                <p class="rp-sub">Your event is complete! Share your experience to help us improve.</p>
+
+                <!-- Stars -->
+                <div class="rp-stars" id="rp-stars" role="group" aria-label="Star rating">
+                    <span class="rp-star" data-val="1" title="1 – Poor"><i class="fa-solid fa-star"></i></span>
+                    <span class="rp-star" data-val="2" title="2 – Fair"><i class="fa-solid fa-star"></i></span>
+                    <span class="rp-star" data-val="3" title="3 – Good"><i class="fa-solid fa-star"></i></span>
+                    <span class="rp-star" data-val="4" title="4 – Very Good"><i class="fa-solid fa-star"></i></span>
+                    <span class="rp-star" data-val="5" title="5 – Excellent"><i class="fa-solid fa-star"></i></span>
+                </div>
+                <div id="rp-rating-label">Tap a star to rate</div>
+
+                <label class="rp-label" for="rp-comment">Feedback</label>
+                <textarea id="rp-comment" rows="4"
+                    placeholder="Tell us what you liked or what we can improve..."></textarea>
+
+                <div id="rp-error"></div>
+
+                <button id="rp-submit" disabled>Submit</button>
+                <button id="rp-not-now">Not now</button>
+            </div>
+
+            <!-- Success view -->
+            <div id="rp-success">
+                <div class="rp-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <h3>Thank you!</h3>
+                <p>Your feedback has been submitted successfully.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const STORAGE_KEY  = 'ems_rating_popup';
+        const SNOOZE_DAYS  = 7;
+        const CURRENT_COMPLETED_COUNT = <?php echo (int)$completedCount; ?>;
+
+        /* ── Decide whether to show ── */
+        function shouldShow() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return true;
+                const { action, ts, completedCountAtTime } = JSON.parse(raw);
+                
+                // Show again if a NEW event was completed since last action
+                if (CURRENT_COMPLETED_COUNT > (completedCountAtTime || 0)) {
+                    return true;
+                }
+
+                if (action === 'submitted') return false;          // submitted for current events = hide
+                if (action === 'snoozed') {
+                    const days = (Date.now() - ts) / 86400000;
+                    return days >= SNOOZE_DAYS;                    // snoozed = re-show after 7 days
+                }
+            } catch (_) {}
+            return true;
+        }
+
+        function saveState(action) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
+                action, 
+                ts: Date.now(),
+                completedCountAtTime: CURRENT_COMPLETED_COUNT
+            }));
+        }
+
+        /* ── Elements ── */
+        const overlay   = document.getElementById('rating-popup-overlay');
+        const closeBtn  = document.getElementById('rp-close-btn');
+        const notNow    = document.getElementById('rp-not-now');
+        const submitBtn = document.getElementById('rp-submit');
+        const comment   = document.getElementById('rp-comment');
+        const errEl     = document.getElementById('rp-error');
+        const formView  = document.getElementById('rp-form-view');
+        const successView = document.getElementById('rp-success');
+        const ratingLabel = document.getElementById('rp-rating-label');
+        const stars     = document.querySelectorAll('.rp-star');
+        let selectedRating = 0;
+
+        const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+        const labelColors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#1f6f59'];
+
+        /* ── Star interactions ── */
+        stars.forEach(star => {
+            star.addEventListener('mouseenter', () => {
+                const v = +star.dataset.val;
+                stars.forEach(s => s.classList.toggle('hover', +s.dataset.val <= v));
+            });
+            star.addEventListener('mouseleave', () => {
+                stars.forEach(s => s.classList.remove('hover'));
+            });
+            star.addEventListener('click', () => {
+                selectedRating = +star.dataset.val;
+                stars.forEach(s => s.classList.toggle('active', +s.dataset.val <= selectedRating));
+                ratingLabel.textContent = labels[selectedRating];
+                ratingLabel.style.color = labelColors[selectedRating];
+                submitBtn.disabled = false;
+            });
+        });
+
+        /* ── Open / close ── */
+        function openPopup()  { overlay.classList.add('show'); }
+        function closePopup() { overlay.classList.remove('show'); }
+
+        closeBtn.addEventListener('click', () => { saveState('snoozed'); closePopup(); });
+        notNow.addEventListener('click',   () => { saveState('snoozed'); closePopup(); });
+        overlay.addEventListener('click',  (e) => { if (e.target === overlay) { saveState('snoozed'); closePopup(); } });
+
+        /* ── Submit ── */
+        submitBtn.addEventListener('click', () => {
+            if (!selectedRating) return;
+            const commentText = comment.value.trim();
+            if (!commentText) {
+                errEl.textContent = 'Please add a short comment before submitting.';
+                errEl.style.display = 'block';
+                comment.focus();
+                return;
+            }
+            errEl.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+            if (window.emsApi) {
+                window.emsApi.apiFetch('/api/v1/feedback', {
+                    method: 'POST',
+                    body: { rating: selectedRating, comment: commentText }
+                })
+                .then(res => {
+                    if (res.success) {
+                        saveState('submitted');
+                        formView.style.display = 'none';
+                        successView.style.display = 'flex';
+                        setTimeout(closePopup, 2600);
+                    } else {
+                        errEl.textContent = res.message || 'Submission failed. Please try again.';
+                        errEl.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Submit';
+                    }
+                })
+                .catch(err => {
+                    errEl.textContent = 'Network error: ' + err.message;
+                    errEl.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit';
+                });
+            } else {
+                errEl.textContent = 'API not available. Please try again later.';
+                errEl.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit';
+            }
+        });
+
+        /* ── Auto-show after short delay ── */
+        if (shouldShow()) {
+            setTimeout(openPopup, 1800);
+        }
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 
 </html>
