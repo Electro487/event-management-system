@@ -1,0 +1,8 @@
+Database
+event_management_system
+information_schema
+mysql
+performance_schema
+phpmyadmin
+school_db
+test

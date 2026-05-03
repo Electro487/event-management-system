@@ -1,0 +1,2 @@
+Table	Create Table
+tickets	CREATE TABLE `tickets` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `booking_id` int(11) NOT NULL,\n  `ticket_code` varchar(50) NOT NULL,\n  `status` enum('active','used','cancelled') DEFAULT 'active',\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `ticket_code` (`ticket_code`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

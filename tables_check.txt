@@ -1,0 +1,7 @@
+Tables_in_event_management_system
+bookings
+events
+notifications
+payments
+test_table
+users

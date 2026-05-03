@@ -63,17 +63,28 @@ class ClientController
         $completedCount = 0;
         $upcomingCount = 0;
         
-        foreach ($bookings as $b) {
+        $today = date('Y-m-d');
+        foreach ($bookings as &$b) {
             $status = strtolower($b['status']);
+            $eventDate = !empty($b['event_date']) ? date('Y-m-d', strtotime($b['event_date'])) : null;
+            
+            // Auto-complete confirmed bookings in the past
+            if ($status === 'confirmed' && $eventDate && $eventDate < $today) {
+                $status = 'completed';
+                $b['status'] = 'completed';
+            }
+
             if ($status === 'confirmed') {
                 $confirmedCount++;
                 $upcomingCount++;
             } elseif ($status === 'pending') {
                 $pendingCount++;
+                $upcomingCount++;
             } elseif ($status === 'completed') {
                 $completedCount++;
             }
         }
+        unset($b);
         
         $recentBookings = array_slice($bookings, 0, 5);
         $nextEvent = null;
@@ -141,16 +152,29 @@ class ClientController
         $completedCount = 0;
         $upcomingCount = 0;
         $cancelledCount = 0;
-        foreach($bookings as $b) {
+        $today = date('Y-m-d');
+        foreach($bookings as &$b) {
             $status = strtolower($b['status']);
-            if($status === 'confirmed') {
+            $eventDate = !empty($b['event_date']) ? date('Y-m-d', strtotime($b['event_date'])) : null;
+            
+            if ($status === 'confirmed' && $eventDate && $eventDate < $today) {
+                $status = 'completed';
+                $b['status'] = 'completed';
+            }
+
+            if ($status === 'confirmed') {
                 $confirmedCount++;
                 $upcomingCount++;
+            } elseif ($status === 'pending') {
+                $pendingCount++;
+                $upcomingCount++;
+            } elseif ($status === 'completed') {
+                $completedCount++;
+            } elseif ($status === 'cancelled') {
+                $cancelledCount++;
             }
-            elseif($status === 'pending') $pendingCount++;
-            elseif($status === 'completed') $completedCount++;
-            elseif($status === 'cancelled') $cancelledCount++;
         }
+        unset($b);
 
         require_once dirname(__DIR__) . '/views/client/browse_events.php';
     }
@@ -225,13 +249,33 @@ class ClientController
         $confirmedCount = 0;
         $pendingCount = 0;
         $cancelledCount = 0;
+        $completedCount = 0;
+        $upcomingCount = 0;
+        $today = date('Y-m-d');
         
-        foreach ($bookings as $b) {
+        foreach ($bookings as &$b) {
             $status = strtolower($b['status']);
-            if ($status === 'confirmed') $confirmedCount++;
-            elseif ($status === 'pending') $pendingCount++;
-            elseif ($status === 'cancelled') $cancelledCount++;
+            $eventDate = !empty($b['event_date']) ? date('Y-m-d', strtotime($b['event_date'])) : null;
+            
+            // Auto-complete logic for confirmed bookings in the past
+            if ($status === 'confirmed' && $eventDate && $eventDate < $today) {
+                $status = 'completed';
+                $b['status'] = 'completed';
+            }
+
+            if ($status === 'confirmed') {
+                $confirmedCount++;
+                $upcomingCount++;
+            } elseif ($status === 'pending') {
+                $pendingCount++;
+                $upcomingCount++;
+            } elseif ($status === 'cancelled') {
+                $cancelledCount++;
+            } elseif ($status === 'completed') {
+                $completedCount++;
+            }
         }
+        unset($b);
 
         $categories = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'];
         

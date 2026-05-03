@@ -1,6 +1,6 @@
 <?php
 if (!isset($booking_id) || !isset($booking)) {
-    header('Location: /EventManagementSystem/public/client/events#my-bookings');
+    header('Location: /EventManagementSystem/public/client/bookings');
     exit;
 }
 

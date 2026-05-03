@@ -437,7 +437,7 @@ $displayName = $fullName;
                     </div>
                 <?php endif; ?>
 
-                <a href="/EventManagementSystem/public/client/events#my-bookings" class="view-all-link">
+                <a href="/EventManagementSystem/public/client/bookings" class="view-all-link">
                     View All My Bookings <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i>
                 </a>
             </div>

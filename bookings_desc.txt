@@ -1,0 +1,17 @@
+Field	Type	Null	Key	Default	Extra
+id	int(11)	NO	PRI	NULL	auto_increment
+event_id	int(11)	NO	MUL	NULL	
+event_snapshot	text	YES		NULL	
+client_id	int(11)	NO	MUL	NULL	
+package_tier	varchar(50)	NO		NULL	
+package_snapshot	text	YES		NULL	
+event_date	date	NO		NULL	
+guest_count	int(11)	NO		NULL	
+full_name	varchar(100)	NO		NULL	
+email	varchar(100)	NO		NULL	
+phone	varchar(20)	NO		NULL	
+checkin_time	varchar(20)	YES		10:00 AM	
+total_amount	decimal(10,2)	NO		NULL	
+status	enum('pending','confirmed','cancelled')	NO		pending	
+payment_status	enum('unpaid','partially_paid','paid')	NO		unpaid	
+created_at	timestamp	NO		current_timestamp()	

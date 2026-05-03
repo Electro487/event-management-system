@@ -49,7 +49,10 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         <nav class="nav-links">
             <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <?php endif; ?>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -126,6 +129,9 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                                 <label>EMAIL ADDRESS</label>
                                 <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
                             </div>
+                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
+                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
+                            </a>
                             <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
@@ -175,7 +181,8 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <div class="star-rating"
                                     style="display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 10px;">
-                                    <input type="radio" id="star5" name="rating" value="5" required style="display:none;" />
+                                    <input type="radio" id="star5" name="rating" value="5" required
+                                        style="display:none;" />
                                     <label for="star5" title="5 stars"
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
@@ -200,7 +207,9 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
                                 </div>
-                                <span id="fb-rating-text" style="font-size: 14px; font-weight: 700; color: #94a3b8; transition: color 0.2s;">Tap a star</span>
+                                <span id="fb-rating-text"
+                                    style="font-size: 14px; font-weight: 700; color: #94a3b8; transition: color 0.2s;">Tap
+                                    a star</span>
                             </div>
                         </div>
 
@@ -225,8 +234,10 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                     </h2>
                     <div id="feedback-list" class="feedback-grid">
                         <!-- Loading state -->
-                        <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px dashed #ddd;">
-                            <p style="color: #888;"><i class="fa-solid fa-spinner fa-spin"></i> Loading review history...</p>
+                        <div
+                            style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px dashed #ddd;">
+                            <p style="color: #888;"><i class="fa-solid fa-spinner fa-spin"></i> Loading review
+                                history...</p>
                         </div>
                     </div>
                 </div>
@@ -238,8 +249,8 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/mentions.js?v=<?php echo time(); ?>"></script>
     <script>
-        const currentUserId = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        
+        const currentUserId = <?php echo (int) ($_SESSION['user_id'] ?? 0); ?>;
+
         function getAvatarHtml(user, className = "reply-avatar") {
             if (user.profile_picture) {
                 return `<img src="${user.profile_picture}" class="${className}">`;
@@ -254,7 +265,7 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         function toggleProfileDropdown() {
             document.getElementById('profile-dropdown').classList.toggle('show');
         }
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const c = document.getElementById('profile-container');
             if (c && !c.contains(e.target)) {
                 document.getElementById('profile-dropdown').classList.remove('show');
@@ -265,11 +276,11 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         document.addEventListener('DOMContentLoaded', () => {
             const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
             const labelColors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#1a4d2e'];
-            
+
             const starInputs = document.querySelectorAll('.star-rating input');
             const starLabels = document.querySelectorAll('.star-rating label');
             const textEl = document.getElementById('fb-rating-text');
-            
+
             let selectedValue = 0;
 
             function updateText(val) {
@@ -381,27 +392,27 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
 
         function loadFeedbacks() {
             window.emsApi.apiFetch('/api/v1/feedback/my')
-            .then(res => {
-                const feedbacks = res.data || [];
-                const list = document.getElementById('feedback-list');
-                document.getElementById('feedback-count-badge').textContent = `${feedbacks.length} Feedback${feedbacks.length !== 1 ? 's' : ''} Shared`;
-                
-                if (feedbacks.length === 0) {
-                    list.innerHTML = `
+                .then(res => {
+                    const feedbacks = res.data || [];
+                    const list = document.getElementById('feedback-list');
+                    document.getElementById('feedback-count-badge').textContent = `${feedbacks.length} Feedback${feedbacks.length !== 1 ? 's' : ''} Shared`;
+
+                    if (feedbacks.length === 0) {
+                        list.innerHTML = `
                         <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px dashed #ddd;">
                             <p style="color: #888;">No feedback history found.</p>
                         </div>
                     `;
-                    return;
-                }
-
-                list.innerHTML = feedbacks.map(fb => {
-                    const stars = [];
-                    for (let i = 1; i <= 5; i++) {
-                        stars.push(`<i class="${i <= fb.rating ? 'fas' : 'far'} fa-star"></i>`);
+                        return;
                     }
-                    
-                    const repliesHtml = fb.replies.map((reply, index) => `
+
+                    list.innerHTML = feedbacks.map(fb => {
+                        const stars = [];
+                        for (let i = 1; i <= 5; i++) {
+                            stars.push(`<i class="${i <= fb.rating ? 'fas' : 'far'} fa-star"></i>`);
+                        }
+
+                        const repliesHtml = fb.replies.map((reply, index) => `
                         <div class="reply-item ${reply.user_role !== 'client' ? 'admin-reply' : ''} ${index >= 2 ? 'reply-hidden' : ''}" data-index="${index}">
                             ${getAvatarHtml(reply, 'reply-avatar')}
                             <div class="reply-content">
@@ -425,18 +436,18 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                                         </form>
                                     ` : ''}
                                 </div>
-                                <span class="reply-time">${new Date(reply.created_at).toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true})}</span>
+                                <span class="reply-time">${new Date(reply.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
                             </div>
                         </div>
                     `).join('');
 
-                    return `
+                        return `
                         <div class="feedback-card">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                                 <div style="color: #ffcf96; font-size: 14px;">
                                     ${stars.join('')}
                                 </div>
-                                <span style="font-size: 12px; color: #999;">${new Date(fb.created_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                                <span style="font-size: 12px; color: #999;">${new Date(fb.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                             </div>
                             <div class="feedback-text-container">
                                 <p class="feedback-comment" id="fb-comment-${fb.id}">"${fb.comment}"</p>
@@ -487,16 +498,16 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                             </div>
                         </div>
                     `;
-                }).join('');
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('feedback-list').innerHTML = `
+                    }).join('');
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('feedback-list').innerHTML = `
                     <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #fee2e2;">
                         <p style="color: #b91c1c;">Failed to load feedback history. Please try again later.</p>
                     </div>
                 `;
-            });
+                });
         }
 
         function handleAjaxForm(event, method = 'POST') {
@@ -511,31 +522,31 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                 method: method,
                 body: data
             })
-            .then(res => {
-                if (res.success) {
-                    loadFeedbacks();
-                    if (form.id === 'main-feedback-form') {
-                        form.reset();
-                        document.getElementById('alert-container').innerHTML = `
+                .then(res => {
+                    if (res.success) {
+                        loadFeedbacks();
+                        if (form.id === 'main-feedback-form') {
+                            form.reset();
+                            document.getElementById('alert-container').innerHTML = `
                             <div style="background: #e6fcf0; color: #1a4d2e; padding: 15px; border-radius: 10px; margin-bottom: 25px; font-size: 14px; border: 1px solid #d1fae5;">
                                 <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i>
                                 Feedback submitted successfully!
                             </div>
                         `;
+                        }
+                    } else {
+                        alert(res.message || 'Action failed.');
                     }
-                } else {
-                    alert(res.message || 'Action failed.');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('An error occurred: ' + err.message);
-            });
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('An error occurred: ' + err.message);
+                });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadFeedbacks();
-            
+
             document.getElementById('main-feedback-form').addEventListener('submit', (e) => {
                 handleAjaxForm(e);
             });
@@ -549,11 +560,11 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                 method: 'POST',
                 body: fd
             })
-            .then(data => {
-                if (data.success) location.reload();
-                else alert(data.message || 'Upload failed.');
-            })
-            .catch(err => alert('Upload failed: ' + err.message));
+                .then(data => {
+                    if (data.success) location.reload();
+                    else alert(data.message || 'Upload failed.');
+                })
+                .catch(err => alert('Upload failed: ' + err.message));
         }
 
         function deleteProfilePicture() {
@@ -561,11 +572,11 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
             window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                 method: 'DELETE'
             })
-            .then(data => {
-                if (data.success) location.reload();
-                else alert('Error removing image.');
-            })
-            .catch(err => alert('Delete failed: ' + err.message));
+                .then(data => {
+                    if (data.success) location.reload();
+                    else alert('Error removing image.');
+                })
+                .catch(err => alert('Delete failed: ' + err.message));
         }
     </script>
 </body>

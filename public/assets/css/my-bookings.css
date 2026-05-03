@@ -43,9 +43,6 @@
     object-fit: cover;
 }
 
-.profile-dropdown {
-    top: 50px !important;
-}
 
 #my-bookings-view {
     max-width: 1200px;

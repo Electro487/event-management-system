@@ -508,11 +508,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Delegation
     document.addEventListener('click', function (e) {
-        const target = e.target.closest('[data-action]');
+        const target = e.target.closest('[data-action]') || e.target.closest('#mark-all-read');
         if (!target) return;
 
         const id = target.getAttribute('data-id');
-        const action = target.getAttribute('data-action');
+        let action = target.getAttribute('data-action');
+        
+        // Handle ID-based mark-all-read if action is missing
+        if (!action && target.id === 'mark-all-read') {
+            action = 'mark-all-read';
+        }
+
         if (!action) return;
 
         e.stopPropagation();

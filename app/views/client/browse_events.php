@@ -541,7 +541,7 @@ $searchQuery = $_GET['search'] ?? '';
                         <button class="btn-send-msg" type="button"><i class="fa-regular fa-message"></i> Send
                             Message</button>
                         <form id="cancel-booking-form" action="/EventManagementSystem/public/client/bookings/cancel"
-                            method="POST" style="margin:0; display: none;">
+                            method="POST" style="margin-top: 12px; display: none;">
                             <input type="hidden" name="booking_id" id="cancel-booking-id" value="">
                             <button class="btn-send-msg btn-cancel-reservation" type="submit" style="background: #fee2e2; color: #b91c1c;">
                                 <i class="fa-solid fa-xmark"></i> Cancel Booking

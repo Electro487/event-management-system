@@ -22,7 +22,7 @@ class NotificationController
         }
 
         $userId = $_SESSION['user_id'];
-        $notifications = $this->model->getLatestByUser($userId, 3);
+        $notifications = $this->model->getLatestByUser($userId, 10);
         $unreadCount = $this->model->getUnreadCount($userId);
 
         header('Content-Type: application/json');

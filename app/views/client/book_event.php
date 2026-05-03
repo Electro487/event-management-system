@@ -312,7 +312,7 @@ if (empty($items)) {
                     <span>Booking Reference ID:</span>
                     <strong>#EPLN-<?php echo str_pad($_GET['booking_id'], 5, '0', STR_PAD_LEFT); ?></strong>
                 </div>
-                <a href="/EventManagementSystem/public/client/events#my-bookings" class="btn-primary"
+                <a href="/EventManagementSystem/public/client/bookings" class="btn-primary"
                     style="display:inline-block; margin-top:20px; text-decoration:none;">View My Bookings</a>
             </div>
 
