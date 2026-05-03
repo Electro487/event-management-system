@@ -4,6 +4,9 @@
 $typeCounts = [];
 foreach ($notifications as $n) {
     $t = $n['type'] ?: 'info';
+    if ($t === 'feedback_reply') {
+        $t = 'feedback';
+    }
     $typeCounts[$t] = ($typeCounts[$t] ?? 0) + 1;
 }
 $totalCount = count($notifications);
@@ -12,7 +15,8 @@ $approvedCount = ($typeCounts['booking_approve'] ?? 0);
 $cancelledCount = ($typeCounts['booking_cancel'] ?? 0);
 $creationCount = ($typeCounts['event'] ?? 0);
 $updateCount = ($typeCounts['event_update'] ?? 0);
-$paymentCount = ($typeCounts['payment'] ?? 0);
+$paymentCount = ($typeCounts['payment'] ?? 0) + ($typeCounts['payment_alert'] ?? 0);
+$feedbackCount = ($typeCounts['feedback'] ?? 0);
 
 $activeFilter = $_GET['type'] ?? 'all';
 
@@ -70,8 +74,10 @@ if (strlen($initials) > 2)
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
         </nav>
         <div class="nav-icons">
+
             <!-- Profile Avatar & Hidden Dropdown -->
             <?php if (isset($_SESSION['user_id'])): ?>
+
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if (!empty($_SESSION['user_profile_pic'])): ?>
@@ -108,6 +114,9 @@ if (strlen($initials) > 2)
                             <div class="pd-detail"><label>LAST NAME</label>
                                 <div><?php echo htmlspecialchars($lastName); ?></div>
                             </div>
+                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
+                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
+                            </a>
                             <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
@@ -212,6 +221,13 @@ if (strlen($initials) > 2)
                     <div class="np-stat-value" id="stat-payment"><?php echo $paymentCount; ?></div>
                 </div>
             </div>
+            <div class="np-stat-card">
+                <div class="np-stat-icon green"><i class="fa-solid fa-star"></i></div>
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Feedback</div>
+                    <div class="np-stat-value" id="stat-feedback"><?php echo $feedbackCount; ?></div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -250,6 +266,11 @@ if (strlen($initials) > 2)
                 class="np-filter-tab <?php echo ($activeFilter === 'payment') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-credit-card"></i> Payments
                 <span class="np-filter-count" id="count-payment"><?php echo $paymentCount; ?></span>
+            </a>
+            <a href="/EventManagementSystem/public/notifications/all?type=feedback"
+                class="np-filter-tab <?php echo ($activeFilter === 'feedback') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-star"></i> Feedback
+                <span class="np-filter-count" id="count-feedback"><?php echo $feedbackCount; ?></span>
             </a>
         </div>
 
@@ -306,7 +327,9 @@ if (strlen($initials) > 2)
                             'payment_alert' => 'fa-credit-card',
                             'message' => 'fa-message',
                             'system' => 'fa-gear',
-                            'info' => 'fa-circle-info'
+                            'info' => 'fa-circle-info',
+                            'feedback' => 'fa-star',
+                            'feedback_reply' => 'fa-reply'
                         ];
                         if (isset($icons[$typeClass])) {
                             $iconClass = $icons[$typeClass];
@@ -320,7 +343,9 @@ if (strlen($initials) > 2)
                             'event_update' => 'Event Update',
                             'message' => 'Message',
                             'system' => 'System',
-                            'info' => 'Info'
+                            'info' => 'Info',
+                            'feedback' => 'Feedback',
+                            'feedback_reply' => 'Feedback Reply'
                         ];
                         $labelInfo = $typeLabels[$typeClass] ?? 'Notification';
                         ?>
@@ -339,11 +364,19 @@ if (strlen($initials) > 2)
                             <div class="np-item-msg">
                                 <?php echo htmlspecialchars($n['message']); ?>
 
-                                <?php if (!empty($n['booking_id'])): ?>
+                                <?php if (!empty($n['booking_id']) && $typeClass !== 'feedback' && $typeClass !== 'feedback_reply'): ?>
                                     <br>
                                     <a href="/EventManagementSystem/public/client/bookings/view?id=<?php echo htmlspecialchars($n['booking_id']); ?>"
                                         style="color:var(--brand); font-weight:700; font-size:12px; margin-top:6px; display:inline-block;">
                                         View Booking <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if ($typeClass === 'feedback' || $typeClass === 'feedback_reply'): ?>
+                                    <br>
+                                    <a href="/EventManagementSystem/public/client/feedback"
+                                        style="color:var(--brand); font-weight:700; font-size:12px; margin-top:6px; display:inline-block;">
+                                        View Feedback <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -376,8 +409,96 @@ if (strlen($initials) > 2)
 
     </div>
 
+    <!-- Client-side Pagination -->
+    <div class="pagination-container" id="clientPaginationWrapper" style="display:none; margin-top: 10px;">
+        <div class="pagination" id="clientPaginationControls"></div>
+    </div>
+
+
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+
+    <script>
+    /* ---- Client Notification Pagination (10 per page) ---- */
+    document.addEventListener('DOMContentLoaded', function () {
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = 1;
+
+        const list = document.getElementById('np-list');
+        if (!list) return;
+
+        const allChildren = Array.from(list.children);
+        const items = allChildren.filter(el => el.classList.contains('np-item'));
+        const totalItems = items.length;
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+        const wrapper = document.getElementById('clientPaginationWrapper');
+        const controls = document.getElementById('clientPaginationControls');
+
+        if (totalPages <= 1) return; // No pagination needed if 10 or fewer
+
+        wrapper.style.display = 'flex';
+
+        function getGroupForItem(item) {
+            let prev = item.previousElementSibling;
+            while (prev) {
+                if (prev.classList.contains('np-date-group')) return prev;
+                prev = prev.previousElementSibling;
+            }
+            return null;
+        }
+
+        function renderPage(page) {
+            currentPage = page;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const end   = start + ITEMS_PER_PAGE;
+            const pageItems = new Set(items.slice(start, end));
+
+            const visibleGroups = new Set();
+            pageItems.forEach(item => {
+                const g = getGroupForItem(item);
+                if (g) visibleGroups.add(g);
+            });
+
+            allChildren.forEach(el => {
+                if (el.classList.contains('np-item')) {
+                    el.style.display = pageItems.has(el) ? '' : 'none';
+                } else if (el.classList.contains('np-date-group')) {
+                    el.style.display = visibleGroups.has(el) ? '' : 'none';
+                }
+            });
+
+            renderControls();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderControls() {
+            let html = '';
+
+            html += `<button class="pg-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="clientChangePage(${currentPage - 1})"><i class="fa-solid fa-angle-left"></i></button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button class="pg-btn ${i === currentPage ? 'active' : ''}" onclick="clientChangePage(${i})">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    html += `<span class="pg-dots">...</span>`;
+                }
+            }
+
+            html += `<button class="pg-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="clientChangePage(${currentPage + 1})"><i class="fa-solid fa-angle-right"></i></button>`;
+
+            controls.innerHTML = html;
+        }
+
+        window.clientChangePage = function (page) {
+            if (page < 1 || page > totalPages) return;
+            renderPage(page);
+        };
+
+        renderPage(1);
+    });
+    </script>
 </body>
 
 </html>
+

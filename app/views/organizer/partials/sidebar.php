@@ -16,6 +16,8 @@
 
                 <li><a href="/EventManagementSystem/public/organizer/messages" class="<?php echo ($activePage == 'messages') ? 'active' : ''; ?>"><i
                             class="far fa-envelope"></i> Messages</a></li>
+                <li><a href="/EventManagementSystem/public/organizer/feedback" class="<?php echo ($activePage == 'feedback') ? 'active' : ''; ?>"><i
+                            class="far fa-comment-dots"></i> Feedback</a></li>
             </ul>
         </nav>
     </div>

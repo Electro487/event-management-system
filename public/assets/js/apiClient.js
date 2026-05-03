@@ -66,7 +66,11 @@
     if (res.status === 401) {
       // Token missing/expired/invalid: clear and force logout to refresh session/token
       clearToken();
-      window.location.href = BASE + "/logout?reason=unauthorized";
+      // Only redirect to logout if we are NOT on the login page
+      // (prevents refreshing/looping when entering a wrong password)
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = BASE + "/logout?reason=unauthorized";
+      }
     }
 
     if (!res.ok) {
@@ -91,4 +95,3 @@
     base: BASE,
   };
 })();
-

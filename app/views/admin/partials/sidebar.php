@@ -16,6 +16,8 @@
                             class="far fa-calendar-check"></i> All Bookings</a></li>
                 <li><a href="/EventManagementSystem/public/admin/tickets" class="<?php echo ($activePage == 'tickets') ? 'active' : ''; ?>"><i
                             class="fas fa-ticket-alt"></i> Tickets</a></li>
+                <li><a href="/EventManagementSystem/public/admin/feedback" class="<?php echo ($activePage == 'feedback') ? 'active' : ''; ?>"><i
+                            class="far fa-comment-dots"></i> Feedback</a></li>
             </ul>
         </nav>
     </div>

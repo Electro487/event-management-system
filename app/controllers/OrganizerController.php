@@ -204,4 +204,11 @@ class OrganizerController
         header('Location: /EventManagementSystem/public/organizer/bookings');
         exit;
     }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        $activePage = 'feedback';
+        require_once dirname(__DIR__) . '/views/organizer/feedback.php';
+    }
 }

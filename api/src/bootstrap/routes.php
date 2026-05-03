@@ -58,4 +58,13 @@ return [
     ['GET', '/api/v1/admin/users', [UserApiController::class, 'index'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/admin/users/update-role', [UserApiController::class, 'updateRole'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/admin/users/toggle-block', [UserApiController::class, 'toggleBlock'], [JwtAuthMiddleware::class]],
+
+    // Feedback
+    ['GET', '/api/v1/feedback', [FeedbackApiController::class, 'list'], []],
+    ['GET', '/api/v1/feedback/my', [FeedbackApiController::class, 'myFeedback'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/feedback', [FeedbackApiController::class, 'create'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/feedback/reply', [FeedbackApiController::class, 'reply'], [JwtAuthMiddleware::class]],
+    ['PATCH', '/api/v1/feedback', [FeedbackApiController::class, 'update'], [JwtAuthMiddleware::class]],
+    ['PATCH', '/api/v1/feedback/reply', [FeedbackApiController::class, 'updateReply'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/feedback/stats', [FeedbackApiController::class, 'stats'], []],
 ];

@@ -298,6 +298,9 @@ class ClientController
         
         $paidAdvance = $paidAmount;
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
+        
+        // Next installment is either the remaining advance or 0 if advance is complete
+        $nextInstallmentAmount = $remainingAdvance;
 
         $lastPayment = $paymentModel->getByBookingId($id);
         $transactionId = $lastPayment['transaction_id'] ?? null;
@@ -348,5 +351,11 @@ class ClientController
         }
 
         require_once dirname(__DIR__) . '/views/client/ticket.php';
+    }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/client/feedback.php';
     }
 }

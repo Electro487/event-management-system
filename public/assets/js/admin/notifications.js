@@ -11,6 +11,9 @@ const itemsPerPage = 10;
 document.addEventListener('DOMContentLoaded', () => {
     loadNotifications();
     initFilters();
+
+    // Start polling every 10 seconds to keep the list live
+    setInterval(loadNotifications, 10000);
 });
 
 async function loadNotifications() {
@@ -49,7 +52,8 @@ function updateStats() {
         event_updates: 0,
         message: 0,
         booking_cancel: 0,
-        payment_alert: 0
+        payment_alert: 0,
+        feedback: 0
     };
 
     allNotifications.forEach(n => {
@@ -60,6 +64,7 @@ function updateStats() {
         if (t === 'message') counts.message++;
         if (t === 'booking_cancel') counts.booking_cancel++;
         if (t === 'payment_alert') counts.payment_alert++;
+        if (t === 'feedback' || t === 'feedback_reply') counts.feedback++;
     });
 
     // Update Header Badge
@@ -74,6 +79,7 @@ function updateStats() {
     document.getElementById('stat-message').innerText = counts.message;
     document.getElementById('stat-update').innerText = counts.event_updates;
     document.getElementById('stat-payment').innerText = counts.payment_alert;
+    document.getElementById('stat-feedback').innerText = counts.feedback;
 
     // Update Filter Counts
     document.getElementById('count-all').innerText = counts.all;
@@ -83,12 +89,14 @@ function updateStats() {
     document.getElementById('count-message').innerText = counts.message;
     document.getElementById('count-cancel').innerText = counts.booking_cancel;
     document.getElementById('count-payment').innerText = counts.payment_alert;
+    document.getElementById('count-feedback').innerText = counts.feedback;
 }
 
 function applyFilters() {
     filteredNotifications = allNotifications.filter(n => {
         if (currentFilter === 'all') return true;
         if (currentFilter === 'event_updates') return n.type === 'event_update' || n.type === 'event_delete';
+        if (currentFilter === 'feedback') return n.type === 'feedback' || n.type === 'feedback_reply';
         return n.type === currentFilter;
     });
 
@@ -150,6 +158,11 @@ function renderList(items) {
                         <span class="np-type-pill ${type}">
                             ${type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)}
                         </span>
+                        ${(type === 'feedback' || type === 'feedback_reply') ? `
+                            <a href="/EventManagementSystem/public/admin/feedback" style="font-size:12px; color: var(--brand); font-weight:600; display:flex; align-items:center; gap:4px; margin-left: 10px;">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> View Feedback
+                            </a>
+                        ` : ''}
                     </div>
                 </div>
                 ${!isUnread ? `
@@ -232,7 +245,9 @@ function getIconForType(type) {
         'payment': 'fa-solid fa-credit-card',
         'payment_alert': 'fa-solid fa-credit-card',
         'system': 'fa-solid fa-shield-halved',
-        'info': 'fa-solid fa-circle-info'
+        'info': 'fa-solid fa-circle-info',
+        'feedback': 'fa-solid fa-star',
+        'feedback_reply': 'fa-solid fa-reply'
     };
     return icons[type] || 'fa-regular fa-bell';
 }

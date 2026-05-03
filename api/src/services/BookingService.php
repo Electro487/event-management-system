@@ -188,7 +188,9 @@ class BookingService
         }
         
         foreach ($this->userModel->getAdmins() as $admin) {
-            $this->notificationModel->create($admin['id'], 'Booking Cancelled', $message, 'booking_cancel', $id);
+            if ((int)$admin['id'] !== (int)$authUser['id']) {
+                $this->notificationModel->create($admin['id'], 'Booking Cancelled', $message, 'booking_cancel', $id);
+            }
         }
 
         return ['ok' => true, 'status' => 200, 'data' => ['cancelled' => true]];

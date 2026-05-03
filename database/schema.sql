@@ -35,10 +35,10 @@ CREATE TABLE IF NOT EXISTS `events` (
 CREATE TABLE IF NOT EXISTS `bookings` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `event_id` INT NOT NULL,
-    `event_snapshot` TEXT DEFAULT NULL,
+    `event_snapshot` LONGTEXT DEFAULT NULL,
     `client_id` INT NOT NULL,
     `package_tier` VARCHAR(50) NOT NULL,
-    `package_snapshot` TEXT DEFAULT NULL,
+    `package_snapshot` LONGTEXT DEFAULT NULL,
     `event_date` DATE NOT NULL,
     `guest_count` INT NOT NULL,
     `full_name` VARCHAR(100) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     `phone` VARCHAR(20) NOT NULL,
     `checkin_time` VARCHAR(20) DEFAULT '10:00 AM',
     `total_amount` DECIMAL(10, 2) NOT NULL,
-    `status` ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+    `status` ENUM('pending', 'confirmed', 'cancelled', 'completed') NOT NULL DEFAULT 'pending',
     `payment_status` ENUM('unpaid', 'partially_paid', 'paid') NOT NULL DEFAULT 'unpaid',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE,
@@ -85,4 +85,27 @@ CREATE TABLE IF NOT EXISTS `tickets` (
   `status` ENUM('active', 'used', 'cancelled') DEFAULT 'active',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`booking_id`) REFERENCES `bookings`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `feedbacks` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `client_id` INT NOT NULL,
+    `rating` INT NOT NULL,
+    `comment` TEXT NOT NULL,
+    `reply` TEXT DEFAULT NULL,
+    `replied_at` TIMESTAMP NULL DEFAULT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `feedback_replies` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `feedback_id` INT NOT NULL,
+    `user_id` INT NOT NULL,
+    `reply_text` TEXT NOT NULL,
+    `parent_reply_id` INT DEFAULT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`feedback_id`) REFERENCES `feedbacks`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`parent_reply_id`) REFERENCES `feedback_replies`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;

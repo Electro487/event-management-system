@@ -22,12 +22,7 @@
 
     <main class="main-content">
         <!-- Minimal header -->
-        <header class="header">
-            <form action="/EventManagementSystem/public/admin/events" method="GET" class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" name="search" placeholder="Search system-wide...">
-                <button type="submit" style="display:none;"></button>
-            </form>
+        <header class="header" style="justify-content: flex-end;">
             <div class="header-icons">
                 <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
@@ -36,7 +31,7 @@
         <!-- HERO -->
         <div class="np-hero">
             <div class="np-hero-left">
-                <a href="/EventManagementSystem/public/admin/dashboard" class="np-hero-back">
+                <a href="/EventManagementSystem/public/admin/dashboard" class="np-hero-back" style="color: #FFC24A;">
                     <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
                 </a>
                 <h1>Notification Centre</h1>
@@ -110,6 +105,13 @@
                     <div class="np-stat-value" id="stat-payment">0</div>
                 </div>
             </div>
+            <div class="np-stat-card">
+                <div class="np-stat-icon green"><i class="fa-solid fa-star"></i></div>
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Feedback</div>
+                    <div class="np-stat-value" id="stat-feedback">0</div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -141,6 +143,10 @@
             <button class="np-filter-tab" data-filter-type="payment_alert">
                 <i class="fa-solid fa-credit-card"></i> Payments
                 <span class="np-filter-count" id="count-payment">0</span>
+            </button>
+            <button class="np-filter-tab" data-filter-type="feedback">
+                <i class="fa-solid fa-star"></i> Feedback
+                <span class="np-filter-count" id="count-feedback">0</span>
             </button>
         </div>
 

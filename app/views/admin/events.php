@@ -56,7 +56,7 @@
                 <p>Oversight of all curated event campaigns across the entire platform.</p>
             </div>
             <div class="summary-actions">
-                <a href="/EventManagementSystem/public/admin/events/create" class="btn-create" style="background: #246A55; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                <a href="/EventManagementSystem/public/admin/events/create" class="btn-create-admin">
                     <i class="fas fa-plus"></i> Create New Event
                 </a>
             </div>

@@ -78,6 +78,7 @@ class PaymentService
                 ],
             ]);
         } catch (Throwable $e) {
+            error_log("Stripe Checkout Error: " . $e->getMessage());
             return ['ok' => false, 'status' => 502, 'message' => 'Unable to create Stripe checkout session.', 'meta' => ['reason' => $e->getMessage()]];
         }
 

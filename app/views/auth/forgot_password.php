@@ -12,9 +12,7 @@
         <h1>Forgot Password?</h1>
         <p>Don't worry, it happens to the best of us. Enter your email below to reset your access.</p>
         
-        <?php if (!empty($error)): ?>
-            <div class="error"><?php echo $error; ?></div>
-        <?php endif; ?>
+        <div id="api-status" style="display: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
 
         <form action="/EventManagementSystem/public/forgot-password" method="POST">
             <div class="form-group">
@@ -32,13 +30,29 @@
     <script>
         (function() {
             const form = document.querySelector('form');
+            const submitBtn = form?.querySelector('.btn');
+            const statusDiv = document.getElementById('api-status');
             if (!form || !window.emsApi) return;
+
+            function showStatus(msg, isError = true) {
+                if (!statusDiv) return;
+                statusDiv.textContent = msg;
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = isError ? '#f9ebeb' : '#e8f5e9';
+                statusDiv.style.color = isError ? '#d9534f' : '#2d5a27';
+            }
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const email = document.getElementById('email')?.value?.trim() || '';
                 if (!email) return;
+
+                // Disable button and show loading state
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Sending...';
+                if (statusDiv) statusDiv.style.display = 'none';
 
                 try {
                     const res = await window.emsApi.apiFetch('/api/v1/auth/forgot-password', {
@@ -47,12 +61,18 @@
                     });
 
                     if (res?.ok || res?.data?.email) {
-                        // Redirect to OTP verification
-                        window.location.href = '/EventManagementSystem/public/verify-otp';
+                        showStatus('OTP sent successfully! Redirecting...', false);
+                        setTimeout(() => {
+                            window.location.href = '/EventManagementSystem/public/verify-otp';
+                        }, 1200);
                     }
                 } catch (err) {
-                    console.error('API Forgot Password failed, falling back to MVC:', err);
-                    form.submit();
+                    console.error('API Forgot Password failed:', err);
+                    showStatus(err.message);
+                    
+                    // Re-enable button if it failed
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
         })();
