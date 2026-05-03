@@ -11,7 +11,7 @@ class User
     }
 
     // Register user
-    public function register($data)
+    public function register(array $data)
     {
         $pdo = $this->db->getConnection();
 
@@ -39,7 +39,7 @@ class User
     }
 
     // Update OTP code for a user
-    public function updateOTP($email, $otp, $expires_at)
+    public function updateOTP(string $email, string $otp, string $expires_at)
     {
         $pdo = $this->db->getConnection();
         $sql = "UPDATE users SET otp_code = :otp_code, otp_expires_at = :otp_expires_at WHERE email = :email";
@@ -51,7 +51,7 @@ class User
     }
 
     // Verify OTP code
-    public function verifyOTP($email, $otp)
+    public function verifyOTP(string $email, string $otp)
     {
         $pdo = $this->db->getConnection();
         // Remove NOW() from SQL and compare in PHP to avoid timezone issues
@@ -78,7 +78,7 @@ class User
     }
 
     // Reset password
-    public function resetPassword($email, $newPassword)
+    public function resetPassword(string $email, string $newPassword)
     {
         $pdo = $this->db->getConnection();
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -91,7 +91,7 @@ class User
     }
 
     // Mark email as verified
-    public function markEmailAsVerified($email)
+    public function markEmailAsVerified(string $email)
     {
         $pdo = $this->db->getConnection();
         $sql = "UPDATE users SET is_verified = 1, otp_code = NULL, otp_expires_at = NULL WHERE email = :email";
@@ -101,7 +101,7 @@ class User
     }
 
     // Find user by email to check if email already exists
-    public function emailExists($email)
+    public function emailExists(string $email)
     {
         $pdo = $this->db->getConnection();
 
@@ -119,7 +119,7 @@ class User
     }
 
     // Login user
-    public function login($email, $password)
+    public function login(string $email, string $password)
     {
         $pdo = $this->db->getConnection();
 
@@ -163,7 +163,7 @@ class User
         return false;
     }
 
-    public function findByEmail($email)
+    public function findByEmail(string $email)
     {
         $pdo = $this->db->getConnection();
         $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
@@ -173,7 +173,7 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function findById($id)
+    public function findById(int $id)
     {
         $pdo = $this->db->getConnection();
         $sql = "SELECT * FROM users WHERE id = :id LIMIT 1";
@@ -200,7 +200,7 @@ class User
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function countByRole($role)
+    public function countByRole(string $role)
     {
         $pdo = $this->db->getConnection();
         $sql = "SELECT COUNT(*) as count FROM users WHERE role = :role";
@@ -220,7 +220,7 @@ class User
         return (int)$result['count'];
     }
 
-    public function updateRole($userId, $role)
+    public function updateRole(int $userId, string $role)
     {
         $pdo = $this->db->getConnection();
         $sql = "UPDATE users SET role = :role WHERE id = :id";
@@ -230,7 +230,7 @@ class User
         return $stmt->execute();
     }
 
-    public function toggleBlock($userId, $status)
+    public function toggleBlock(int $userId, int $status)
     {
         $pdo = $this->db->getConnection();
         $sql = "UPDATE users SET is_blocked = :status WHERE id = :id";
@@ -240,7 +240,7 @@ class User
         return $stmt->execute();
     }
 
-    public function updateProfilePicture($userId, $path)
+    public function updateProfilePicture(int $userId, string $path)
     {
         $pdo = $this->db->getConnection();
         $sql = "UPDATE users SET profile_picture = :path WHERE id = :id";
@@ -250,7 +250,7 @@ class User
         return $stmt->execute();
     }
 
-    public function updateProfile($id, $data)
+    public function updateProfile(int $id, array $data)
     {
         $pdo = $this->db->getConnection();
         $fields = [];

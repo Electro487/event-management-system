@@ -91,9 +91,9 @@ class DashboardService
             'status' => 200,
             'data' => [
                 'total_bookings' => count($bookings),
-                'upcoming' => $upcoming,
-                'completed' => $completed,
-                'pending' => $pending,
+                'upcoming_count' => $upcoming,
+                'completed_count' => $completed,
+                'pending_count' => $pending,
             ],
         ];
     }

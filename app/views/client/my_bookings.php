@@ -287,69 +287,11 @@
         <div class="main-layout">
 
             <!-- Left: Bookings List -->
-            <div class="booking-list" id="bookingsList">
-                <?php if (empty($bookings)): ?>
-                    <div class="empty-state">No bookings found in this category.</div>
-                <?php else: ?>
-                    <?php foreach ($bookings as $index => $booking):
-                        $isUpcoming = in_array($booking['status'], ['pending', 'confirmed']) ? 'true' : 'false';
-                        $catStyle = $booking['event_category'] == 'Exhibition' || strtolower($booking['event_category']) == 'education' ? 'background: #e5e7eb; color: #4b5563;' : '';
-                        if (strtolower($booking['event_category']) == 'music') {
-                            $catStyle = 'background: #fef08a; color: #854d0e;';
-                        }
-
-                        $eSnapList = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : null;
-                        $bListTitle = $eSnapList['title'] ?? $booking['event_title'];
-                        $bListCat = $eSnapList['category'] ?? ($booking['event_category'] ?: 'Event');
-                        $rawImg = !empty($eSnapList['image_path']) ? $eSnapList['image_path'] : (!empty($booking['event_image']) ? $booking['event_image'] : '');
-                        $bListImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
-                        if ($rawImg) {
-                            $bListImg = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
-                        }
-                        ?>
-                        <div class="b-item" data-status="<?php echo $booking['status']; ?>"
-                            data-upcoming="<?php echo $isUpcoming; ?>" data-index="<?php echo $index; ?>"
-                            onclick="selectBooking(<?php echo $index; ?>, this)">
-
-                            <img src="<?php echo htmlspecialchars($bListImg); ?>" alt="Event Cover" class="b-img">
-
-                            <div class="b-content">
-                                <div>
-                                    <div class="b-top">
-                                        <div class="b-title-wrap">
-                                            <h3 class="b-title"><?php echo htmlspecialchars($bListTitle); ?></h3>
-                                            <span class="b-cat-badge"
-                                                style="<?php echo $catStyle; ?>"><?php echo htmlspecialchars($bListCat); ?></span>
-                                        </div>
-                                        <span class="b-status-badge status-<?php echo htmlspecialchars($booking['status']); ?>">
-                                            <?php echo strtoupper($booking['status']); ?>
-                                        </span>
-                                    </div>
-                                    <div class="b-middle">
-                                        <span><i class="fa-solid fa-address-card"></i>
-                                            <?php echo (strtolower($bListCat) === 'concert') ? ucfirst($booking['package_tier']) . ' Tier' : ucfirst($booking['package_tier']) . ' Package'; ?></span>
-                                        <span><i class="fa-solid fa-user-group"></i>
-                                            <?php echo htmlspecialchars($booking['guest_count']); ?>
-                                            <?php echo (strtolower($bListCat) === 'concert') ? 'Tickets' : 'Guests'; ?></span>
-                                        <span><i class="fa-regular fa-calendar"></i>
-                                            <?php echo date('M d, Y', strtotime($booking['event_date'])); ?></span>
-                                    </div>
-                                </div>
-                                <div class="b-bottom">
-                                    <div class="b-date-booked">Booked on:
-                                        <?php echo date('M d, Y', strtotime($booking['created_at'])); ?>
-                                    </div>
-                                    <div class="b-price-action">
-                                        <span class="b-price">Rs.
-                                            <?php echo number_format($booking['total_amount'], 2); ?></span>
-                                        <a href="/EventManagementSystem/public/client/bookings/view?id=<?php echo $booking['id']; ?>"
-                                            class="b-view-link">View Details</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+            <div class="booking-list-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="booking-list" id="bookingsList">
+                    <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading your bookings...</div>
+                </div>
+                <div class="pagination-controls" id="paginationControls" style="display: none;"></div>
             </div>
 
             <!-- Right: Sidebar -->
@@ -388,32 +330,22 @@
                 </div>
 
                 <!-- Payment Breakdown Section -->
-                <?php if (strtolower($bListCat) !== 'concert'): ?>
-                    <div class="dp-info-list" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
-                        <div
-                            style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">
-                            PAYMENT BREAKDOWN (50/50 POLICY)</div>
+                <!-- Payment Breakdown Section -->
+                <div class="dp-info-list" id="standard-payment-breakdown" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">
+                        PAYMENT BREAKDOWN (50/50 POLICY)</div>
 
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 13px; color: #475569;">Advance (50% Online)</span>
-                            <span id="sb-advance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs.
-                                0.00</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span style="font-size: 13px; color: #475569;">Remaining (50% Cash)</span>
-                            <span id="sb-balance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs.
-                                0.00</span>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #475569;">Advance (50% Online)</span>
+                        <span id="sb-advance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs.
+                            0.00</span>
                     </div>
-                <?php else: ?>
-                    <div
-                        style="margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 12px; color: #64748b; font-weight: 600;">PAYMENT STATUS</span>
-                            <span id="sb-concert-pay-status" style="font-size: 12px; font-weight: 700;">UNPAID</span>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-size: 13px; color: #475569;">Remaining (50% Cash)</span>
+                        <span id="sb-balance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs.
+                            0.00</span>
                     </div>
-                <?php endif; ?>
+                </div>
 
                 <div class="dp-info-list"
                     style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 20px;">
@@ -464,8 +396,12 @@
     </div>
 
     <script>
-        // Pass PHP data to JS for dynamic sidebar
-        const bookingsData = <?php echo json_encode($bookings); ?>;
+        // API-based logic
+        let bookingsData = [];
+        let filteredBookings = [];
+        let currentFilterType = 'all';
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
         // Format date string to AM/PM Time
         function formatTime(dateStr) {
@@ -480,14 +416,144 @@
             return hours + ':' + minutes + ' ' + ampm;
         }
 
-        function selectBooking(index, element) {
-            // Highlight active card
-            document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
-            if (element) {
-                element.classList.add('active');
+        function fetchBookings() {
+            if (!window.emsApi) return;
+            window.emsApi.apiFetch('/api/v1/bookings')
+                .then(res => {
+                    if (res.success && res.data && res.data.items) {
+                        // Filter out concerts as per original logic
+                        bookingsData = res.data.items.filter(b => (b.event_category || '').trim().toLowerCase() !== 'concert');
+                        
+                        // Sort by created_at DESC
+                        bookingsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                        // Refresh UI
+                        applyFilter(currentFilterType);
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load bookings:', err);
+                    document.getElementById('bookingsList').innerHTML = '<div class="empty-state" style="color:red;">Failed to load bookings.</div>';
+                });
+        }
+
+        function renderBookingsList() {
+            const listContainer = document.getElementById('bookingsList');
+            const pagControls = document.getElementById('paginationControls');
+            listContainer.innerHTML = '';
+
+            if (filteredBookings.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">No bookings found in this category.</div>';
+                document.getElementById('sidebarPanel').style.display = 'none';
+                pagControls.style.display = 'none';
+                return;
             }
 
-            const data = bookingsData[index];
+            const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentItems = filteredBookings.slice(startIndex, endIndex);
+
+            currentItems.forEach((booking, idx) => {
+                const actualIndex = startIndex + idx; // To map back to filteredBookings if needed
+                
+                const eSnap = booking.event_snapshot ? JSON.parse(booking.event_snapshot) : null;
+                const bListTitle = eSnap?.title || booking.event_title;
+                const bListCat = eSnap?.category || booking.event_category || 'Event';
+                
+                let rawImg = eSnap?.image_path || booking.event_image || '';
+                let bListImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                if (rawImg) {
+                    bListImg = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+                }
+
+                let catStyle = '';
+                if (bListCat === 'Exhibition' || bListCat.toLowerCase() === 'education') {
+                    catStyle = 'background: #e5e7eb; color: #4b5563;';
+                } else if (bListCat.toLowerCase() === 'music') {
+                    catStyle = 'background: #fef08a; color: #854d0e;';
+                }
+
+                const isUpcoming = ['pending', 'confirmed'].includes(booking.status.toLowerCase());
+                const packageLabel = (bListCat.toLowerCase() === 'concert') ? booking.package_tier.charAt(0).toUpperCase() + booking.package_tier.slice(1) + ' Tier' : booking.package_tier.charAt(0).toUpperCase() + booking.package_tier.slice(1) + ' Package';
+                const guestLabel = (bListCat.toLowerCase() === 'concert') ? 'Tickets' : 'Guests';
+
+                const html = `
+                    <div class="b-item" onclick="selectBookingByObject(${booking.id}, this)">
+                        <img src="${bListImg}" alt="Event Cover" class="b-img">
+                        <div class="b-content">
+                            <div>
+                                <div class="b-top">
+                                    <div class="b-title-wrap">
+                                        <h3 class="b-title">${bListTitle}</h3>
+                                        <span class="b-cat-badge" style="${catStyle}">${bListCat}</span>
+                                    </div>
+                                    <span class="b-status-badge status-${booking.status.toLowerCase()}">${booking.status.toUpperCase()}</span>
+                                </div>
+                                <div class="b-middle">
+                                    <span><i class="fa-solid fa-address-card"></i> ${packageLabel}</span>
+                                    <span><i class="fa-solid fa-user-group"></i> ${booking.guest_count} ${guestLabel}</span>
+                                    <span><i class="fa-regular fa-calendar"></i> ${new Date(booking.event_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                                </div>
+                            </div>
+                            <div class="b-bottom">
+                                <div class="b-date-booked">Booked on: ${new Date(booking.created_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</div>
+                                <div class="b-price-action">
+                                    <span class="b-price">Rs. ${parseFloat(booking.total_amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                                    <a href="/EventManagementSystem/public/client/bookings/view?id=${booking.id}" class="b-view-link">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', html);
+            });
+
+            renderPagination(totalPages);
+
+            // Select first item of the page automatically
+            document.getElementById('sidebarPanel').style.display = 'block';
+            const firstItem = listContainer.querySelector('.b-item');
+            if (firstItem) {
+                selectBookingByObject(currentItems[0].id, firstItem);
+            }
+        }
+
+        function renderPagination(totalPages) {
+            const pagControls = document.getElementById('paginationControls');
+            if (totalPages <= 1) {
+                pagControls.style.display = 'none';
+                return;
+            }
+
+            pagControls.style.display = 'flex';
+            let html = '';
+            
+            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+            
+            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fa-solid fa-chevron-right"></i></button>`;
+            
+            pagControls.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderBookingsList();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function selectBookingByObject(id, element) {
+            document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            const data = bookingsData.find(b => b.id === id);
             if (!data) return;
 
             // Snapshots
@@ -506,7 +572,7 @@
 
             const statusEl = document.getElementById('sb-status');
             statusEl.innerText = data.status.toUpperCase();
-            statusEl.className = 'b-status-badge status-' + data.status;
+            statusEl.className = 'b-status-badge status-' + data.status.toLowerCase();
 
             document.getElementById('sb-event-title').innerText = eSnap?.title || data.event_title;
 
@@ -518,14 +584,8 @@
             let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + (isConcert ? ' Tier' : ' Package');
             let pDesc = isConcert ? 'Allows entry to the event.' : 'Includes selected access & features.';
 
-            // Try getting exact package data from JSON decoded array
-            if (pSnap) {
-                pDesc = pSnap.description || pDesc;
-            } else if (data.packages_data && data.packages_data[data.package_tier]) {
-                const storedPkg = data.packages_data[data.package_tier];
-                if (storedPkg.description) {
-                    pDesc = storedPkg.description;
-                }
+            if (pSnap && pSnap.description) {
+                pDesc = pSnap.description;
             }
 
             document.querySelector('.dp-pkg-label').innerText = pLabel;
@@ -592,8 +652,6 @@
                     payBtn.href = '/EventManagementSystem/public/client/payment/checkout?booking_id=' + data.id;
                     payBtn.innerHTML = isConcert ? '<i class="fa-solid fa-credit-card"></i> Pay for Ticket Online' : '<i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online';
                     payBtn.style.display = 'block';
-                } else if (payStatus === 'partially_paid' && !isConcert) {
-                    payBtn.style.display = 'none';
                 } else {
                     payBtn.style.display = 'none';
                 }
@@ -612,11 +670,9 @@
             let cancelForm = document.getElementById('cancel-booking-form');
             if (cancelForm) {
                 const bStatus = (data.status || '').toLowerCase();
-                const payStatus = (data.payment_status || 'unpaid').toLowerCase();
+                const paySt = (data.payment_status || 'unpaid').toLowerCase();
 
-                // Rule: HIDE only if (Confirmed AND (Partially Paid or Paid))
-                // Also hide if already cancelled or completed
-                const isLocked = (bStatus === 'confirmed' && payStatus !== 'unpaid');
+                const isLocked = (bStatus === 'confirmed' && paySt !== 'unpaid');
                 const isActive = (bStatus === 'pending' || bStatus === 'confirmed');
 
                 if (isActive && !isLocked) {
@@ -628,59 +684,27 @@
             }
         }
 
+        function applyFilter(filterType) {
+            currentFilterType = filterType;
+            currentPage = 1;
+
+            if (filterType === 'all') {
+                filteredBookings = [...bookingsData];
+            } else if (filterType === 'upcoming') {
+                filteredBookings = bookingsData.filter(b => ['pending', 'confirmed'].includes(b.status.toLowerCase()));
+            } else {
+                filteredBookings = bookingsData.filter(b => b.status.toLowerCase() === filterType);
+            }
+
+            renderBookingsList();
+        }
+
         function filterBookings(filterType, element) {
             // Update Tabs
             document.querySelectorAll('.filter-tab').forEach(el => el.classList.remove('active'));
             if (element) element.classList.add('active');
 
-            // Filter List
-            const items = document.querySelectorAll('.b-item');
-            let visibleCount = 0;
-            let firstVisibleIdx = -1;
-            let firstVisibleEl = null;
-
-            items.forEach(item => {
-                const status = item.getAttribute('data-status');
-                const upcoming = item.getAttribute('data-upcoming');
-                const idx = item.getAttribute('data-index');
-
-                let show = false;
-
-                if (filterType === 'all') show = true;
-                else if (filterType === 'upcoming' && upcoming === 'true') show = true;
-                else if (status === filterType) show = true;
-
-                if (show) {
-                    item.style.display = 'flex';
-                    visibleCount++;
-                    if (firstVisibleIdx === -1) {
-                        firstVisibleIdx = idx;
-                        firstVisibleEl = item;
-                    }
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            const noData = document.querySelector('.empty-state');
-            const sidebar = document.getElementById('sidebarPanel');
-
-            if (visibleCount === 0) {
-                if (!noData && document.getElementById('bookingsList')) {
-                    document.getElementById('bookingsList').innerHTML += '<div class="empty-state">No bookings found in this category.</div>';
-                } else if (noData) {
-                    noData.style.display = 'block';
-                }
-                sidebar.style.display = 'none';
-            } else {
-                if (noData) noData.style.display = 'none';
-                sidebar.style.display = 'block';
-
-                // Auto select first visible
-                if (firstVisibleIdx !== -1) {
-                    selectBooking(firstVisibleIdx, firstVisibleEl);
-                }
-            }
+            applyFilter(filterType);
         }
 
         // Initialize first item on load
@@ -698,10 +722,7 @@
                 window.history.pushState({ path: newUrl }, '', newUrl);
             }
 
-            const firstItem = document.querySelector('.b-item');
-            if (firstItem) {
-                selectBooking(firstItem.getAttribute('data-index'), firstItem);
-            }
+            fetchBookings();
         });
 
     </script>
