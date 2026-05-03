@@ -50,7 +50,8 @@ if (empty($includedItemsList)) {
             <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
             <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
@@ -337,6 +338,13 @@ if (empty($includedItemsList)) {
                                 <?php echo $event['status'] === 'active' ? 'Booking Open' : ucfirst($event['status']); ?>
                             </p>
                         </div>
+                        <?php if (!empty($event['event_date'])): ?>
+                        <div class="detail-col">
+                            <h4>Date & Time</h4>
+                            <p><?php echo date('F d, Y', strtotime($event['event_date'])); ?></p>
+                            <span style="font-size:11px; color:#6b7280;">Scheduled at <?php echo date('h:i A', strtotime($event['event_date'])); ?></span>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

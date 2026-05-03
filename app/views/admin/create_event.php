@@ -95,7 +95,7 @@
                             <div class="dropdown-menu">
                                 <div class="dropdown-item active" data-value="">-- Select Category --</div>
                                 <?php
-                                $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                                $categories = ["Weddings", "Meetings", "Concert", "Cultural Events", "Family Functions", "Other Events and Programs"];
                                 foreach ($categories as $cat):
                                 ?>
                                     <div class="dropdown-item" data-value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></div>
@@ -146,6 +146,20 @@
                     <div class="form-group">
                         <label>VENUE LOCATION</label>
                         <input type="text" name="venue_location" id="event_venue_location_input" placeholder="e.g. Royal Exhibition Hall, Kathmandu" value="" required>
+                    </div>
+
+                    <!-- Concert Based Date & Time: Only for Concert Category -->
+                    <div id="ticketScheduleFields" style="display: none; width: 100%;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>EVENT DATE</label>
+                                <input type="date" name="event_date" id="event_date_input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>EVENT TIME</label>
+                                <input type="time" name="event_time" id="event_time_input" style="width: 100%;">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -212,8 +226,8 @@
                                     <input type="text" name="packages[<?php echo $tierKey; ?>][description]" id="pkg_desc_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package..." required>
                                 </div>
                                 <div class="form-group pkg-price-group">
-                                    <label>PRICE (NPR)</label>
-                                    <input type="text" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required inputmode="numeric" pattern="\d*">
+                                    <label>PRICE (NPR) <span class="premium-cap-label" style="display: none; color:#ef4444; font-size:10px;">(MAX 100K FOR CONCERT)</span></label>
+                                    <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
                                 </div>
                                 <div class="items-list" data-tier="<?php echo $tierKey; ?>">
                                     <?php foreach ($items as $idx => $item): ?>

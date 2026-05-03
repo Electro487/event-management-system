@@ -63,6 +63,12 @@ class OrganizerController
         require_once dirname(__DIR__) . '/views/organizer/bookings.php';
     }
 
+    public function tickets()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/organizer/tickets.php';
+    }
+
     public function events()
     {
         $this->checkAuth();

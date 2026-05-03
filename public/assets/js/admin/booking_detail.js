@@ -24,8 +24,33 @@ function populateUI(booking) {
     const status = (booking.display_status || booking.status || 'pending').toLowerCase();
     const eSnap = booking.event_snapshot ? JSON.parse(booking.event_snapshot) : null;
     const dispTitle = eSnap?.title || booking.event_title || 'Untitled Event';
-    const dispCategory = eSnap?.category || booking.event_category || 'Event';
-    
+    const dispCategory = (eSnap?.category || booking.event_category || 'Event').toLowerCase().trim();
+    const isConcert = (dispCategory === 'concert');
+
+    // Update navigation if it's a concert
+    if (isConcert) {
+        const backLink = document.getElementById('admin-back-link');
+        if (backLink) {
+            backLink.href = '/EventManagementSystem/public/admin/tickets';
+            backLink.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Back to Tickets';
+        }
+        const bcContainer = document.getElementById('admin-breadcrumb-container');
+        if (bcContainer) {
+            bcContainer.innerHTML = `
+                <a href="/EventManagementSystem/public/admin/tickets" class="bc-link">Tickets</a> 
+                <span class="separator">❯</span> 
+                <a href="/EventManagementSystem/public/admin/bookings/view?id=${booking.id}" class="bc-link current">Ticket Detail</a>
+            `;
+        }
+        // Update Sidebar
+        document.querySelectorAll('.sidebar nav a').forEach(a => {
+            a.classList.remove('active');
+            if (a.getAttribute('href').includes('/admin/tickets')) {
+                a.classList.add('active');
+            }
+        });
+    }
+
     // Header
     document.getElementById('booking-id-pad').innerText = '#BK-' + booking.id.toString().padStart(3, '0');
     const statusBadge = document.getElementById('booking-status-badge');
@@ -219,6 +244,11 @@ function renderFinancials(booking) {
     statusLabel.innerText = label;
     statusLabel.className = `val ${cls}`;
     if (style) statusLabel.style.cssText = style;
+    
+    if (booking.transaction_id) {
+        document.getElementById('admin-tx-row').style.display = 'flex';
+        document.getElementById('admin-transaction-id-display').innerText = booking.transaction_id;
+    }
 
     // Attach to window for use in action buttons
     window.CURRENT_BOOKING_ADVANCE_COMPLETE = isAdvanceComplete;

@@ -237,7 +237,8 @@ $displayName = $fullName;
             <a href="/EventManagementSystem/public/client/home" class="active">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
             <?php endif; ?>
         </nav>
 

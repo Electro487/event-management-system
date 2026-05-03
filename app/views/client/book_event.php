@@ -16,14 +16,24 @@ if (!$selectedPackageData) {
 $priceValue = $selectedPackageData['price'] ?? ($selectedPackageData['price_range'] ?? '');
 $basePrice = !empty($priceValue) ? (float) str_replace(['Rs.', ',', ' '], '', $priceValue) : 0;
 
+$isConcert = (strtolower($event['category'] ?? '') === 'concert');
+
 // Only use defaults as absolute last resort if cost is 0
 if ($basePrice <= 0) {
     if ($packageTier == 'standard')
         $basePrice = 60000;
-    else if ($packageTier == 'premium')
+    else if ($packageTier == 'premium') {
         $basePrice = 150000;
+        // Cap premium concert tickets to 100k
+        if ($isConcert) $basePrice = 100000;
+    }
     else
         $basePrice = 20000;
+} else {
+    // If we have a base price from DB, still cap it for premium concert tickets
+    if ($isConcert && $packageTier == 'premium' && $basePrice > 100000) {
+        $basePrice = 100000;
+    }
 }
 
 $serviceFee = 0.00;
@@ -64,7 +74,8 @@ if (empty($items)) {
         <nav class="nav-links">
             <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/events#my-bookings">My Bookings</a>
+            <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
+            <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -351,19 +362,34 @@ if (empty($items)) {
                         <div class="input-row">
                             <div class="input-group">
                                 <label>EVENT DATE</label>
-                                <input type="date" name="event_date" required min="<?php echo date('Y-m-d'); ?>"
-                                    value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
+                                <?php if (strtolower($event['category']) === 'concert'): ?>
+                                    <input type="text" value="<?php echo isset($event['event_date']) ? date('F d, Y', strtotime($event['event_date'])) : 'Fixed Date'; ?>" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                                    <input type="hidden" name="event_date" value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
+                                <?php else: ?>
+                                    <input type="date" name="event_date" required min="<?php echo date('Y-m-d'); ?>"
+                                        value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
+                                <?php endif; ?>
                             </div>
                             <div class="input-group">
-                                <label>CHECK IN TIME</label>
-                                <input type="time" name="checkin_time" required value="10:00">
+                                <label>TIME</label>
+                                <?php if (strtolower($event['category']) === 'concert'): ?>
+                                    <?php 
+                                        $fixedTime = isset($event['event_date']) ? date('h:i A', strtotime($event['event_date'])) : '06:00 PM';
+                                    ?>
+                                    <input type="text" value="<?php echo $fixedTime; ?>" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                                    <input type="hidden" name="checkin_time" value="<?php echo date('H:i', strtotime($fixedTime)); ?>">
+                                <?php else: ?>
+                                    <input type="time" name="checkin_time" required value="10:00">
+                                <?php endif; ?>
                             </div>
                             <div class="input-group">
-                                <label>GUEST COUNT</label>
+                                <label><?php echo (strtolower($event['category']) === 'concert') ? 'NUMBER OF TICKETS' : 'GUEST COUNT'; ?></label>
                                 <div class="icon-input">
-                                    <input type="number" name="guest_count" required min="10" step="1" placeholder="150"
-                                        onkeypress="return event.charCode >= 48 && event.charCode <= 57">
-                                    <i class="fa-solid fa-user-group"></i>
+                                    <input type="number" id="ticket_quantity" name="guest_count" required min="1" max="<?php echo $isConcert ? '5' : '10000'; ?>" step="1" 
+                                           placeholder="<?php echo $isConcert ? 'Qty' : '150'; ?>"
+                                           oninput="calculateTotal()"
+                                           onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                                    <i class="fa-solid fa-ticket-alt"></i>
                                 </div>
                             </div>
                         </div>
@@ -407,7 +433,7 @@ if (empty($items)) {
                         <div class="summary-pkg-header">
                             <div>
                                 <h4><?php echo htmlspecialchars($event['category'] ?: 'Event'); ?></h4>
-                                <span class="pkg-badge"><?php echo strtoupper($packageTier); ?> PACKAGE</span>
+                                <span class="pkg-badge"><?php echo strtoupper($packageTier); ?> <?php echo (strtolower($event['category']) === 'concert') ? 'TIER' : 'PACKAGE'; ?></span>
                             </div>
                             <?php 
                                 $tierIcon = 'fa-solid fa-award';
@@ -419,7 +445,7 @@ if (empty($items)) {
                         <p class="pkg-desc"><?php echo htmlspecialchars($selectedPackageData['description'] ?? ''); ?></p>
 
                         <div class="whats-included">
-                            <span class="wi-label">WHAT'S INCLUDED</span>
+                            <span class="wi-label"><?php echo (strtolower($event['category']) === 'concert') ? "TICKET FEATURES" : "WHAT'S INCLUDED"; ?></span>
                             <ul class="wi-list">
                                 <?php foreach ($items as $item): ?>
                                     <li><i class="fa-regular fa-circle-check" style="color:#1f6f59;"></i>
@@ -429,33 +455,52 @@ if (empty($items)) {
                         </div>
 
                         <div class="price-breakdown">
-                            <div class="price-row" style="margin-bottom: 5px;">
-                                <span>Total Amount</span>
-                                <span>₨ <?php echo number_format($totalAmount, 2); ?></span>
-                            </div>
-                            <div class="price-row" style="color: #1f6f59; font-weight: 600; margin-bottom: 5px;">
-                                <span>Advance (50% Online)</span>
-                                <span>₨ <?php echo number_format($totalAmount * 0.5, 2); ?></span>
-                            </div>
-                            <div class="price-row" style="color: #64748b; font-size: 13px;">
-                                <span>Balance (50% Cash)</span>
-                                <span>₨ <?php echo number_format($totalAmount * 0.5, 2); ?></span>
-                            </div>
+                            <?php if ($isConcert): ?>
+                                <div class="price-row" style="color: #64748b; font-size: 13px; margin-bottom: 5px;">
+                                    <span>Price per Ticket</span>
+                                    <span>₨ <span id="display_base_price"><?php echo number_format($basePrice, 2); ?></span></span>
+                                </div>
+                                <div class="price-row" style="color: #1f6f59; font-weight: 700; margin-bottom: 5px; font-size: 16px;">
+                                    <span>Total Ticket Price</span>
+                                    <span>₨ <span id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
+                                </div>
+                                <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">Full payment required for instant ticket generation. Max 5 tickets.</div>
+                            <?php else: ?>
+                                <div class="price-row" style="margin-bottom: 5px;">
+                                    <span>Total Amount</span>
+                                    <span>₨ <span id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
+                                </div>
+                                <div class="price-row" style="color: #1f6f59; font-weight: 600; margin-bottom: 5px;">
+                                    <span>Advance (50% Online)</span>
+                                    <span>₨ <span id="display_advance_amount"><?php echo number_format($totalAmount * 0.5, 2); ?></span></span>
+                                </div>
+                                <div class="price-row" style="color: #64748b; font-size: 13px;">
+                                    <span>Balance (50% Cash)</span>
+                                    <span>₨ <span id="display_balance_amount"><?php echo number_format($totalAmount * 0.5, 2); ?></span></span>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                         <input type="hidden" name="pay_later" id="pay_later_flag" value="0">
 
                         <button type="submit" class="btn-confirm">
-                            Proceed to Pay Advance <i class="fa-solid fa-arrow-right"></i>
+                            Proceed to Pay <?php echo (strtolower($event['category']) === 'concert') ? 'for Ticket' : 'Advance'; ?> <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
+                        <?php if (strtolower($event['category']) !== 'concert'): ?>
                         <button type="button" class="btn-confirm" onclick="submitWithPayLater()" 
                                 style="background: transparent; color: #64748b; border: 1px solid #e2e8f0; margin-top: 10px;">
                             I'll Pay Advance Later
                         </button>
+                        <?php endif; ?>
 
                         <div class="policy-info" style="margin-top: 15px; padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; line-height: 1.4;">
-                            <i class="fa-solid fa-circle-info"></i> <b>Advance Required:</b> A 50% non-refundable advance is required online to secure your booking. The remaining 50% balance must be paid in cash on the event day.
+                            <i class="fa-solid fa-circle-info"></i> 
+                            <?php if (strtolower($event['category']) === 'concert'): ?>
+                                <b>Full Payment Required:</b> Tickets are non-refundable and require full online payment for instant confirmation and email delivery.
+                            <?php else: ?>
+                                <b>Advance Required:</b> A 50% non-refundable advance is required online to secure your booking. The remaining 50% balance must be paid in cash on the event day.
+                            <?php endif; ?>
                         </div>
 
                         <p class="terms-text" style="margin-top: 15px;">By clicking confirm, you agree to e-Plan's Terms of Service and Privacy
@@ -503,6 +548,38 @@ if (empty($items)) {
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
 
     <script>
+        const BASE_PRICE = <?php echo $basePrice; ?>;
+        const IS_CONCERT = <?php echo $isConcert ? 'true' : 'false'; ?>;
+
+        function calculateTotal() {
+            const qtyInput = document.getElementById('ticket_quantity');
+            let qty = parseInt(qtyInput.value) || 0;
+            
+            if (IS_CONCERT && qty > 5) {
+                qty = 5;
+                qtyInput.value = 5;
+                alert('Maximum 5 tickets allowed per booking.');
+            }
+
+            const total = BASE_PRICE * (IS_CONCERT ? qty : 1); // For weddings, total is fixed by package
+            
+            // For non-concerts, we don't multiply by guest count as it's a package price
+            // However, the user might want it to multiply. Let's stick to concert-only multiplication for now
+            // as per "money calculation should be dynamic like auto multiply the base cost"
+            
+            document.querySelector('input[name="total_amount"]').value = total;
+            const totalDisplay = document.getElementById('display_total_amount');
+            if (totalDisplay) totalDisplay.innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            if (!IS_CONCERT) {
+                const advanceDisplay = document.getElementById('display_advance_amount');
+                if (advanceDisplay) advanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                
+                const balanceDisplay = document.getElementById('display_balance_amount');
+                if (balanceDisplay) balanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+        }
+
         (function () {
             if (!window.emsApi) return;
             const form = document.querySelector('form.booking-grid');
@@ -512,6 +589,15 @@ if (empty($items)) {
                 e.preventDefault();
 
                 if (!form.reportValidity()) return;
+                
+                // Final Check for Concert Limit
+                if (IS_CONCERT) {
+                    const qty = parseInt(document.getElementById('ticket_quantity').value) || 0;
+                    if (qty > 5) {
+                        alert('Max 5 tickets per booking!');
+                        return;
+                    }
+                }
 
                 // Disable buttons
                 const submitBtns = form.querySelectorAll('button');
@@ -539,10 +625,11 @@ if (empty($items)) {
                 try {
                     const res = await window.emsApi.apiFetch('/api/v1/bookings', { method: 'POST', body: payload });
                     const bookingId = res?.data?.booking_id;
-                    if (!bookingId) throw new Error('Booking created but missing booking_id.');
+                    if (!bookingId) throw new Error('Booking creation failed.');
 
                     if (payLater) {
-                        window.location.href = `/EventManagementSystem/public/client/events?booking_success=1#my-bookings`;
+                        const targetUrl = IS_CONCERT ? '/EventManagementSystem/public/client/tickets' : '/EventManagementSystem/public/client/bookings';
+                        window.location.href = `${targetUrl}?booking_success=1`;
                         return;
                     }
 

@@ -84,7 +84,27 @@ function initBrowseEvents() {
                     if (prices.length > 0) startingPrice = Math.min(...prices);
                 }
             } catch (e) {}
-            return `<div class="event-card"><div class="event-image-container"><img src="${image}" alt="${event.title}" class="event-image"><span class="event-category-tag">${event.category || "Event"}</span></div><div class="event-content"><h3 class="event-title">${event.title}</h3><p class="event-description">${event.description}</p><div class="event-location"><i class="fa-solid fa-location-dot"></i>${event.venue_location || "Location TBD"}</div><div class="event-price">Packages from Rs. ${startingPrice.toLocaleString()}</div><a href="/EventManagementSystem/public/client/events/view?id=${event.id}" class="btn-view-packages">View Packages &rarr;</a></div></div>`;
+            const category = event.category || "Event";
+            return `
+                <div class="event-card">
+                    <div class="event-image-container">
+                        <img src="${image}" alt="${event.title}" class="event-image">
+                        <span class="event-category-tag">${category}</span>
+                    </div>
+                    <div class="event-content">
+                        <h3 class="event-title">${event.title}</h3>
+                        <p class="event-description">${event.description}</p>
+                        <div class="event-location">
+                            <i class="fa-solid fa-location-dot"></i>
+                            ${event.venue_location || 'Location TBD'}
+                        </div>
+                        <div class="event-price">Packages from Rs. ${startingPrice.toLocaleString()}</div>
+                        <a href="/EventManagementSystem/public/client/events/view?id=${event.id}" class="btn-view-packages">
+                            ${category.toLowerCase() === 'concert' ? 'Get Ticket &rarr;' : 'View Packages &rarr;'}
+                        </a>
+                    </div>
+                </div>
+            `;
         }).join("");
     }
 

@@ -68,9 +68,10 @@ if (strlen($initials) > 2)
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;">
         </a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
+            <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
         </nav>
         <div class="nav-icons">
 

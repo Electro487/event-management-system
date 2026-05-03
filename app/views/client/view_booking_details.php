@@ -70,11 +70,11 @@ if (!function_exists('getStepClass')) {
 }
 
 $steps = [
-    ['label' => 'Received', 'desc' => 'Booking received', 'key' => 'received'],
-    ['label' => 'Under Review', 'desc' => ($status === 'cancelled') ? 'Booking cancelled' : 'Awaiting review', 'key' => 'review'],
-    ['label' => 'Confirmed', 'desc' => ($status === 'confirmed' || $status === 'completed') ? 'Booking confirmed' : 'Pending confirmation', 'key' => 'confirmed'],
+    ['label' => 'Received', 'desc' => 'Booking received successfully', 'key' => 'received'],
+    ['label' => 'Under Review', 'desc' => ($status === 'cancelled') ? 'Booking cancelled' : 'Reviewing event details', 'key' => 'review'],
+    ['label' => 'Confirmed', 'desc' => ($status === 'confirmed' || $status === 'completed') ? 'Booking confirmed' : 'Awaiting confirmation', 'key' => 'confirmed'],
     ['label' => 'Event Day', 'desc' => 'Scheduled for ' . $eventDate->format('M d, Y'), 'key' => 'event'],
-    ['label' => 'Completed', 'desc' => ($todayStr > $eventDateStr && $status !== 'cancelled') ? 'Event completed' : 'Awaiting event day', 'key' => 'completed']
+    ['label' => 'Completed', 'desc' => ($todayStr > $eventDateStr && $status !== 'cancelled') ? 'Event successfully completed' : 'Pending event day', 'key' => 'completed']
 ];
 ?>
 <!DOCTYPE html>
@@ -100,7 +100,8 @@ $steps = [
         <nav class="nav-links">
             <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/events#my-bookings" class="active">My Bookings</a>
+            <a href="/EventManagementSystem/public/client/bookings" class="<?php echo (strtolower($eventCategory) !== 'concert') ? 'active' : ''; ?>">My Bookings</a>
+            <a href="/EventManagementSystem/public/client/tickets" class="<?php echo (strtolower($eventCategory) === 'concert') ? 'active' : ''; ?>">My Tickets</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -334,7 +335,7 @@ $steps = [
             <!-- Left Column: All Booking Details -->
             <div class="left-col">
                 <div class="card-section">
-                    <h2 class="card-title"><i class="fa-regular fa-id-badge"></i> Booking Information</h2>
+                    <h2 class="card-title"><i class="fa-regular fa-id-badge"></i> <?php echo $isConcert ? 'Ticket' : 'Booking'; ?> Information</h2>
 
                     <div class="info-grid">
                         <div class="info-item">
@@ -439,58 +440,81 @@ $steps = [
                 </div>
 
                 <div class="summary-box">
-                    <h3>Payment Summary</h3>
+                    <h3><?php echo (strtolower($eventCategory) === 'concert') ? 'Ticket Payment Summary' : 'Payment Summary'; ?></h3>
 
                     <div class="price-row">
-                        <span>Total Booking Amount</span>
+                        <span><?php echo (strtolower($eventCategory) === 'concert') ? 'Total Ticket Price' : 'Total Booking Amount'; ?></span>
                         <span>Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
                     </div>
 
                     <?php
+                    $isConcert = (strtolower($eventCategory) === 'concert');
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                    $hasAnyAdvancePaid = ($paidAdvance > 0.009);
-                    $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $hasAnyAdvancePaid);
                     
-                    if ($isAdvanceComplete) {
-                        $remainingAdvance = 0;
-                    }
-
-                    $advance = $advanceTarget;
-                    // The balance is whatever is left of the total amount after all payments
-                    $balance = $booking['total_amount'] - $paidAdvance;
-
-                    $isPartiallyPaid = ($payStatus === 'partially_paid');
+                    if (!isset($paidAdvance)) $paidAdvance = 0;
+                    
                     $isFullyPaid = ($payStatus === 'paid');
+                    $balance = max(0, $booking['total_amount'] - $paidAdvance);
+
+                    if (!$isConcert):
+                        $advance = isset($advanceTarget) ? $advanceTarget : ($booking['total_amount'] * 0.5);
+                        $remainingAdvance = max(0, $advance - $paidAdvance);
+                        $hasAnyAdvancePaid = ($paidAdvance > 0.009);
+                        $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $hasAnyAdvancePaid);
+                        if ($isAdvanceComplete) $remainingAdvance = 0;
+                        $isPartiallyPaid = ($payStatus === 'partially_paid');
                     ?>
+                        <div class="price-row">
+                            <span>Advance (50% Online)</span>
+                            <span style="color: <?php echo ($isAdvanceComplete || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
+                                Rs. <?php echo number_format($paidAdvance, 2); ?> / <?php echo number_format($advance, 2); ?>
+                                <?php if ($isAdvanceComplete || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                            </span>
+                        </div>
 
-                    <div class="price-row">
-                        <span>Advance (50% Online)</span>
-                        <span style="color: <?php echo ($isAdvanceComplete || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
-                            Rs. <?php echo number_format($paidAdvance, 2); ?> / <?php echo number_format($advance, 2); ?>
-                            <?php if ($isAdvanceComplete || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
-                        </span>
+                        <div class="price-row">
+                            <span>Remaining Online Advance</span>
+                            <span style="color: <?php echo $isAdvanceComplete ? '#10b981' : '#ef4444'; ?>; font-weight: 600;">
+                                Rs. <?php echo number_format($remainingAdvance, 2); ?>
+                            </span>
+                        </div>
+
+                        <div class="price-row">
+                            <span>Balance (50% Cash on Event Day)</span>
+                            <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
+                                Rs. <?php echo number_format($balance, 2); ?>
+                                <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                            </span>
+                        </div>
+                    <?php else: ?>
+                        <div class="price-row" style="background: rgba(255,194,65,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: #475569;">Payment Received (Online)</span>
+                            <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 700; font-size: 16px;">
+                                Rs. <?php echo number_format($paidAdvance, 2); ?>
+                                <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle" style="margin-left: 4px;"></i><?php endif; ?>
+                            </span>
+                        </div>
+                        <div class="price-row" style="background: rgba(239,68,68,0.03); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: #475569;">Outstanding Balance</span>
+                            <span style="color: <?php echo ($balance <= 0.01) ? '#10b981' : '#ef4444'; ?>; font-weight: 700; font-size: 16px;">
+                                Rs. <?php echo number_format($balance, 2); ?>
+                            </span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($transactionId)): ?>
+                    <div class="price-row" style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid #e2e8f0; flex-direction: column; align-items: flex-start; gap: 4px;">
+                        <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Transaction ID (TX ID)</span>
+                        <span style="font-family: monospace; color: #1e293b; font-size: 12px; word-break: break-all;"><?php echo htmlspecialchars($transactionId); ?></span>
                     </div>
+                    <?php endif; ?>
 
-                    <div class="price-row">
-                        <span>Remaining Online Advance</span>
-                        <span style="color: <?php echo $isAdvanceComplete ? '#10b981' : '#ef4444'; ?>; font-weight: 600;">
-                            Rs. <?php echo number_format($remainingAdvance, 2); ?>
-                        </span>
-                    </div>
-
-                    <div class="price-row">
-                        <span>Balance (50% Cash on Event Day)</span>
-                        <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
-                            Rs. <?php echo number_format($balance, 2); ?>
-                            <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
-                        </span>
-                    </div>
-
-                    <div class="price-row total <?php echo ($isPartiallyPaid || $isFullyPaid) ? 'paid' : 'pending'; ?>" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <div class="price-row total <?php echo ($isFullyPaid || (isset($isAdvanceComplete) && $isAdvanceComplete)) ? 'paid' : 'pending'; ?>" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
                         <span>Current Status</span>
                         <span>
                             <?php
                             if ($isFullyPaid) echo 'FULLY PAID';
+                            elseif ($isConcert) echo 'PAYMENT PENDING';
                             elseif ($isAdvanceComplete) echo 'ADVANCE COMPLETE';
                             elseif ($hasAnyAdvancePaid) echo 'ADVANCE PARTIALLY PAID';
                             else echo 'PAYMENT PENDING';
@@ -498,12 +522,12 @@ $steps = [
                         </span>
                     </div>
 
-                    <?php if (!$isFullyPaid && !$isAdvanceComplete): ?>
+                    <?php if (!$isFullyPaid && (!$isConcert ? !$isAdvanceComplete : true)): ?>
                         <div style="margin-top: 20px;">
                             <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=<?php echo $booking['id']; ?>"
                                 class="btn-primary"
                                 style="display: block; text-align: center; background: #246A55; color: white;">
-                                <i class="fa-solid fa-credit-card"></i> Pay Next Installment (Rs. <?php echo number_format($nextInstallmentAmount, 2); ?>)
+                                <i class="fa-solid fa-credit-card"></i> <?php echo $isConcert ? 'Pay for Ticket' : 'Pay Next Installment'; ?> (Rs. <?php echo number_format($balance, 2); ?>)
                             </a>
                         </div>
                     <?php endif; ?>
@@ -511,7 +535,7 @@ $steps = [
                     <div class="policy-note" style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
                         <span style="font-size:12px; color:#0369a1; display:flex; gap:8px; line-height:1.4;">
                             <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i>
-                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer by or on the day of the event.</span>
+                            <span><b>Payment Policy:</b> <?php echo $isConcert ? 'All ticket sales are final and non-refundable. Tickets are confirmed only after full online payment.' : 'Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer by or on the day of the event.'; ?></span>
                         </span>
                     </div>
 
@@ -532,9 +556,13 @@ $steps = [
                         </div>
                     <?php endif; ?>
 
-                    <a href="/EventManagementSystem/public/client/events#my-bookings" class="btn-primary"
+                    <?php 
+                        $backUrl = (strtolower($eventCategory) === 'concert') ? '/EventManagementSystem/public/client/tickets' : '/EventManagementSystem/public/client/bookings';
+                        $backLabel = (strtolower($eventCategory) === 'concert') ? 'Back to My Tickets' : 'Back to My Bookings';
+                    ?>
+                    <a href="<?php echo $backUrl; ?>" class="btn-primary"
                         style="margin-top: 15px; color:#1a1e23; background:#ffc241;">
-                        <i class="fa-solid fa-arrow-left"></i> Back to My Bookings
+                        <i class="fa-solid fa-arrow-left"></i> <?php echo $backLabel; ?>
                     </a>
                 </div>
             </div>
@@ -573,7 +601,8 @@ $steps = [
 
                     try {
                         await window.emsApi.apiFetch(`/api/v1/bookings/${id}/cancel`, { method: 'PATCH' });
-                        window.location.href = '/EventManagementSystem/public/client/events#my-bookings';
+                        const isConcert = "<?php echo (strtolower($eventCategory) === 'concert'); ?>";
+                        window.location.href = isConcert ? '/EventManagementSystem/public/client/tickets' : '/EventManagementSystem/public/client/bookings';
                     } catch (err) {
                         console.error('Cancel via API failed:', err);
                         alert('Error: ' + err.message);

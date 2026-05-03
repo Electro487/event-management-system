@@ -213,8 +213,13 @@ class ClientController
         
         require_once dirname(__DIR__) . '/models/Booking.php';
         $bookingModel = new Booking();
-        $bookings = $bookingModel->getByClient($_SESSION['user_id']);
+        $allBookings = $bookingModel->getByClient($_SESSION['user_id']);
         
+        // Filter out concerts
+        $bookings = array_filter($allBookings, function($b) {
+            return trim(strtolower($b['event_category'] ?? '')) !== 'concert';
+        });
+
         // Calculate stats for the view
         $totalBookings = count($bookings);
         $confirmedCount = 0;
@@ -231,6 +236,22 @@ class ClientController
         $categories = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'];
         
         require_once dirname(__DIR__) . '/views/client/my_bookings.php';
+    }
+
+    public function myTickets()
+    {
+        $this->checkAuth();
+        
+        require_once dirname(__DIR__) . '/models/Booking.php';
+        $bookingModel = new Booking();
+        $allBookings = $bookingModel->getByClient($_SESSION['user_id']);
+        
+        // Filter for concerts only
+        $tickets = array_filter($allBookings, function($b) {
+            return trim(strtolower($b['event_category'] ?? '')) === 'concert';
+        });
+
+        require_once dirname(__DIR__) . '/views/client/my_tickets.php';
     }
 
     public function cancelBooking()
@@ -264,20 +285,27 @@ class ClientController
         $paymentModel = new Payment();
         
         $totalAmount = (float)$booking['total_amount'];
-        $advanceTarget = $totalAmount * 0.50; // 50% advance policy
+        $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
+        $advancePercent = $isConcert ? 1.00 : 0.50;
+        $advanceTarget = $totalAmount * $advancePercent;
         
-        // Use actual payment history instead of just status
-        $paidAdvance = $paymentModel->getSucceededTotalByBookingId($id);
+        $paidAmount = $paymentModel->getSucceededTotalByBookingId($id);
         
-        // Cap paidAdvance at advanceTarget for progress display purposes (since extra might be cash)
-        // Actually, if they paid more than 50%, we should show it correctly.
+        // Backward compatibility: if DB says 'paid' but payments table is empty (Edge case)
+        if ($paidAmount < 0.01 && (strtolower($booking['payment_status']) === 'paid')) {
+            $paidAmount = $totalAmount;
+        }
+        
+        $paidAdvance = $paidAmount;
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
         
         // Next installment is either the remaining advance or 0 if advance is complete
         $nextInstallmentAmount = $remainingAdvance;
 
-        require_once dirname(__DIR__) . '/views/client/view_booking_details.php';
+        $lastPayment = $paymentModel->getByBookingId($id);
+        $transactionId = $lastPayment['transaction_id'] ?? null;
 
+        require_once dirname(__DIR__) . '/views/client/view_booking_details.php';
     }
 
     public function updateProfile()
@@ -296,6 +324,33 @@ class ClientController
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Endpoint migrated to API.']);
         exit;
+    }
+
+    public function viewTicket()
+    {
+        $this->checkAuth();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /EventManagementSystem/public/client/bookings');
+            exit;
+        }
+
+        require_once dirname(__DIR__) . '/models/Booking.php';
+        $bookingModel = new Booking();
+        $booking = $bookingModel->getById($id);
+
+        if (!$booking || (int)$booking['client_id'] !== (int)$_SESSION['user_id']) {
+            header('Location: /EventManagementSystem/public/client/bookings');
+            exit;
+        }
+
+        $eSnap = !empty($booking['event_snapshot']) ? json_decode($booking['event_snapshot'], true) : [];
+        if (strtolower($eSnap['category'] ?? '') !== 'concert') {
+            header('Location: /EventManagementSystem/public/client/bookings/view?id=' . $id);
+            exit;
+        }
+
+        require_once dirname(__DIR__) . '/views/client/ticket.php';
     }
 
     public function feedback()

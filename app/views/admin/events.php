@@ -77,7 +77,7 @@
                     <div class="dropdown-menu">
                         <div class="dropdown-item active" data-value="all">All Categories</div>
                         <?php 
-                        $cats = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                        $cats = ["Weddings", "Meetings", "Concert", "Cultural Events", "Family Functions", "Other Events and Programs"];
                         foreach($cats as $cat): ?>
                             <div class="dropdown-item" data-value="<?php echo strtolower($cat); ?>"><?php echo $cat; ?></div>
                         <?php endforeach; ?>

@@ -174,6 +174,12 @@ class AdminController
         require_once dirname(__DIR__) . '/views/admin/bookings.php';
     }
 
+    public function tickets()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/admin/tickets.php';
+    }
+
     public function createEvent()
     {
         $this->checkAuth();

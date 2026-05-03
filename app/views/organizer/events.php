@@ -91,6 +91,7 @@
                         <div class="dropdown-item active" data-value="all">All Categories</div>
                         <div class="dropdown-item" data-value="Weddings">Weddings</div>
                         <div class="dropdown-item" data-value="Meetings">Meetings</div>
+                        <div class="dropdown-item" data-value="Concert">Concert</div>
                         <div class="dropdown-item" data-value="Cultural Events">Cultural Events</div>
                         <div class="dropdown-item" data-value="Family Functions">Family Functions</div>
                         <div class="dropdown-item" data-value="Other Events and Programs">Other Events and Programs</div>
