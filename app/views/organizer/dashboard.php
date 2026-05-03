@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizer Dashboard - <?php echo htmlspecialchars(defined('SITE_NAME') ? SITE_NAME : 'Event Management System'); ?></title>
+    <title>Organizer Dashboard -
+        <?php echo htmlspecialchars(defined('SITE_NAME') ? SITE_NAME : 'Event Management System'); ?></title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +13,8 @@
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-dashboard.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet"
+        href="/EventManagementSystem/public/assets/css/organizer-dashboard.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 
@@ -32,7 +34,7 @@
             </div>
 
             <div class="header-right">
-                <div class="header-actions">
+                <div class="header-icons">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
                             <i class="fa-regular fa-bell"></i>
@@ -51,27 +53,29 @@
                                 </div>
                             </div>
                             <div class="nd-footer">
-                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
+                                    Notifications <i class="fa-solid fa-arrow-right"></i></a>
                             </div>
                         </div>
                     </div>
+                    <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                 </div>
-
-                <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
             </div>
         </header>
 
         <!-- Welcome Banner -->
         <div class="welcome-banner">
             <div>
-                <h2>Welcome back, <?php 
-                    $fullName = trim($_SESSION['user_fullname'] ?? '');
-                    if (!$fullName) $fullName = 'Organizer';
-                    $nameParts = explode(' ', $fullName);
-                    $firstName = $nameParts[0];
-                    echo htmlspecialchars($firstName); 
+                <h2>Welcome back, <?php
+                $fullName = trim($_SESSION['user_fullname'] ?? '');
+                if (!$fullName)
+                    $fullName = 'Organizer';
+                $nameParts = explode(' ', $fullName);
+                $firstName = $nameParts[0];
+                echo htmlspecialchars($firstName);
                 ?>! 👋</h2>
-                <p>You have <span id="pending-requests-count">0</span> pending requests that need your attention today.</p>
+                <p>You have <span id="pending-requests-count">0</span> pending requests that need your attention today.
+                </p>
             </div>
         </div>
 
@@ -131,7 +135,8 @@
                         </thead>
                         <tbody id="recent-bookings-tbody">
                             <tr>
-                                <td colspan="6" style="text-align:center; color: var(--text-muted);">Loading recent bookings...</td>
+                                <td colspan="6" style="text-align:center; color: var(--text-muted);">Loading recent
+                                    bookings...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -180,9 +185,11 @@
                         <span class="count-badge" id="active-events-count">0 Active</span>
                     </div>
                     <div class="events-list" id="upcoming-events-list">
-                        <p style="text-align:center; color:var(--text-muted); font-size:14px; padding:20px;">Loading upcoming events...</p>
+                        <p style="text-align:center; color:var(--text-muted); font-size:14px; padding:20px;">Loading
+                            upcoming events...</p>
                     </div>
-                    <a href="/EventManagementSystem/public/organizer/events" class="view-all-events">View All Events <i class="fas fa-arrow-right"></i></a>
+                    <a href="/EventManagementSystem/public/organizer/events" class="view-all-events">View All Events <i
+                            class="fas fa-arrow-right"></i></a>
                 </div>
 
                 <!-- Create Event CTA -->
@@ -190,7 +197,9 @@
                     <i class="fas fa-plus-circle"></i>
                     <h4>New Event?</h4>
                     <p>Start curating your next premium event experience.</p>
-                    <a href="/EventManagementSystem/public/organizer/events/create" class="btn-create">Create Event</a>
+                    <a href="/EventManagementSystem/public/organizer/events/create" class="btn-create">
+                        <i class="fas fa-plus"></i> Create Event
+                    </a>
                 </div>
             </div>
 
@@ -201,7 +210,7 @@
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             updateDashboard();
 
             function updateDashboard() {
@@ -222,7 +231,7 @@
                         // Update Status Summary Bars
                         const sum = data.status_summary || { confirmed: 0, pending: 0, cancelled: 0 };
                         const total = (sum.confirmed || 0) + (sum.pending || 0) + (sum.cancelled || 0);
-                        
+
                         document.getElementById('stat-sum-confirmed').textContent = sum.confirmed || 0;
                         document.getElementById('stat-sum-pending').textContent = sum.pending || 0;
                         document.getElementById('stat-sum-cancelled').textContent = sum.cancelled || 0;
@@ -245,9 +254,9 @@
 
                                 const statusDisp = b.display_status || b.status || 'pending';
                                 const dateStr = b.event_date ? new Date(b.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
-                                
+
                                 const initials = (b.client_name || 'U').substring(0, 2).toUpperCase();
-                                const avatar = b.client_profile_pic 
+                                const avatar = b.client_profile_pic
                                     ? `<img src="${b.client_profile_pic}" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">`
                                     : `<div class="avatar-circle" style="width: 28px; height: 28px; border-radius: 50%; background: #f0fdf4; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 1px solid #dcfce7;">${initials}</div>`;
 
@@ -277,35 +286,35 @@
                         const eventsList = document.getElementById('upcoming-events-list');
                         const events = data.upcoming_events || [];
                         document.getElementById('active-events-count').textContent = events.length + ' Active';
-                        
+
                         if (events.length === 0) {
                             eventsList.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:14px; padding:20px;">No upcoming events.</p>`;
                         } else {
                             const now = new Date();
-                            now.setHours(0,0,0,0);
-                            
+                            now.setHours(0, 0, 0, 0);
+
                             // Only show top 2 events
                             const topEvents = events.slice(0, 2);
-                            
+
                             eventsList.innerHTML = topEvents.map(e => {
                                 let daysText = "Ongoing";
                                 if (e.event_date) {
                                     const eDate = new Date(e.event_date);
-                                    eDate.setHours(0,0,0,0);
+                                    eDate.setHours(0, 0, 0, 0);
                                     const diffTime = eDate - now;
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                    
+
                                     if (diffDays === 0) daysText = "Today";
                                     else if (diffDays < 0) daysText = "Ongoing";
                                     else daysText = "in " + diffDays + " days";
                                 }
-                                
+
                                 let rawImg = e.image_path || '';
                                 let img = '/EventManagementSystem/public/assets/images/placeholder.jpg';
                                 if (rawImg) {
                                     img = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
                                 }
-                                
+
                                 return `<a href="/EventManagementSystem/public/organizer/events/view?id=${e.id}" class="event-item" data-title="${e.title?.toLowerCase() || ''}" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; transition: all 0.2s ease;">
                                     <img src="${img}" alt="Event Image" onerror="this.src='/EventManagementSystem/public/assets/images/placeholder.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
                                     <div class="event-info" style="flex: 1; min-width: 0;">

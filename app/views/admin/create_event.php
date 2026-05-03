@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/organizer-layout.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -34,7 +35,28 @@
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <i class="fa-regular fa-bell"></i>
+                    <div class="notifications-wrapper">
+                        <div class="notification-bell-btn" id="notification-bell">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                        </div>
+                        <!-- Notifications Dropdown -->
+                        <div class="notifications-dropdown" id="notifications-dropdown">
+                            <div class="nd-header">
+                                <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                                <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                            </div>
+                            <div class="nd-content" id="nd-list">
+                                <div class="nd-empty">
+                                    <i class="fa-regular fa-bell-slash"></i>
+                                    <p>No new notifications</p>
+                                </div>
+                            </div>
+                            <div class="nd-footer">
+                                <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-avatar-small">
                         <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                     </div>
@@ -73,7 +95,7 @@
                             <div class="dropdown-menu">
                                 <div class="dropdown-item active" data-value="">-- Select Category --</div>
                                 <?php
-                                $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                                $categories = ["Weddings", "Meetings", "Concert", "Cultural Events", "Family Functions", "Other Events and Programs"];
                                 foreach ($categories as $cat):
                                 ?>
                                     <div class="dropdown-item" data-value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></div>
@@ -124,6 +146,20 @@
                     <div class="form-group">
                         <label>VENUE LOCATION</label>
                         <input type="text" name="venue_location" id="event_venue_location_input" placeholder="e.g. Royal Exhibition Hall, Kathmandu" value="" required>
+                    </div>
+
+                    <!-- Concert Based Date & Time: Only for Concert Category -->
+                    <div id="ticketScheduleFields" style="display: none; width: 100%;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>EVENT DATE</label>
+                                <input type="date" name="event_date" id="event_date_input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>EVENT TIME</label>
+                                <input type="time" name="event_time" id="event_time_input" style="width: 100%;">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,7 +226,7 @@
                                     <input type="text" name="packages[<?php echo $tierKey; ?>][description]" id="pkg_desc_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package..." required>
                                 </div>
                                 <div class="form-group pkg-price-group">
-                                    <label>PRICE (NPR)</label>
+                                    <label>PRICE (NPR) <span class="premium-cap-label" style="display: none; color:#ef4444; font-size:10px;">(MAX 100K FOR CONCERT)</span></label>
                                     <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" id="pkg_price_<?php echo $tierKey; ?>" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
                                 </div>
                                 <div class="items-list" data-tier="<?php echo $tierKey; ?>">

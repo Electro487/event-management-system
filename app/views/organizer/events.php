@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="header-actions">
+                <div class="header-icons">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
                             <i class="fa-regular fa-bell"></i>
@@ -55,9 +55,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="user-avatar-small">
-                        <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
-                    </div>
+                    <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                 </div>
             </div>
         </header>
@@ -93,6 +91,7 @@
                         <div class="dropdown-item active" data-value="all">All Categories</div>
                         <div class="dropdown-item" data-value="Weddings">Weddings</div>
                         <div class="dropdown-item" data-value="Meetings">Meetings</div>
+                        <div class="dropdown-item" data-value="Concert">Concert</div>
                         <div class="dropdown-item" data-value="Cultural Events">Cultural Events</div>
                         <div class="dropdown-item" data-value="Family Functions">Family Functions</div>
                         <div class="dropdown-item" data-value="Other Events and Programs">Other Events and Programs</div>

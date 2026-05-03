@@ -174,6 +174,12 @@ class AdminController
         require_once dirname(__DIR__) . '/views/admin/bookings.php';
     }
 
+    public function tickets()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/admin/tickets.php';
+    }
+
     public function createEvent()
     {
         $this->checkAuth();
@@ -305,5 +311,12 @@ class AdminController
         // PATCH handling has been migrated to BookingApiController
         header('Location: /EventManagementSystem/public/admin/bookings');
         exit;
+    }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        $activePage = 'feedback';
+        require_once dirname(__DIR__) . '/views/admin/feedback.php';
     }
 }

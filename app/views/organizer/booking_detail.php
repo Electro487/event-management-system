@@ -31,14 +31,14 @@
     <div id="loadingOverlay" class="loading-overlay">Loading booking details...</div>
 
     <?php 
-        $activePage = 'bookings';
+        $activePage = ($_GET['source'] ?? '') === 'tickets' ? 'tickets' : 'bookings';
         include_once __DIR__ . "/partials/sidebar.php"; 
     ?>
 
     <main class="main-content" id="mainContent" style="display: none;">
         <header class="detail-header">
             <div class="header-left-info">
-                <div class="breadcrumb-container">
+                <div class="breadcrumb-container" id="breadcrumbContainer">
                     <a href="/EventManagementSystem/public/organizer/bookings" class="bc-link">Bookings</a> 
                     <span class="separator">❯</span> 
                     <span class="bc-link current">Booking Detail</span>
@@ -50,10 +50,10 @@
             </div>
 
             <div class="header-right-actions">
-                <a href="/EventManagementSystem/public/organizer/bookings" class="back-link">
+                <a href="/EventManagementSystem/public/organizer/bookings" class="back-link" id="backToParentLink">
                     <i class="fa-solid fa-arrow-left"></i> Back to Bookings
                 </a>
-                <div class="header-icons-center">
+                <div class="header-icons">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
                             <i class="fa-regular fa-bell"></i>
@@ -199,6 +199,11 @@
                             Rs. 0
                         </span>
                     </div>
+                    
+                    <div id="txRow" class="finance-row" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 11px; color: #64748b;">TX ID</span>
+                        <span id="transactionIdDisplay" style="font-family: monospace; font-size: 11px; color: #1e293b; word-break: break-all;">-</span>
+                    </div>
 
                     <div class="payment-status">
                         <span class="lbl">Current Status</span>
@@ -256,8 +261,36 @@
 
             function populateUI(b) {
                 const status = (b.status || '').toLowerCase();
-                const displayStatus = (b.display_status || status).toLowerCase();
                 const pStat = (b.payment_status || 'unpaid').toLowerCase();
+                const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                const category = (eSnap?.category || b.event_category || '').toLowerCase().trim();
+                const isConcert = (category === 'concert');
+
+                // Update navigation if it's a concert
+                if (isConcert) {
+                    const backLink = document.getElementById('backToParentLink');
+                    if (backLink) {
+                        backLink.href = '/EventManagementSystem/public/organizer/tickets';
+                        backLink.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Back to Tickets';
+                    }
+                    const bcContainer = document.getElementById('breadcrumbContainer');
+                    if (bcContainer) {
+                        bcContainer.innerHTML = `
+                            <a href="/EventManagementSystem/public/organizer/tickets" class="bc-link">Tickets</a> 
+                            <span class="separator">❯</span> 
+                            <span class="bc-link current">Ticket Detail</span>
+                        `;
+                    }
+                    // Update Sidebar active state via JS
+                    document.querySelectorAll('.sidebar nav a').forEach(a => {
+                        a.classList.remove('active');
+                        if (a.getAttribute('href').includes('/organizer/tickets')) {
+                            a.classList.add('active');
+                        }
+                    });
+                }
+
+                const displayStatus = (b.display_status || status).toLowerCase();
                 const fullName = b.full_name || b.client_user_name || 'Unknown Client';
                 const tierKey = (b.package_tier || '').toLowerCase();
                 const eventDateStr = b.event_date || b.event_start_date;
@@ -267,7 +300,6 @@
 
                 // Header
                 document.getElementById('bookingIdDisplay').textContent = `#BK-${bookingId.toString().padStart(3, '0')}`;
-                const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
                 const pSnap = b.package_snapshot ? JSON.parse(b.package_snapshot) : null;
                 const eTitle = eSnap?.title || b.event_title;
 
@@ -465,6 +497,11 @@
                 } else {
                     payBadge.textContent = 'NOT PAID';
                     payBadge.className = 'val pending';
+                }
+
+                if (b.transaction_id) {
+                    document.getElementById('txRow').style.display = 'flex';
+                    document.getElementById('transactionIdDisplay').textContent = b.transaction_id;
                 }
             }
 

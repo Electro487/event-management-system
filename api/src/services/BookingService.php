@@ -7,6 +7,7 @@ class BookingService
     private User $userModel;
     private Notification $notificationModel;
     private Payment $paymentModel;
+    private Ticket $ticketModel;
 
     public function __construct()
     {
@@ -15,6 +16,7 @@ class BookingService
         $this->userModel = new User();
         $this->notificationModel = new Notification();
         $this->paymentModel = new Payment();
+        $this->ticketModel = new Ticket();
     }
 
     public function list(array $authUser): array
@@ -43,6 +45,8 @@ class BookingService
         }
 
         $booking['paid_amount'] = (float)$this->paymentModel->getSucceededTotalByBookingId($id);
+        $lastPayment = $this->paymentModel->getByBookingId($id);
+        $booking['transaction_id'] = $lastPayment['transaction_id'] ?? null;
         return ['ok' => true, 'status' => 200, 'data' => ['booking' => $booking]];
     }
 
@@ -75,19 +79,47 @@ class BookingService
             'image_path' => $event['image_path']
         ];
 
+        // Handle event_date: for concerts, use event's fixed date if not provided
+        $eventDate = (string)($payload['event_date'] ?? '');
+        $isConcert = (trim(strtolower($event['category'] ?? '')) === 'concert');
+
+        if ($isConcert) {
+            $eventDate = !empty($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : '';
+            if (empty($eventDate)) {
+                return ['ok' => false, 'status' => 422, 'message' => 'This concert has no date set by the organizer. Please contact support.'];
+            }
+        } elseif (empty($eventDate)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Event date is required.'];
+        }
+
+        $totalAmount = (float)($payload['total_amount'] ?? 0);
+        $guestCount = (int)($payload['guest_count'] ?? 0);
+
+        if ($isConcert) {
+            // Enforcement: Max 5 tickets
+            if ($guestCount > 5) {
+                return ['ok' => false, 'status' => 422, 'message' => 'Maximum 5 tickets allowed per booking.'];
+            }
+            
+            // Protection: Cap premium concert prices at 100k
+            if ($tierKey === 'premium' && ($totalAmount / $guestCount) > 100000) {
+                $totalAmount = 100000 * $guestCount;
+            }
+        }
+
         $data = [
             'event_id' => $eventId,
             'event_snapshot' => json_encode($eventSnapshot),
             'client_id' => $authUser['id'],
             'package_tier' => $tierKey,
             'package_snapshot' => json_encode($selectedPackage),
-            'event_date' => (string)($payload['event_date'] ?? ''),
-            'guest_count' => (int)($payload['guest_count'] ?? 0),
+            'event_date' => $eventDate,
+            'guest_count' => $guestCount,
             'full_name' => (string)($payload['full_name'] ?? ''),
             'email' => (string)($payload['email'] ?? ''),
             'phone' => (string)($payload['phone'] ?? ''),
             'checkin_time' => (string)($payload['checkin_time'] ?? ''),
-            'total_amount' => (float)($payload['total_amount'] ?? 0),
+            'total_amount' => $totalAmount,
             'status' => 'pending',
         ];
 
@@ -95,6 +127,9 @@ class BookingService
         if (!$bookingId) {
             return ['ok' => false, 'status' => 500, 'message' => 'Failed to create booking.'];
         }
+
+        // Tickets are now generated ONLY after successful payment in PaymentService->confirm 
+        // to ensure "payment compulsory for the ticket"
 
         $clientName = $authUser['fullname'] ?? 'A client';
         $eventTitle = $event['title'] ?? 'an event';
@@ -153,7 +188,9 @@ class BookingService
         }
         
         foreach ($this->userModel->getAdmins() as $admin) {
-            $this->notificationModel->create($admin['id'], 'Booking Cancelled', $message, 'booking_cancel', $id);
+            if ((int)$admin['id'] !== (int)$authUser['id']) {
+                $this->notificationModel->create($admin['id'], 'Booking Cancelled', $message, 'booking_cancel', $id);
+            }
         }
 
         return ['ok' => true, 'status' => 200, 'data' => ['cancelled' => true]];

@@ -36,7 +36,7 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="topSearchInput" placeholder="Search bookings...">
                 </div>
-                <div class="header-actions">
+                <div class="header-icons">
                     <div class="notifications-wrapper">
                         <div class="notification-bell-btn" id="notification-bell">
                             <i class="fa-regular fa-bell"></i>
@@ -59,13 +59,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="user-profile-info">
-
-                        <div class="user-avatar-small">
-                            <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
-                        </div>
-                    </div>
+                    <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                 </div>
             </div>
         </header>
@@ -209,7 +203,13 @@
                 try {
                     const res = await window.emsApi.apiFetch('/api/v1/bookings');
                     console.log('Bookings API response:', res);
-                    allBookings = res.data?.items || res.data || [];
+                    const rawItems = res.data?.items || res.data || [];
+                    // Exclude concerts from regular bookings
+                    allBookings = rawItems.filter(b => {
+                        const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                        const cat = (eSnap?.category || b.event_category || '').toLowerCase().trim();
+                        return cat !== 'concert';
+                    });
                     applyFilters();
                 } catch (err) {
                     console.error('Failed to fetch bookings:', err);

@@ -1,11 +1,9 @@
 
-
 // ---- Shared State ----
 let _seenIds = new Set();
 let _isFirstLoad = true;
 
 function _useApi() {
-    // Prefer explicit flag if present; otherwise use JWT presence as signal.
     try {
         return (typeof window.API_MODE_CLIENT !== 'undefined' ? !!window.API_MODE_CLIENT : !!(window.emsApi && window.emsApi.getToken && window.emsApi.getToken()));
     } catch {
@@ -13,89 +11,101 @@ function _useApi() {
     }
 }
 
-// ---- Global API calls ----
+// ---- Global Action Handlers ----
+
 window.markAllRead = function () {
+    const successCallback = () => {
+        window.fetchNotifications();
+        window.fetchNotificationCounts && window.fetchNotificationCounts();
+    };
+
     if (_useApi() && window.emsApi) {
         window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' })
-            .then(() => {
-                window.fetchNotifications();
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            });
+            .then(successCallback)
+            .catch(err => console.error('markAllRead api error:', err));
     } else {
         fetch('/EventManagementSystem/public/notifications/mark-all-read', { method: 'POST' })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    window.fetchNotifications();
-                    window.fetchNotificationCounts && window.fetchNotificationCounts();
-                }
-            });
+                if (data.success) successCallback();
+            })
+            .catch(err => console.error('markAllRead error:', err));
     }
 };
 
 window.markAllUnread = function () {
+    const successCallback = () => {
+        window.fetchNotifications();
+        window.fetchNotificationCounts && window.fetchNotificationCounts();
+    };
+
     if (_useApi() && window.emsApi) {
         window.emsApi.apiFetch('/api/v1/notifications/mark-all-unread', { method: 'PATCH' })
-            .then(() => {
-                window.fetchNotifications();
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            });
+            .then(successCallback)
+            .catch(err => console.error('markAllUnread api error:', err));
     } else {
         fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    window.fetchNotifications();
-                    window.fetchNotificationCounts && window.fetchNotificationCounts();
-                }
-            });
+                if (data.success) successCallback();
+            })
+            .catch(err => console.error('markAllUnread error:', err));
     }
 };
 
 window.deleteAllNotifications = function () {
     if (!confirm('Clear all notifications? This cannot be undone.')) return;
+    
+    const successCallback = () => {
+        window.fetchNotifications();
+        window.fetchNotificationCounts && window.fetchNotificationCounts();
+    };
+
     if (_useApi() && window.emsApi) {
         window.emsApi.apiFetch('/api/v1/notifications/clear-all', { method: 'DELETE' })
-            .then(() => {
-                window.fetchNotifications();
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            });
+            .then(successCallback)
+            .catch(err => console.error('deleteAll api error:', err));
     } else {
         fetch('/EventManagementSystem/public/notifications/clear-all', { method: 'POST' })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    window.fetchNotifications();
-                    window.fetchNotificationCounts && window.fetchNotificationCounts();
-                }
-            });
+                if (data.success) successCallback();
+            })
+            .catch(err => console.error('deleteAll error:', err));
     }
 };
 
 window.deleteNotification = function (id) {
-    if (!id) return;
+    if (!id || !confirm("Remove this notification?")) return;
+
+    // Optimistic UI
+    const item = document.getElementById(`np-item-${id}`);
+    if (item) item.remove();
+
+    const successCallback = () => {
+        window.fetchNotificationCounts && window.fetchNotificationCounts();
+        // If not on the full page, we might want to refresh the dropdown
+        if (!item) window.fetchNotifications(); 
+    };
+
     if (_useApi() && window.emsApi) {
         window.emsApi.apiFetch(`/api/v1/notifications/${id}`, { method: 'DELETE' })
-            .then(() => {
-                window.fetchNotifications();
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            });
+            .then(successCallback)
+            .catch(err => console.error('deleteNotification api error:', err));
     } else {
-        fetch('/EventManagementSystem/public/notifications/delete?id=' + id)
+        fetch('/EventManagementSystem/public/notifications/delete?id=' + id, { method: 'POST' })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    window.fetchNotifications();
-                    window.fetchNotificationCounts && window.fetchNotificationCounts();
-                }
-            });
+                if (data.success) successCallback();
+            })
+            .catch(err => console.error('deleteNotification error:', err));
     }
 };
 
 window.markAsRead = function (id) {
     if (!id) return;
 
-    // --- Optimistic UI ---
+    // Optimistic UI for full page
     const item = document.getElementById(`np-item-${id}`);
     if (item) {
         item.classList.remove('unread');
@@ -103,8 +113,8 @@ window.markAsRead = function (id) {
         if (dot) dot.remove();
         const badge = item.querySelector('.np-new-badge');
         if (badge) badge.remove();
-
-        // Add unread toggle if it doesnt exist
+        
+        // Add unread toggle if it doesn't exist
         if (!item.querySelector('.np-unread-toggle')) {
             const toggle = document.createElement('button');
             toggle.className = 'np-unread-toggle';
@@ -118,21 +128,20 @@ window.markAsRead = function (id) {
         }
     }
 
+    const successCallback = () => {
+        window.fetchNotifications();
+        window.fetchNotificationCounts && window.fetchNotificationCounts();
+    };
+
     if (_useApi() && window.emsApi) {
         window.emsApi.apiFetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH' })
-            .then(() => {
-                window.fetchNotifications();
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            })
+            .then(successCallback)
             .catch(err => console.error('markAsRead api error:', err));
     } else {
         fetch('/EventManagementSystem/public/notifications/read?id=' + id)
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    window.fetchNotifications();
-                    window.fetchNotificationCounts(); // Sync counters too
-                }
+                if (data.success) successCallback();
             })
             .catch(err => console.error('markAsRead error:', err));
     }
@@ -141,7 +150,7 @@ window.markAsRead = function (id) {
 window.markAsUnread = function (id) {
     if (!id) return;
 
-    // --- Optimistic UI ---
+    // Optimistic UI for full page
     const item = document.getElementById(`np-item-${id}`);
     if (item) {
         item.classList.add('unread');
@@ -154,25 +163,26 @@ window.markAsUnread = function (id) {
         if (toggle) toggle.remove();
     }
 
+    const successCallback = () => {
+        window.fetchNotifications();
+        window.fetchNotificationCounts && window.fetchNotificationCounts();
+    };
+
     if (_useApi() && window.emsApi) {
         window.emsApi.apiFetch(`/api/v1/notifications/${id}/unread`, { method: 'PATCH' })
-            .then(() => {
-                window.fetchNotifications();
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            })
+            .then(successCallback)
             .catch(err => console.error('markAsUnread api error:', err));
     } else {
         fetch('/EventManagementSystem/public/notifications/unread?id=' + id)
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    window.fetchNotifications();
-                    window.fetchNotificationCounts();
-                }
+                if (data.success) successCallback();
             })
             .catch(err => console.error('markAsUnread error:', err));
     }
 };
+
+// ---- Polling and UI Updates ----
 
 window.fetchNotifications = function () {
     const fetchFn = (_useApi() && window.emsApi)
@@ -181,14 +191,12 @@ window.fetchNotifications = function () {
 
     fetchFn()
         .then(data => {
-            // Support both MVC response and API wrapped response
             const actualData = data.data || data;
             if (!actualData || !actualData.notifications) return;
 
+            // Handle Toast and Initial State
             if (_isFirstLoad) {
-                actualData.notifications.forEach(n => {
-                    _seenIds.add(n.id); // Remember all existing notifications
-                });
+                actualData.notifications.forEach(n => _seenIds.add(n.id));
                 _isFirstLoad = false;
             } else {
                 actualData.notifications.forEach(n => {
@@ -198,9 +206,11 @@ window.fetchNotifications = function () {
                     }
                 });
             }
-            _updateUI(actualData);
 
-            // If we're on the full notification page, update its UI too
+            // Update Dropdown UI
+            _updateDropdownUI(actualData);
+
+            // Update Full Page UI if present
             const npList = document.getElementById('np-list');
             if (npList) {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -222,75 +232,9 @@ window.fetchNotifications = function () {
         .catch(err => console.error('fetchNotifications error:', err));
 };
 
-window.deleteNotification = function (id) {
-    if (!id || !confirm("Remove this notification?")) return;
-
-    // Optimistic UI
-    const item = document.getElementById(`np-item-${id}`);
-    if (item) item.remove();
-
-    if (_useApi() && window.emsApi) {
-        window.emsApi.apiFetch(`/api/v1/notifications/${id}`, { method: 'DELETE' })
-            .then(() => {
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            })
-            .catch(err => console.error('deleteNotification api error:', err));
-    } else {
-        fetch('/EventManagementSystem/public/notifications/delete?id=' + id, { method: 'POST' })
-            .then(() => {
-                window.fetchNotificationCounts && window.fetchNotificationCounts();
-            })
-            .catch(err => console.error('deleteNotification error:', err));
-    }
-};
-
-window.markAllRead = function () {
-    if (_useApi() && window.emsApi) {
-        window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' })
-            .then(() => {
-                window.location.reload();
-            })
-            .catch(err => console.error('markAllRead api error:', err));
-    } else {
-        fetch('/EventManagementSystem/public/notifications/mark-all-read', { method: 'POST' })
-            .then(() => window.location.reload());
-    }
-};
-
-window.markAllUnread = function () {
-    if (_useApi() && window.emsApi) {
-        window.emsApi.apiFetch('/api/v1/notifications/mark-all-unread', { method: 'PATCH' })
-            .then(() => {
-                window.location.reload();
-            })
-            .catch(err => console.error('markAllUnread api error:', err));
-    } else {
-        fetch('/EventManagementSystem/public/notifications/mark-all-unread', { method: 'POST' })
-            .then(() => window.location.reload());
-    }
-};
-
-window.deleteAllNotifications = function () {
-    if (!confirm("Are you sure you want to clear all notifications? This cannot be undone.")) return;
-
-    if (_useApi() && window.emsApi) {
-        window.emsApi.apiFetch('/api/v1/notifications', { method: 'DELETE' })
-            .then(() => {
-                window.location.reload();
-            })
-            .catch(err => console.error('deleteAllNotifications api error:', err));
-    } else {
-        fetch('/EventManagementSystem/public/notifications/clear-all', { method: 'POST' })
-            .then(() => window.location.reload());
-    }
-};
-
-/**
- * Periodically fetches notification counts for the stats cards on the All Notifications page.
- */
 window.fetchNotificationCounts = function () {
     const statTotal = document.getElementById('stat-total');
-    if (!statTotal) return; // Only run if on the notifications page
+    if (!statTotal) return;
 
     const fetchFn = (_useApi() && window.emsApi)
         ? () => window.emsApi.apiFetch('/api/v1/notifications/counts')
@@ -301,7 +245,6 @@ window.fetchNotificationCounts = function () {
             const data = res.data || res;
             if (!data || data.error) return;
 
-            // Update Stat Cards (Top row)
             const statsMap = {
                 'stat-total': data.all,
                 'stat-booking': data.booking,
@@ -309,14 +252,14 @@ window.fetchNotificationCounts = function () {
                 'stat-cancel': data.booking_cancel,
                 'stat-update': data.event_update,
                 'stat-message': data.message,
-                'stat-creation': data.event_creation
+                'stat-creation': data.event_creation,
+                'stat-feedback': data.feedback
             };
             for (const [id, val] of Object.entries(statsMap)) {
                 const el = document.getElementById(id);
                 if (el) el.textContent = val;
             }
 
-            // Update Filter Tab Pills
             const filterMap = {
                 'count-all': data.all,
                 'count-booking': data.booking,
@@ -324,14 +267,14 @@ window.fetchNotificationCounts = function () {
                 'count-cancel': data.booking_cancel,
                 'count-update': data.event_update,
                 'count-message': data.message,
-                'count-creation': data.event_creation
+                'count-creation': data.event_creation,
+                'count-feedback': data.feedback
             };
             for (const [id, val] of Object.entries(filterMap)) {
                 const el = document.getElementById(id);
                 if (el) el.textContent = val;
             }
 
-            // Update Hero Badge Count
             const heroBadge = document.querySelector('.np-hero-badge span');
             if (heroBadge) {
                 heroBadge.textContent = data.all + ' Notification' + (data.all != 1 ? 's' : '');
@@ -340,66 +283,9 @@ window.fetchNotificationCounts = function () {
         .catch(err => console.error('fetchNotificationCounts error:', err));
 };
 
-// ---- Toast ----
-function _showToast(n) {
-    let container = document.querySelector('.toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-    }
+// ---- Private Helpers ----
 
-    const toast = document.createElement('div');
-    toast.className = 'notif-toast showing';
-
-    const icons = {
-        'booking': 'fa-solid fa-bookmark',
-        'booking_approve': 'fa-solid fa-circle-check',
-        'booking_cancel': 'fa-solid fa-circle-xmark',
-        'event': 'fa-regular fa-calendar-plus',
-        'event_update': 'fa-solid fa-pen-to-square',
-        'event_delete': 'fa-solid fa-trash-can',
-        'message': 'fa-solid fa-message',
-        'system': 'fa-solid fa-gear',
-        'info': 'fa-solid fa-circle-info'
-    };
-    const iconClass = icons[n.type] || 'fa-solid fa-bell';
-
-    toast.innerHTML = `
-        <div class="toast-icon"><i class="${iconClass}"></i></div>
-        <div class="toast-body">
-            <div class="toast-header">
-                <h4>${_escapeHtml(n.title)}</h4>
-                <button class="toast-close"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <p class="toast-msg">${_escapeHtml(n.message)}</p>
-        </div>
-        <div class="toast-progress"></div>
-    `;
-
-    container.appendChild(toast);
-
-    toast.addEventListener('click', (e) => {
-        if (e.target.closest('.toast-close')) return;
-        window.markAsRead(n.id);
-        window.location.href = '/EventManagementSystem/public/notifications/all';
-    });
-    toast.querySelector('.toast-close').onclick = (e) => {
-        e.stopPropagation();
-        _dismissToast(toast);
-    };
-    setTimeout(() => _dismissToast(toast), 8000);
-}
-
-function _dismissToast(toast) {
-    if (!toast.parentNode) return;
-    toast.classList.remove('showing');
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 400);
-}
-
-// ---- Update dropdown UI ----
-function _updateUI(data) {
+function _updateDropdownUI(data) {
     const badge = document.getElementById('unread-badge');
     const unreadTag = document.getElementById('nd-unread-status');
     const list = document.getElementById('nd-list');
@@ -437,11 +323,8 @@ function _updateUI(data) {
             });
         }
     }
-
-    _updatePageUI(data);
 }
 
-// ---- Update full notification page UI ----
 function _updatePageUI(data) {
     const npList = document.getElementById('np-list');
     if (!npList) return;
@@ -453,11 +336,8 @@ function _updatePageUI(data) {
         const isRead = n.is_read == 1;
 
         if (item) {
-            // --- Update existing item ---
+            // Update existing
             item.classList.toggle('unread', !isRead);
-            item.setAttribute('data-id', n.id);
-            item.setAttribute('data-action', 'read');
-
             const dot = item.querySelector('.np-unread-dot');
             if (!isRead && !dot) {
                 const newDot = document.createElement('div');
@@ -475,7 +355,6 @@ function _updatePageUI(data) {
                 badgeSpan.remove();
             }
 
-            // Unread toggle button
             let toggle = item.querySelector('.np-unread-toggle');
             if (isRead && !toggle) {
                 toggle = document.createElement('button');
@@ -484,22 +363,21 @@ function _updatePageUI(data) {
                 toggle.innerHTML = '<i class="fa-solid fa-envelope-open"></i>';
                 toggle.setAttribute('data-id', n.id);
                 toggle.setAttribute('data-action', 'unread');
-
-                // Insert before the delete button so layout stays correct
                 const deleteBtn = item.querySelector('.np-delete-btn');
                 if (deleteBtn) item.insertBefore(toggle, deleteBtn);
                 else item.appendChild(toggle);
             } else if (!isRead && toggle) {
                 toggle.remove();
             }
-
-            return; // skip create block
+            return;
         }
 
-        // --- Create new item (not yet in DOM) ---
+        // Create new
         item = document.createElement('div');
         item.className = 'np-item' + (!isRead ? ' unread' : '');
         item.id = `np-item-${n.id}`;
+        item.setAttribute('data-id', n.id);
+        item.setAttribute('data-action', 'read');
 
         const icons = {
             'booking': 'fa-solid fa-bookmark',
@@ -509,8 +387,9 @@ function _updatePageUI(data) {
             'event_update': 'fa-solid fa-pen-to-square',
             'event_delete': 'fa-solid fa-trash-can',
             'message': 'fa-solid fa-message',
-            'system': 'fa-solid fa-circle-info',
-            'info': 'fa-solid fa-circle-info'
+            'feedback': 'fa-solid fa-comment-dots',
+            'feedback_reply': 'fa-solid fa-reply',
+            'feedback_mention': 'fa-solid fa-at'
         };
         const iconClass = icons[n.type] || 'fa-regular fa-bell';
 
@@ -527,30 +406,12 @@ function _updatePageUI(data) {
                 <div class="np-item-msg">${_escapeHtml(n.message).replace(/\n/g, '<br>')}</div>
                 <div class="np-item-time"><i class="fa-regular fa-clock"></i> ${_timeAgo(n.created_at)}</div>
             </div>
-            ${isRead ? '<button class="np-unread-toggle" title="Mark as unread"><i class="fa-solid fa-envelope-open"></i></button>' : ''}
-            <button class="np-delete-btn" title="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+            ${isRead ? '<button class="np-unread-toggle" data-id="'+n.id+'" data-action="unread" title="Mark as unread"><i class="fa-solid fa-envelope-open"></i></button>' : ''}
+            <button class="np-delete-btn" data-id="'+n.id+'" data-action="delete" title="Dismiss"><i class="fa-solid fa-xmark"></i></button>
         `;
 
-        // Wire up data attributes for delegation
-        item.setAttribute('data-id', n.id);
-        item.setAttribute('data-action', 'read');
-
-        const unreadToggle = item.querySelector('.np-unread-toggle');
-        if (unreadToggle) {
-            unreadToggle.setAttribute('data-id', n.id);
-            unreadToggle.setAttribute('data-action', 'unread');
-        }
-
-        const deleteBtn = item.querySelector('.np-delete-btn');
-        if (deleteBtn) {
-            deleteBtn.setAttribute('data-id', n.id);
-            deleteBtn.setAttribute('data-action', 'delete');
-        }
-
-        // Place into the correct date group
         const groupLabel = _getGroupLabel(n.created_at);
-        let dateGroup = Array.from(npList.querySelectorAll('.np-date-group'))
-            .find(el => el.textContent.trim() === groupLabel);
+        let dateGroup = Array.from(npList.querySelectorAll('.np-date-group')).find(el => el.textContent.trim() === groupLabel);
         if (!dateGroup) {
             dateGroup = document.createElement('div');
             dateGroup.className = 'np-date-group';
@@ -558,19 +419,55 @@ function _updatePageUI(data) {
             npList.prepend(dateGroup);
         }
         dateGroup.after(item);
-
-        const emptyState = document.querySelector('.np-empty-state');
-        if (emptyState) emptyState.remove();
     });
 }
 
+function _showToast(n) {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
 
-// ---- Utilities ----
+    const toast = document.createElement('div');
+    toast.className = 'notif-toast showing';
+    const icons = { 'booking': 'fa-solid fa-bookmark', 'booking_approve': 'fa-solid fa-circle-check', 'booking_cancel': 'fa-solid fa-circle-xmark', 'event': 'fa-regular fa-calendar-plus', 'event_update': 'fa-solid fa-pen-to-square', 'message': 'fa-solid fa-message', 'feedback': 'fa-solid fa-comment-dots' };
+    const iconClass = icons[n.type] || 'fa-solid fa-bell';
+
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="${iconClass}"></i></div>
+        <div class="toast-body">
+            <div class="toast-header">
+                <h4>${_escapeHtml(n.title)}</h4>
+                <button class="toast-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="toast-msg">${_escapeHtml(n.message)}</p>
+        </div>
+        <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+    toast.onclick = (e) => {
+        if (e.target.closest('.toast-close')) return;
+        window.markAsRead(n.id);
+        window.location.href = '/EventManagementSystem/public/notifications/all';
+    };
+    toast.querySelector('.toast-close').onclick = (e) => { e.stopPropagation(); _dismissToast(toast); };
+    setTimeout(() => _dismissToast(toast), 8000);
+}
+
+function _dismissToast(toast) {
+    if (!toast.parentNode) return;
+    toast.classList.remove('showing');
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 400);
+}
+
 function _getGroupLabel(dateStr) {
     const date = new Date(dateStr.replace(' ', 'T'));
     const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
+    const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
     if (date.toDateString() === today.toDateString()) return 'Today';
     if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -586,8 +483,7 @@ function _escapeHtml(text) {
 function _timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date.replace(' ', 'T'))) / 1000);
     if (isNaN(seconds)) return 'some time ago';
-    let interval;
-    interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + ' years ago';
+    let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + ' years ago';
     interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + ' months ago';
     interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + ' days ago';
     interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + ' hours ago';
@@ -595,24 +491,22 @@ function _timeAgo(date) {
     return Math.floor(seconds) + ' seconds ago';
 }
 
+// ---- Initialization ----
 
 document.addEventListener('DOMContentLoaded', function () {
     const bellBtn = document.getElementById('notification-bell');
     const dropdown = document.getElementById('notifications-dropdown');
-    const list = document.getElementById('nd-list');
-    const markAllBtn = document.getElementById('mark-all-read');
 
-    // Start polling immediately - works on EVERY page (notification page + others)
+    // Polling logic
     window.fetchNotifications();
-    setInterval(window.fetchNotifications, 10000); // 10s for dropdown/toasts
+    setInterval(window.fetchNotifications, 5000); // Poll every 5s for truly 'live' feel
 
-    // Also poll counts if on the notifications page
     if (document.getElementById('stat-total')) {
         window.fetchNotificationCounts();
-        setInterval(window.fetchNotificationCounts, 10000); // 10s for stats
+        setInterval(window.fetchNotificationCounts, 10000); // Stats can be slower
     }
 
-    // ---- EVENT DELEGATION: Handle all notification clicks in one place ----
+    // Delegation
     document.addEventListener('click', function (e) {
         const target = e.target.closest('[data-action]');
         if (!target) return;
@@ -624,63 +518,23 @@ document.addEventListener('DOMContentLoaded', function () {
         e.stopPropagation();
 
         if (action === 'read') {
-            const isUnread = target.classList.contains('unread');
-            if (isUnread) window.markAsRead(id);
+            const item = document.getElementById(`np-item-${id}`) || target.closest('.nd-item');
+            if (item && item.classList.contains('unread')) window.markAsRead(id);
         } else if (action === 'unread') {
             window.markAsUnread(id);
         } else if (action === 'delete') {
-            window.deleteNotification && window.deleteNotification(id);
+            window.deleteNotification(id);
         } else if (action === 'mark-all-read') {
-            window.markAllRead && window.markAllRead();
+            window.markAllRead();
         } else if (action === 'mark-all-unread') {
-            window.markAllUnread && window.markAllUnread();
+            window.markAllUnread();
         } else if (action === 'clear-all') {
-            window.deleteAllNotifications && window.deleteAllNotifications();
+            window.deleteAllNotifications();
         }
     });
 
-    // The rest only applies to pages that have the bell/dropdown
-    if (!bellBtn || !dropdown) return;
-
     if (bellBtn && dropdown) {
-        bellBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            dropdown.classList.toggle('show');
-            if (dropdown.classList.contains('show')) window.fetchNotifications();
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-    }
-
-    if (markAllBtn) {
-        markAllBtn.textContent = 'Mark all as read';
-        markAllBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (_useApi() && window.emsApi) {
-                window.emsApi.apiFetch('/api/v1/notifications/mark-all-read', { method: 'PATCH' })
-                    .then(() => {
-                        window.fetchNotifications();
-                        window.fetchNotificationCounts && window.fetchNotificationCounts();
-                    });
-            } else {
-                fetch('/EventManagementSystem/public/notifications/mark-all-read', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.fetchNotifications();
-                            window.fetchNotificationCounts && window.fetchNotificationCounts();
-                        }
-                    });
-            }
-        });
+        bellBtn.onclick = (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); };
+        document.onclick = (e) => { if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) dropdown.classList.remove('show'); };
     }
 });

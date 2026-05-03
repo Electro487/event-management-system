@@ -172,13 +172,24 @@ class EventService
         $packages = $this->validatePackagePricing($payload['packages'] ?? []);
         $organizerId = $payload['organizer_id'] ?? ($existing['organizer_id'] ?? $authUser['id']);
 
+        $category = trim((string)($payload['category'] ?? ($existing['category'] ?? '')));
+        $eventDate = null;
+
+        if (strtolower($category) === 'concert') {
+            $datePart = $payload['event_date'] ?? '';
+            $timePart = $payload['event_time'] ?? '';
+            if (!empty($datePart) && !empty($timePart)) {
+                $eventDate = date('Y-m-d H:i:s', strtotime("$datePart $timePart"));
+            }
+        }
+
         return [
             'organizer_id' => $organizerId,
             'title' => trim((string)($payload['title'] ?? ($existing['title'] ?? ''))),
             'description' => trim((string)($payload['description'] ?? ($existing['description'] ?? ''))),
-            'category' => trim((string)($payload['category'] ?? ($existing['category'] ?? ''))),
+            'category' => $category,
             'status' => trim((string)($payload['status'] ?? ($existing['status'] ?? 'draft'))),
-            'event_date' => null,
+            'event_date' => $eventDate ?: ($existing['event_date'] ?? null),
             'venue_name' => trim((string)($payload['venue_name'] ?? ($existing['venue_name'] ?? ''))),
             'venue_location' => trim((string)($payload['venue_location'] ?? ($existing['venue_location'] ?? ''))),
             'image_path' => $this->handleImageUpload($payload['image'] ?? null) ?: ($payload['image_path'] ?? ($existing['image_path'] ?? null)),

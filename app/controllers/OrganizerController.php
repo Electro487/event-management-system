@@ -63,6 +63,12 @@ class OrganizerController
         require_once dirname(__DIR__) . '/views/organizer/bookings.php';
     }
 
+    public function tickets()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/organizer/tickets.php';
+    }
+
     public function events()
     {
         $this->checkAuth();
@@ -197,5 +203,12 @@ class OrganizerController
         // PATCH handling has been migrated to BookingApiController
         header('Location: /EventManagementSystem/public/organizer/bookings');
         exit;
+    }
+
+    public function feedback()
+    {
+        $this->checkAuth();
+        $activePage = 'feedback';
+        require_once dirname(__DIR__) . '/views/organizer/feedback.php';
     }
 }

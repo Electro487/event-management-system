@@ -68,7 +68,9 @@ class PaymentController
         require_once dirname(dirname(__DIR__)) . '/vendor/autoload.php';
         \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
 
-        $advanceTarget = (float) $booking['total_amount'] * 0.50;
+        $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
+        $advancePercent = $isConcert ? 1.00 : 0.50;
+        $advanceTarget = (float) $booking['total_amount'] * $advancePercent;
         $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking_id);
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
         $maxStripeCheckoutNpr = 999999.99;
@@ -89,17 +91,19 @@ class PaymentController
         try {
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => 'npr',
-                        'product_data' => [
-                            'name' => 'Booking for ' . $booking['event_title'],
-                            'description' => $booking['package_tier'] . ' Package - Installment toward 50% advance',
+                'line_items' => [
+                    [
+                        'price_data' => [
+                            'currency' => 'npr',
+                            'product_data' => [
+                                'name' => 'Booking for ' . $booking['event_title'],
+                                'description' => $booking['package_tier'] . ' Package - Installment toward 50% advance',
+                            ],
+                            'unit_amount' => (int) round($installmentAmount * 100),
                         ],
-                        'unit_amount' => (int) round($installmentAmount * 100),
-                    ],
-                    'quantity' => 1,
-                ]],
+                        'quantity' => 1,
+                    ]
+                ],
                 'mode' => 'payment',
                 'success_url' => URL_ROOT . '/client/payment/success?session_id={CHECKOUT_SESSION_ID}&booking_id=' . $booking_id,
                 'cancel_url' => URL_ROOT . '/client/payment/cancel?booking_id=' . $booking_id,
@@ -188,12 +192,39 @@ class PaymentController
 
                         $paymentModel->create($paymentData);
 
-                        $advanceTarget = (float) $booking['total_amount'] * 0.50;
+                        $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
+                        $advancePercent = $isConcert ? 1.00 : 0.50;
+                        $advanceTarget = (float) $booking['total_amount'] * $advancePercent;
                         $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking_id);
                         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
 
-                        // 2. Update booking payment status for progressive advance collection
-                        if ($paidAdvance > 0) {
+                        // 2. Update booking payment status
+                        if ($paidAdvance >= ($booking['total_amount'] - 0.01)) {
+                            $bookingModel->updatePaymentStatus($booking_id, 'paid');
+                            // For concerts, auto-confirm on full payment
+                            if ($isConcert) {
+                                $bookingModel->updateStatus($booking_id, 'confirmed');
+
+                                // GENERATE TICKETS NOW (Only upon successful payment)
+                                require_once dirname(__DIR__) . '/models/Ticket.php';
+                                $ticketModel = new Ticket();
+                                $ticketCount = (int) $booking['guest_count'];
+                                $generatedTickets = [];
+                                for ($i = 0; $i < $ticketCount; $i++) {
+                                    $ticketCode = 'TKT-' . strtoupper(uniqid()) . '-' . ($i + 1);
+                                    $ticketModel->create([
+                                        'booking_id' => $booking_id,
+                                        'ticket_code' => $ticketCode,
+                                        'status' => 'active'
+                                    ]);
+                                    $generatedTickets[] = ['ticket_code' => $ticketCode];
+                                }
+
+                                // SEND EMAIL
+                                require_once dirname(__DIR__) . '/helpers/MailHelper.php';
+                                MailHelper::sendTicket($booking['email'], $booking, $generatedTickets, (string) $session->payment_intent);
+                            }
+                        } elseif ($paidAdvance > 0) {
                             $bookingModel->updatePaymentStatus($booking_id, 'partially_paid');
                         }
 
@@ -246,7 +277,9 @@ class PaymentController
                     }
                 }
 
-                $advanceTarget = (float) $booking['total_amount'] * 0.50;
+                $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
+                $advancePercent = $isConcert ? 1.00 : 0.50;
+                $advanceTarget = (float) $booking['total_amount'] * $advancePercent;
                 $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking_id);
                 $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
                 $maxStripeCheckoutNpr = 999999.99;

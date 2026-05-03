@@ -28,14 +28,17 @@ $routes = [
     '/organizer/bookings/approve' => 'OrganizerController@approveBooking',
     '/organizer/bookings/cancel' => 'OrganizerController@cancelBooking',
     '/organizer/bookings/mark-paid' => 'OrganizerController@markBookingPaid',
+    '/organizer/tickets' => 'OrganizerController@tickets',
     '/organizer/messages' => 'OrganizerController@messages',
     '/client/book' => 'ClientController@bookEvent',
     '/client/book/store' => 'ClientController@storeBooking',
     '/client/bookings' => 'ClientController@myBookings',
+    '/client/tickets' => 'ClientController@myTickets',
     '/client/bookings/cancel' => 'ClientController@cancelBooking',
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
     '/client/profile/update' => 'ClientController@updateProfile',
     '/client/profile/delete-picture' => 'ClientController@deleteProfilePicture',
+    '/client/ticket' => 'ClientController@viewTicket',
 
     // Payment Routes
     '/client/payment/checkout' => 'PaymentController@checkout',
@@ -65,6 +68,7 @@ $routes = [
     '/admin/bookings/approve' => 'AdminController@approveBooking',
     '/admin/bookings/cancel' => 'AdminController@cancelBooking',
     '/admin/bookings/mark-paid' => 'AdminController@markBookingPaid',
+    '/admin/tickets' => 'AdminController@tickets',
 
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
@@ -83,4 +87,9 @@ $routes = [
     '/notifications/all' => 'NotificationController@allNotifications',
     '/notifications/all-json' => 'NotificationController@allNotificationsJson',
     '/notifications/counts' => 'NotificationController@getCountsJson',
+
+    // Feedback Pages
+    '/client/feedback' => 'ClientController@feedback',
+    '/admin/feedback' => 'AdminController@feedback',
+    '/organizer/feedback' => 'OrganizerController@feedback',
 ];

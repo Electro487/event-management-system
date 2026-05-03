@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initImageUpload();
     initPackageManagement();
     initFormSubmission();
+    initCategoryToggle();
     
     if (window.IS_EDIT && window.EVENT_ID) {
         populateEditData();
@@ -35,6 +36,9 @@ async function populateEditData() {
             catInput.value = e.category;
             if (catValSpan) catValSpan.textContent = e.category;
             
+            // Toggle ticket fields
+            toggleTicketFields(e.category);
+
             // update active class in dropdown
             document.querySelectorAll('#categoryDropdown .dropdown-item').forEach(item => {
                 if (item.dataset.value === e.category) {
@@ -43,6 +47,18 @@ async function populateEditData() {
                     item.classList.remove('active');
                 }
             });
+        }
+
+        // Date & Time for Tickets/Concerts
+        if (e.category && (e.category.toLowerCase() === 'tickets' || e.category.toLowerCase() === 'concert') && e.event_date) {
+            const dt = new Date(e.event_date);
+            const dateStr = dt.toISOString().split('T')[0];
+            const timeStr = dt.toTimeString().split(' ')[0].substring(0, 5);
+            
+            const dateInput = document.getElementById('event_date_input');
+            const timeInput = document.getElementById('event_time_input');
+            if (dateInput) dateInput.value = dateStr;
+            if (timeInput) timeInput.value = timeStr;
         }
 
         // Image
@@ -70,7 +86,7 @@ async function populateEditData() {
                 
                 const priceInput = document.getElementById(`pkg_price_${tier}`);
                 if (priceInput) priceInput.value = pkg.price || pkg.price_range || '';
-                
+
                 // Items
                 const itemsList = document.querySelector(`.items-list[data-tier="${tier}"]`);
                 if (itemsList && pkg.items && Array.isArray(pkg.items)) {
@@ -217,6 +233,36 @@ function initPackageManagement() {
             window.bindRowEventsGlobal(row, tier);
         });
     });
+
+    // ─────────────── PACKAGE PRICE HANDLING ───────────────
+    document.querySelectorAll('.package-price-input').forEach((input) => {
+        // Prevent scientific notation, signs, and decimals
+        input.addEventListener('keydown', (e) => {
+            if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        // Safe input sanitizer (only runs if non-digits are found)
+        input.addEventListener('input', () => {
+            const val = input.value;
+            const clean = val.replace(/[^\d]/g, '');
+            if (val !== clean) {
+                const pos = input.selectionStart;
+                input.value = clean;
+                // Restore cursor position roughly
+                input.setSelectionRange(pos - 1, pos - 1);
+            }
+        });
+
+        // Prevent pasting non-numeric data
+        input.addEventListener('paste', (e) => {
+            const data = e.clipboardData.getData('text');
+            if (!/^\d+$/.test(data)) {
+                e.preventDefault();
+            }
+        });
+    });
 }
 
 window.currentEditRow = null;
@@ -277,13 +323,45 @@ function initFormSubmission() {
         const status = submitButton ? (submitButton.value || 'active') : 'active';
         formData.set('status', status);
 
-        // Validation
-        const basic = parseInt(formData.get('packages[basic][price]'));
-        const standard = parseInt(formData.get('packages[standard][price]'));
-        const premium = parseInt(formData.get('packages[premium][price]'));
+        const category = formData.get('category') || '';
+        const isConcert = category.toLowerCase() === 'concert';
 
-        if (basic >= standard || standard >= premium) {
-            alert('Price order must be: Basic < Standard < Premium.');
+        const basic = parseInt(formData.get('packages[basic][price]'), 10);
+        const standard = parseInt(formData.get('packages[standard][price]'), 10);
+        const premium = parseInt(formData.get('packages[premium][price]'), 10);
+
+        const MAX_PACKAGE_PRICE = 20000000;
+
+        if (isNaN(basic) || isNaN(standard) || isNaN(premium)) {
+            alert('Please enter valid numeric prices for all packages.');
+            return;
+        }
+
+        if (!isConcert && [basic, standard, premium].some(v => v > MAX_PACKAGE_PRICE)) {
+            alert('Package price cannot exceed NPR 2,00,00,000.');
+            return;
+        }
+
+        if (isNaN(basic) || isNaN(standard) || isNaN(premium)) {
+            alert('Package prices must be numbers.');
+            return;
+        }
+
+        if (basic <= 0 || standard <= 0 || premium <= 0) {
+            alert('All package prices must be greater than 0.');
+            return;
+        }
+
+        // Concert specific caps (Applies to all tiers)
+        if (isConcert) {
+            if (premium > 100000 || standard > 100000 || basic > 100000) {
+                alert('Ticket prices cannot exceed Rs. 1,00,000 for the Concert category.');
+                return;
+            }
+        }
+
+        if (!(basic < standard && standard < premium)) {
+            alert('Price order must be: Basic < Standard < Premium. Please adjust the prices accordingly.');
             return;
         }
 
@@ -326,4 +404,32 @@ function escapeHtml(text) {
     const d = document.createElement('div');
     d.appendChild(document.createTextNode(text));
     return d.innerHTML;
+}
+
+function initCategoryToggle() {
+    if (typeof DropdownManager !== 'undefined') {
+        DropdownManager.onSelect('categoryDropdown', (value) => {
+            toggleTicketFields(value);
+        });
+    }
+}
+
+function toggleTicketFields(category) {
+    const fields = document.getElementById('ticketScheduleFields');
+    if (!fields) return;
+
+    const dateInput = document.getElementById('event_date_input');
+    const timeInput = document.getElementById('event_time_input');
+    const premiumCaps = document.querySelectorAll('.premium-cap-label');
+    if (category && category.toLowerCase() === 'concert') {
+        fields.style.display = 'block';
+        if (dateInput) dateInput.required = true;
+        if (timeInput) timeInput.required = true;
+        premiumCaps.forEach(l => l.style.display = 'inline');
+    } else {
+        fields.style.display = 'none';
+        if (dateInput) dateInput.required = false;
+        if (timeInput) timeInput.required = false;
+        premiumCaps.forEach(l => l.style.display = 'none');
+    }
 }

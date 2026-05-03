@@ -56,7 +56,7 @@
                 <p>Oversight of all curated event campaigns across the entire platform.</p>
             </div>
             <div class="summary-actions">
-                <a href="/EventManagementSystem/public/admin/events/create" class="btn-create" style="background: #246A55; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                <a href="/EventManagementSystem/public/admin/events/create" class="btn-create-admin">
                     <i class="fas fa-plus"></i> Create New Event
                 </a>
             </div>
@@ -77,7 +77,7 @@
                     <div class="dropdown-menu">
                         <div class="dropdown-item active" data-value="all">All Categories</div>
                         <?php 
-                        $cats = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                        $cats = ["Weddings", "Meetings", "Concert", "Cultural Events", "Family Functions", "Other Events and Programs"];
                         foreach($cats as $cat): ?>
                             <div class="dropdown-item" data-value="<?php echo strtolower($cat); ?>"><?php echo $cat; ?></div>
                         <?php endforeach; ?>

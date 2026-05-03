@@ -33,7 +33,13 @@ async function loadBookings(initialSearch = '') {
     try {
         const res = await window.emsApi.apiFetch('/api/v1/bookings');
         if (res.success) {
-            allBookings = res.data.items || [];
+            const rawItems = res.data.items || [];
+            // Exclude concerts from regular bookings
+            allBookings = rawItems.filter(b => {
+                const eSnap = b.event_snapshot ? JSON.parse(b.event_snapshot) : null;
+                const cat = (eSnap?.category || b.event_category || '').toLowerCase().trim();
+                return cat !== 'concert';
+            });
             updateStats();
             applyFilters(initialSearch);
         }

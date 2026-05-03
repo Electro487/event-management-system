@@ -71,8 +71,19 @@
     background-color: #e9eeec;
     font-size: 15px;
     width: 100%;
-    transition: 0.3s;
+    transition: border-color 0.2s, background-color 0.2s;
     color: #444;
+}
+
+/* Remove numeric spinners to prevent value 'fluctuation' on scroll/click */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
 }
 
 .form-group input::placeholder, 
