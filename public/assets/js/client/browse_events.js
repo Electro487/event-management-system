@@ -141,7 +141,7 @@ function initBrowseEvents() {
                         </div>
                         <div class="event-price">Packages from Rs. ${startingPrice.toLocaleString()}</div>
                         <a href="/EventManagementSystem/public/client/events/view?id=${event.id}" class="btn-view-packages">
-                            View Packages &rarr;
+                            ${category.toLowerCase() === 'concert' ? 'Get Ticket &rarr;' : 'View Packages &rarr;'}
                         </a>
                     </div>
                 </div>

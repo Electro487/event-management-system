@@ -25,6 +25,7 @@
             <a href="/EventManagementSystem/public/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings" class="active">My Bookings</a>
+            <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -318,9 +319,9 @@
                                     </div>
                                     <div class="b-middle">
                                         <span><i class="fa-solid fa-address-card"></i>
-                                            <?php echo ucfirst($booking['package_tier']); ?> Package</span>
+                                            <?php echo (strtolower($bListCat) === 'concert') ? ucfirst($booking['package_tier']) . ' Tier' : ucfirst($booking['package_tier']) . ' Package'; ?></span>
                                         <span><i class="fa-solid fa-user-group"></i>
-                                            <?php echo htmlspecialchars($booking['guest_count']); ?> Guests</span>
+                                            <?php echo htmlspecialchars($booking['guest_count']); ?> <?php echo (strtolower($bListCat) === 'concert') ? 'Tickets' : 'Guests'; ?></span>
                                         <span><i class="fa-regular fa-calendar"></i>
                                             <?php echo date('M d, Y', strtotime($booking['event_date'])); ?></span>
                                     </div>
@@ -378,6 +379,7 @@
                 </div>
 
                 <!-- Payment Breakdown Section -->
+                <?php if (strtolower($bListCat) !== 'concert'): ?>
                 <div class="dp-info-list" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">PAYMENT BREAKDOWN (50/50 POLICY)</div>
                     
@@ -390,6 +392,14 @@
                         <span id="sb-balance-val" style="font-size: 13px; font-weight: 600; color: #1e293b;">Rs. 0.00</span>
                     </div>
                 </div>
+                <?php else: ?>
+                    <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: #64748b; font-weight: 600;">PAYMENT STATUS</span>
+                            <span id="sb-concert-pay-status" style="font-size: 12px; font-weight: 700;">UNPAID</span>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <div class="dp-info-list" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 20px;">
                     <div class="dp-info-item">
@@ -410,11 +420,16 @@
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 10px;">
                     <!-- Pay Now Button (Hidden by default, shown via JS) -->
                     <a href="#" id="sb-pay-btn" class="btn-send-msg" 
                        style="display: none; background: #246A55; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600;">
                         <i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online
+                    </a>
+
+                    <!-- Print Ticket Button (Concerts Only) -->
+                    <a href="#" id="sb-print-btn" class="btn-send-msg" target="_blank"
+                       style="display: none; background: #F59E0B; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600;">
+                        <i class="fa-solid fa-print"></i> Print Your Ticket
                     </a>
 
                     <button class="btn-send-msg" type="button"><i class="fa-regular fa-message"></i> Send
@@ -483,8 +498,10 @@
             document.getElementById('sb-price').innerText = 'Rs. ' + parseFloat(data.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
 
             // Derive package name
-            let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + ' Package';
-            let pDesc = 'Includes selected access & features.';
+            const isConcert = (eSnap?.category || data.event_category || '').toLowerCase() === 'concert';
+            let pLabel = isConcert ? 'SELECTED TIER' : 'SELECTED PACKAGE';
+            let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + (isConcert ? ' Tier' : ' Package');
+            let pDesc = isConcert ? 'Allows entry to the event.' : 'Includes selected access & features.';
 
             // Try getting exact package data from JSON decoded array
             if (pSnap) {
@@ -496,6 +513,7 @@
                 }
             }
 
+            document.querySelector('.dp-pkg-label').innerText = pLabel;
             document.getElementById('sb-pkg-name').innerText = pName;
             document.getElementById('sb-pkg-desc').innerText = pDesc;
 
@@ -514,39 +532,64 @@
 
             // Handle Payment Breakdown
             const total = parseFloat(data.total_amount);
-            const advance = total * 0.5;
-            const balance = total * 0.5;
             const payStatus = (data.payment_status || 'unpaid').toLowerCase();
 
-            document.getElementById('sb-advance-val').innerText = 'Rs. ' + advance.toLocaleString(undefined, { minimumFractionDigits: 2 });
-            document.getElementById('sb-balance-val').innerText = 'Rs. ' + balance.toLocaleString(undefined, { minimumFractionDigits: 2 });
-
-            const advanceEl = document.getElementById('sb-advance-val');
-            const balanceEl = document.getElementById('sb-balance-val');
-
-            if (payStatus !== 'unpaid') {
-                advanceEl.innerHTML = 'Rs. ' + advance.toLocaleString(undefined, { minimumFractionDigits: 2 }) + ' <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>';
-                advanceEl.style.color = '#10b981';
+            if (isConcert) {
+                const concertStatusEl = document.getElementById('sb-concert-pay-status');
+                if (concertStatusEl) {
+                    concertStatusEl.innerText = payStatus.toUpperCase().replace('_', ' ');
+                    concertStatusEl.style.color = (payStatus === 'paid') ? '#10b981' : '#f59e0b';
+                }
             } else {
-                advanceEl.style.color = '#1e293b';
+                const advance = total * 0.5;
+                const balance = total * 0.5;
+
+                const advanceValEl = document.getElementById('sb-advance-val');
+                const balanceValEl = document.getElementById('sb-balance-val');
+
+                if (advanceValEl) {
+                    advanceValEl.innerText = 'Rs. ' + advance.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    if (payStatus !== 'unpaid') {
+                        advanceValEl.innerHTML += ' <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>';
+                        advanceValEl.style.color = '#10b981';
+                    } else {
+                        advanceValEl.style.color = '#1e293b';
+                    }
+                }
+
+                if (balanceValEl) {
+                    balanceValEl.innerText = 'Rs. ' + balance.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    if (payStatus === 'paid') {
+                        balanceValEl.innerHTML += ' <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>';
+                        balanceValEl.style.color = '#10b981';
+                    } else {
+                        balanceValEl.style.color = '#1e293b';
+                    }
+                }
             }
 
-            if (payStatus === 'paid') {
-                balanceEl.innerHTML = 'Rs. ' + balance.toLocaleString(undefined, { minimumFractionDigits: 2 }) + ' <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>';
-                balanceEl.style.color = '#10b981';
-            } else {
-                balanceEl.style.color = '#1e293b';
-            }
-
-            // Handle Pay Now Button
+            // Handle Pay Now & Print Ticket Buttons
             const payBtn = document.getElementById('sb-pay-btn');
+            const printBtn = document.getElementById('sb-print-btn');
+            
             if (payBtn) {
-                // Only show Pay Now if they haven't even paid the advance yet
                 if (payStatus === 'unpaid' && (data.status === 'pending' || data.status === 'confirmed')) {
                     payBtn.href = '/EventManagementSystem/public/client/payment/checkout?booking_id=' + data.id;
+                    payBtn.innerHTML = isConcert ? '<i class="fa-solid fa-credit-card"></i> Pay for Ticket Online' : '<i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online';
                     payBtn.style.display = 'block';
+                } else if (payStatus === 'partially_paid' && !isConcert) {
+                    payBtn.style.display = 'none'; 
                 } else {
                     payBtn.style.display = 'none';
+                }
+            }
+
+            if (printBtn) {
+                if (isConcert && (data.status === 'confirmed' || data.status === 'completed')) {
+                    printBtn.href = '/EventManagementSystem/public/client/ticket?id=' + data.id;
+                    printBtn.style.display = 'block';
+                } else {
+                    printBtn.style.display = 'none';
                 }
             }
 

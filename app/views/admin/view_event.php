@@ -93,6 +93,11 @@ if (empty($includedItemsList)) {
                             <p id="event-venue-name">...</p>
                             <span style="font-size:11px; color:#6b7280;" id="event-venue-location">...</span>
                         </div>
+                        <div id="scheduleColumn" class="detail-col" style="display: none;">
+                            <h4>Event Schedule</h4>
+                            <p id="eventSchedule">Fixed Date & Time</p>
+                            <span style="font-size:11px; color:#6b7280;">Fixed by Organizer</span>
+                        </div>
                         <div class="detail-col">
                             <h4>Status</h4>
                             <p class="status-open" id="event-status-label">...</p>

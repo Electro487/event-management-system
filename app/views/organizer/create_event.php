@@ -122,10 +122,10 @@
                             </div>
                             <div class="dropdown-menu">
                                 <?php
-                                $categories = ["Weddings", "Meetings", "Cultural Events", "Family Functions", "Other Events and Programs"];
+                                $categories = ["Weddings", "Meetings", "Concert", "Cultural Events", "Family Functions", "Other Events and Programs"];
                                 foreach ($categories as $cat):
                                 ?>
-                                    <div class="dropdown-item <?php echo (isset($event['category']) && $event['category'] == $cat) ? 'active' : ''; ?>" data-value="<?php echo $cat; ?>">
+                                    <div class="dropdown-item <?php echo (strtolower($event['category'] ?? '') == strtolower($cat)) ? 'active' : ''; ?>" data-value="<?php echo $cat; ?>">
                                         <?php echo $cat; ?>
                                     </div>
                                 <?php endforeach; ?>
@@ -181,6 +181,20 @@
                     <div class="form-group">
                         <label>VENUE LOCATION</label>
                         <input type="text" name="venue_location" placeholder="e.g. Royal Exhibition Hall, Kathmandu" value="<?php echo htmlspecialchars($event['venue_location'] ?? ''); ?>" required>
+                    </div>
+
+                    <!-- Concert Based Date & Time: Only for Concert Category -->
+                    <div id="ticketScheduleFields" style="<?php echo (isset($event['category']) && strtolower($event['category']) === 'concert') ? 'display: block;' : 'display: none;'; ?> width: 100%;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>EVENT DATE</label>
+                                <input type="date" name="event_date" value="<?php echo (isset($event['event_date'])) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>EVENT TIME</label>
+                                <input type="time" name="event_time" value="<?php echo (isset($event['event_date'])) ? date('H:i', strtotime($event['event_date'])) : ''; ?>" style="width: 100%;">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -252,7 +266,7 @@
                                     <input type="text" name="packages[<?php echo $tierKey; ?>][description]" value="<?php echo htmlspecialchars($pkgData['description'] ?? ''); ?>" placeholder="Enter overview of <?php echo $tierKey; ?> package..." required>
                                 </div>
                                 <div class="form-group pkg-price-group">
-                                    <label>PRICE (NPR)</label>
+                                    <label>PRICE (NPR) <span class="premium-cap-label" style="<?php echo (strtolower($event['category'] ?? '') === 'concert') ? 'display: inline;' : 'display: none;'; ?> color:#ef4444; font-size:10px;">(MAX 100K FOR CONCERT)</span></label>
                                     <input type="number" class="package-price-input" data-tier="<?php echo $tierKey; ?>" name="packages[<?php echo $tierKey; ?>][price]" value="<?php echo htmlspecialchars($pkgData['price'] ?? ($pkgData['price_range'] ?? '')); ?>" placeholder="e.g. 25000" required min="1" max="20000000" step="1" inputmode="numeric">
                                 </div>
                                 <div class="items-list" data-tier="<?php echo $tierKey; ?>">
@@ -538,6 +552,9 @@
             const standard = parseInt(standardVal, 10);
             const premium = parseInt(premiumVal, 10);
 
+            const category = document.querySelector('input[name="category"]').value;
+            const isConcert = category.toLowerCase() === 'concert';
+
             if (![basicVal, standardVal, premiumVal].every(v => /^\d+$/.test(v))) {
                 alert('Package prices must be numbers only (no decimals or symbols).');
                 return;
@@ -548,18 +565,21 @@
                 return;
             }
 
-            if ([basic, standard, premium].some(v => v > MAX_PACKAGE_PRICE)) {
-                alert('Package price cannot exceed NPR 2,00,00,000.');
-                return;
-            }
-
-            if (basic >= MAX_PACKAGE_PRICE || standard >= MAX_PACKAGE_PRICE) {
-                alert('Only premium package can be set to NPR 2,00,00,000. Basic and standard must be lower.');
-                return;
+            // Concert specific caps (Applies to all tiers for consistency)
+            if (isConcert) {
+                if (premium > 100000 || standard > 100000 || basic > 100000) {
+                    alert('Ticket prices cannot exceed Rs. 1,00,000 for the Concert category.');
+                    return;
+                }
+            } else {
+                if ([basic, standard, premium].some(v => v > MAX_PACKAGE_PRICE)) {
+                    alert('Package price cannot exceed NPR 2,00,00,000.');
+                    return;
+                }
             }
 
             if (!(basic < standard && standard < premium)) {
-                alert('Price order must be: Basic < Standard < Premium.');
+                alert('Price order must be: Basic < Standard < Premium. Please adjust the prices accordingly.');
                 return;
             }
 
@@ -607,6 +627,39 @@
                 }
             } else {
                 form.submit(); // Fallback
+            }
+        });
+
+        // ─────────────── TICKET FIELDS TOGGLE ───────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof DropdownManager !== 'undefined') {
+                const handleToggle = (value) => {
+                    const scheduleFields = document.getElementById('ticketScheduleFields');
+                    if(!scheduleFields) return;
+                    
+                    const dateInput = scheduleFields.querySelector('input[name="event_date"]');
+                    const timeInput = scheduleFields.querySelector('input[name="event_time"]');
+                    const premiumCaps = document.querySelectorAll('.premium-cap-label');
+
+                    if (value && value.toLowerCase() === 'concert') {
+                        scheduleFields.style.display = 'block';
+                        if(dateInput) dateInput.required = true;
+                        if(timeInput) timeInput.required = true;
+                        premiumCaps.forEach(l => l.style.display = 'inline');
+                    } else {
+                        scheduleFields.style.display = 'none';
+                        if(dateInput) dateInput.required = false;
+                        if(timeInput) timeInput.required = false;
+                        premiumCaps.forEach(l => l.style.display = 'none');
+                    }
+                };
+
+                // Listen for changes
+                DropdownManager.onSelect('categoryDropdown', handleToggle);
+
+                // Check initial state
+                const currentCat = document.querySelector('input[name="category"]').value;
+                if(currentCat) handleToggle(currentCat);
             }
         });
     </script>

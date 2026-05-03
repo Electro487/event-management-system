@@ -156,24 +156,28 @@ if (!$booking_id || !$session_id) {
         <div class="icon">
             <i class="fa-solid fa-circle-check"></i>
         </div>
-        <h1>Payment Successful!</h1>
-        <p>Your installment has been received successfully.</p>
+        <h1 id="success-title">Payment Successful!</h1>
+        <p id="success-desc">Your payment has been received successfully.</p>
 
         <div class="tx-id" id="display-tx"></div>
 
-        <div class="progress">
-            <div><b>Online Advance Paid:</b> NPR <span id="display-paid"></span> / NPR <span id="display-target"></span></div>
-            <div><b>Remaining Online Advance:</b> NPR <span id="display-remaining"></span></div>
+        <div class="progress" id="payment-progress-box">
+            <div><b>Paid:</b> NPR <span id="display-paid"></span> / NPR <span id="display-target"></span></div>
+            <div id="remaining-row"><b>Remaining Online:</b> NPR <span id="display-remaining"></span></div>
         </div>
 
         <p class="soft" id="display-message"></p>
 
         <div class="btn-row">
             <a href="#" id="next-btn" class="btn" style="display: none;">Pay Next Installment</a>
-            <a href="#" id="view-btn" class="btn btn-outline">Open This Booking</a>
+            <a href="#" id="view-btn" class="btn">View Booking Details</a>
+            <button id="print-btn" class="btn btn-outline" style="display: none;" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Print Ticket
+            </button>
+            <a href="/EventManagementSystem/public/client/home" class="btn btn-outline">Back to Home</a>
         </div>
 
-        <p style="margin-top:12px; font-size:12px; color:#64748b;">Use the buttons above to continue.</p>
+        <p style="margin-top:12px; font-size:12px; color:#64748b;" id="footer-note">Your confirmation details are also available in your dashboard.</p>
     </div>
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
@@ -191,11 +195,40 @@ if (!$booking_id || !$session_id) {
                 });
 
                 const data = res.data;
-                document.getElementById('verifying').style.display = 'none';
                 
+                // Fetch booking details to check category
+                const bookingRes = await window.emsApi.apiFetch(`/api/v1/bookings/${bookingId}`);
+                const booking = bookingRes.data?.booking;
+                const eSnap = booking?.event_snapshot ? JSON.parse(booking.event_snapshot) : {};
+                const isConcert = (eSnap.category || '').toLowerCase() === 'concert';
+
+                document.getElementById('verifying').style.display = 'none';
                 const card = document.getElementById('success-card');
                 card.style.display = 'block';
                 setTimeout(() => card.classList.add('loaded'), 50);
+
+                if (isConcert) {
+                    document.getElementById('success-title').textContent = 'Ticket Booked!';
+                    document.getElementById('success-desc').textContent = 'Your concert ticket has been reserved and paid successfully.';
+                    document.getElementById('display-message').innerHTML = '<i class="fa-solid fa-envelope" style="color: #246A55;"></i> Your ticket has been sent to your email. Please print it for entry.';
+                    
+                    const printBtn = document.getElementById('print-btn');
+                    printBtn.style.display = 'block';
+                    printBtn.onclick = () => window.open(`/EventManagementSystem/public/client/ticket?id=${bookingId}`, '_blank');
+                    
+                    document.getElementById('remaining-row').style.display = 'none';
+                } else {
+                    const msg = document.getElementById('display-message');
+                    if (data.is_advance_complete) {
+                        msg.textContent = "Online advance is complete. Any tiny remaining balance and the final 50% will be settled offline on your event day.";
+                    } else {
+                        msg.textContent = `NPR ${data.remaining_advance.toLocaleString()} is still left for online advance. You can pay the next installment now.`;
+                        const nextBtn = document.getElementById('next-btn');
+                        nextBtn.href = `/EventManagementSystem/public/client/payment/checkout?booking_id=${bookingId}`;
+                        nextBtn.textContent = `Pay Next Installment (NPR ${data.next_installment_amount.toLocaleString()})`;
+                        nextBtn.style.display = 'block';
+                    }
+                }
 
                 // Populate UI
                 document.getElementById('display-tx').textContent = 'TX ID: ' + (data.transaction_id || sessionId);
@@ -203,17 +236,6 @@ if (!$booking_id || !$session_id) {
                 document.getElementById('display-target').textContent = data.advance_target.toLocaleString();
                 document.getElementById('display-remaining').textContent = data.remaining_advance.toLocaleString();
                 
-                const msg = document.getElementById('display-message');
-                if (data.is_advance_complete) {
-                    msg.textContent = "Online advance is complete. Any tiny remaining balance and the final 50% will be settled offline on your event day.";
-                } else {
-                    msg.textContent = `NPR ${data.remaining_advance.toLocaleString()} is still left for online advance. You can pay the next installment now.`;
-                    const nextBtn = document.getElementById('next-btn');
-                    nextBtn.href = `/EventManagementSystem/public/client/payment/checkout?booking_id=${bookingId}`;
-                    nextBtn.textContent = `Pay Next Installment (NPR ${data.next_installment_amount.toLocaleString()})`;
-                    nextBtn.style.display = 'block';
-                }
-
                 document.getElementById('view-btn').href = `/EventManagementSystem/public/client/bookings/view?id=${bookingId}`;
 
 

@@ -1,5 +1,5 @@
 <?php
-$categories = ['All', 'Weddings', 'Meetings', 'Cultural Events', 'Family Functions', 'Other Events and Programs'];
+$categories = ['All', 'Weddings', 'Meetings', 'Concert', 'Cultural Events', 'Family Functions', 'Other Events and Programs'];
 $currentCategory = $_GET['category'] ?? 'All';
 $searchQuery = $_GET['search'] ?? '';
 ?>
@@ -27,11 +27,10 @@ $searchQuery = $_GET['search'] ?? '';
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
             <a href="/EventManagementSystem/public/client/home">Home</a>
-            <a href="/EventManagementSystem/public/client/events" id="nav-btn-browse" class="active"
-                onclick="showBrowseEvents(event)">Browse Events</a>
+            <a href="/EventManagementSystem/public/client/events" id="nav-btn-browse" class="active">Browse Events</a>
             <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="/EventManagementSystem/public/client/events#my-bookings" id="nav-btn-bookings"
-                    onclick="showMyBookings(event)">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
+                <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
@@ -326,11 +325,11 @@ $searchQuery = $_GET['search'] ?? '';
                                 // Default formatting if no explicit price
                                 $displayPrice = $startingPrice > 0 ? number_format($startingPrice) : "10,000";
                                 ?>
-                                <div class="event-price">Packages from Rs. <?php echo $displayPrice; ?></div>
+                                <div class="event-price"><?php echo (strtolower($event['category']) === 'concert') ? 'Tickets from' : 'Packages from'; ?> Rs. <?php echo $displayPrice; ?></div>
 
                                 <a href="/EventManagementSystem/public/client/events/view?id=<?php echo $event['id']; ?>"
                                     class="btn-view-packages">
-                                    View Packages &rarr;
+                                    <?php echo (strtolower($event['category']) === 'concert') ? 'View Ticket Packages &rarr;' : 'View Packages &rarr;'; ?>
                                 </a>
                             </div>
                         </div>

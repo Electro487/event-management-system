@@ -6,6 +6,7 @@ class PaymentService
     private Payment $paymentModel;
     private Notification $notificationModel;
     private User $userModel;
+    private Ticket $ticketModel;
 
     public function __construct()
     {
@@ -13,6 +14,7 @@ class PaymentService
         $this->paymentModel = new Payment();
         $this->notificationModel = new Notification();
         $this->userModel = new User();
+        $this->ticketModel = new Ticket();
     }
 
     public function checkout(array $authUser, array $payload): array
@@ -30,20 +32,23 @@ class PaymentService
             return ['ok' => false, 'status' => 409, 'message' => 'Booking payment already completed.'];
         }
 
-        $advanceTarget = (float)$booking['total_amount'] * 0.50;
+        $eSnap = json_decode($booking['event_snapshot'] ?? '{}', true);
+        $isConcert = (strtolower($eSnap['category'] ?? '') === 'concert');
+        $targetMultiplier = $isConcert ? 1.0 : 0.5;
+
+        $advanceTarget = (float)$booking['total_amount'] * $targetMultiplier;
         $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
 
         // Stripe minimum charge for NPR is 50. If remaining is less than that, we can't charge it.
-        // We consider it complete if the remaining balance is negligible (< 50 NPR) and they've already paid something.
-        // Treat as complete if remaining balance is negligible (< 50 NPR)
-        // Treat as complete if remaining balance is negligible (< 50 NPR)
         if ($remainingAdvance < 50 && $paidAdvance > 0) {
-            return ['ok' => false, 'status' => 409, 'message' => 'Advance target already completed. Any tiny remaining balance will be settled offline on the event day.'];
+            $msg = $isConcert ? 'Payment already completed.' : 'Advance target already completed. Any tiny remaining balance will be settled offline on the event day.';
+            return ['ok' => false, 'status' => 409, 'message' => $msg];
         }
 
         if ($remainingAdvance <= 0.009) {
-            return ['ok' => false, 'status' => 409, 'message' => 'Advance target already completed.'];
+            $msg = $isConcert ? 'Payment already completed.' : 'Advance target already completed.';
+            return ['ok' => false, 'status' => 409, 'message' => $msg];
         }
 
         $installmentAmount = min($remainingAdvance, 999999.99);
@@ -57,7 +62,7 @@ class PaymentService
                         'currency' => 'npr',
                         'product_data' => [
                             'name' => 'Booking for ' . $booking['event_title'],
-                            'description' => $booking['package_tier'] . ' Package - Installment toward 50% advance',
+                            'description' => $booking['package_tier'] . ($isConcert ? ' Ticket - Full Payment' : ' Package - Installment toward 50% advance'),
                         ],
                         'unit_amount' => (int)round($installmentAmount * 100),
                     ],
@@ -69,7 +74,7 @@ class PaymentService
                 'metadata' => [
                     'booking_id' => (string)$bookingId,
                     'client_id' => (string)$authUser['id'],
-                    'payment_type' => 'advance_installment',
+                    'payment_type' => $isConcert ? 'full_payment' : 'advance_installment',
                 ],
             ]);
         } catch (Throwable $e) {
@@ -128,30 +133,57 @@ class PaymentService
                 'stripe_session_id' => $sessionId,
             ]);
 
-            $advanceTarget = (float)$booking['total_amount'] * 0.50;
+            $eSnap = json_decode($booking['event_snapshot'] ?? '{}', true);
+            $isConcert = (strtolower($eSnap['category'] ?? '') === 'concert');
+            $targetMultiplier = $isConcert ? 1.0 : 0.5;
+
+            $advanceTarget = (float)$booking['total_amount'] * $targetMultiplier;
             $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
+            
             if ($paidAdvance > 0) {
-                $this->bookingModel->updatePaymentStatus($bookingId, 'partially_paid');
+                $newStatus = ($isConcert && $paidAdvance >= ($booking['total_amount'] - 0.01)) ? 'paid' : 'partially_paid';
+                $this->bookingModel->updatePaymentStatus($bookingId, $newStatus);
+                
+                // For concerts, we can automatically confirm the booking if paid in full
+                if ($isConcert && $newStatus === 'paid') {
+                    $this->bookingModel->updateStatus($bookingId, 'confirmed');
+
+                    // GENERATE TICKETS NOW (Only upon successful payment)
+                    $ticketCount = (int)$booking['guest_count'];
+                    $generatedTickets = [];
+                    for ($i = 0; $i < $ticketCount; $i++) {
+                        $ticketCode = 'TKT-' . strtoupper(uniqid()) . '-' . ($i + 1);
+                        $this->ticketModel->create([
+                            'booking_id' => $bookingId,
+                            'ticket_code' => $ticketCode,
+                            'status' => 'active'
+                        ]);
+                        $generatedTickets[] = ['ticket_code' => $ticketCode];
+                    }
+
+                    // SEND EMAIL
+                    MailHelper::sendTicket($booking['email'], $booking, $generatedTickets, (string)$session->payment_intent);
+                }
             }
 
-            $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
+            $remainingTarget = max(0, $advanceTarget - $paidAdvance);
             $amount = ((float)$session->amount_total) / 100;
 
-            $this->notificationModel->create(
-                $authUser['id'],
-                'Payment Received',
-                'We have received an advance installment of NPR ' . number_format($amount, 2) . ' for event: ' . $booking['event_title'] . '. Remaining online advance: NPR ' . number_format($remainingAdvance, 2) . '.',
-                'payment',
-                $bookingId
-            );
+            $notifTitle = $isConcert ? 'Ticket Payment Received' : 'Payment Received';
+            $notifMsg = $isConcert ? 
+                'We have received your payment of NPR ' . number_format($amount, 2) . ' for ticket: ' . $booking['event_title'] . '. Your booking is now confirmed.' :
+                'We have received an advance installment of NPR ' . number_format($amount, 2) . ' for event: ' . $booking['event_title'] . '. Remaining online advance: NPR ' . number_format($remainingTarget, 2) . '.';
 
-            $msg = 'An advance installment of NPR ' . number_format($amount, 2) . ' has been made by ' . ($authUser['fullname'] ?? $booking['full_name']) . ' for event: ' . $booking['event_title'] . '.';
+            $this->notificationModel->create($authUser['id'], $notifTitle, $notifMsg, 'payment', $bookingId);
+
+            $adminMsg = ($isConcert ? 'Full payment' : 'An advance installment') . ' of NPR ' . number_format($amount, 2) . ' has been made by ' . ($authUser['fullname'] ?? $booking['full_name']) . ' for event: ' . $booking['event_title'] . '.';
+            
             $organizer = $this->userModel->findById($booking['organizer_id']);
             if ($organizer && $organizer['role'] === 'organizer') {
-                $this->notificationModel->create($booking['organizer_id'], 'New Advance Payment', $msg, 'payment_alert', $bookingId);
+                $this->notificationModel->create($booking['organizer_id'], 'New Payment', $adminMsg, 'payment_alert', $bookingId);
             }
             foreach ($this->userModel->getAdmins() as $admin) {
-                $this->notificationModel->create($admin['id'], 'New Advance Payment', $msg, 'payment_alert', $bookingId);
+                $this->notificationModel->create($admin['id'], 'New Payment', $adminMsg, 'payment_alert', $bookingId);
             }
         }
 
@@ -168,9 +200,13 @@ class PaymentService
             return ['ok' => false, 'status' => 403, 'message' => 'Forbidden.'];
         }
 
-        $advanceTarget = (float)$booking['total_amount'] * 0.50;
-        $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
-        $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
+        $eSnap = json_decode($booking['event_snapshot'] ?? '{}', true);
+        $isConcert = (strtolower($eSnap['category'] ?? '') === 'concert');
+        $targetMultiplier = $isConcert ? 1.0 : 0.5;
+
+        $targetAmount = (float)$booking['total_amount'] * $targetMultiplier;
+        $paidSoFar = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
+        $remaining = max(0, $targetAmount - $paidSoFar);
 
         return [
             'ok' => true,
@@ -178,11 +214,12 @@ class PaymentService
             'data' => [
                 'booking_id' => $bookingId,
                 'total_amount' => (float)$booking['total_amount'],
-                'advance_target' => $advanceTarget,
-                'paid_advance' => $paidAdvance,
-                'remaining_advance' => $remainingAdvance,
-                'is_advance_complete' => ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $paidAdvance > 0),
-                'next_installment_amount' => min($remainingAdvance, 999999.99),
+                'advance_target' => $targetAmount,
+                'paid_advance' => $paidSoFar,
+                'remaining_advance' => $remaining,
+                'is_advance_complete' => ($remaining <= 0.009) || ($remaining < 50 && $paidSoFar > 0),
+                'next_installment_amount' => min($remaining, 999999.99),
+                'transaction_id' => ($this->paymentModel->getByBookingId($bookingId))['transaction_id'] ?? null
             ],
         ];
     }

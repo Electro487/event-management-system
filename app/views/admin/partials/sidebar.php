@@ -14,6 +14,8 @@
                             class="far fa-calendar-alt"></i> All Events</a></li>
                 <li><a href="/EventManagementSystem/public/admin/bookings" class="<?php echo ($activePage == 'bookings') ? 'active' : ''; ?>"><i
                             class="far fa-calendar-check"></i> All Bookings</a></li>
+                <li><a href="/EventManagementSystem/public/admin/tickets" class="<?php echo ($activePage == 'tickets') ? 'active' : ''; ?>"><i
+                            class="fas fa-ticket-alt"></i> Tickets</a></li>
             </ul>
         </nav>
     </div>

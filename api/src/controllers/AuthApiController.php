@@ -95,6 +95,10 @@ class AuthApiController
             ApiResponse::error('No image provided', 422);
             return;
         }
+        if ($_FILES['profile_picture']['error'] !== UPLOAD_ERR_OK) {
+            ApiResponse::error('Upload error: ' . $_FILES['profile_picture']['error'], 400);
+            return;
+        }
         $result = $this->authService->updateProfilePicture($authUser, $_FILES['profile_picture']);
         $this->respond($result);
     }

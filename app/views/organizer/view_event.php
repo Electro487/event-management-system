@@ -106,6 +106,11 @@
                             <p id="venueName">Venue TBD</p>
                             <span id="venueLocation" style="font-size:11px; color:#6b7280;">Location</span>
                         </div>
+                        <div id="scheduleColumn" class="detail-col" style="display: none;">
+                            <h4>Event Schedule</h4>
+                            <p id="eventSchedule">Fixed Date & Time</p>
+                            <span style="font-size:11px; color:#6b7280;">Fixed by Organizer</span>
+                        </div>
                         <div class="detail-col">
                             <h4>Public Status</h4>
                             <p id="publicStatus" class="status-open">Active</p>
@@ -180,6 +185,14 @@
                 document.getElementById('venueName').textContent = e.venue_name || 'Venue TBD';
                 document.getElementById('venueLocation').textContent = e.venue_location || '';
                 
+                // Schedule handling
+                if (e.event_date) {
+                    const dt = new Date(e.event_date);
+                    const formatted = dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' @ ' + dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('eventSchedule').textContent = formatted;
+                    document.getElementById('scheduleColumn').style.display = 'block';
+                }
+
                 const statusEl = document.getElementById('publicStatus');
                 const rawStatus = e.status || 'draft';
                 statusEl.textContent = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);

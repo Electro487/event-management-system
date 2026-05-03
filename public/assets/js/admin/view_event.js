@@ -42,6 +42,17 @@ function populateUI(event) {
     // Details
     document.getElementById('event-venue-name').innerText = event.venue_name || event.venue_location || 'Location TBD';
     document.getElementById('event-venue-location').innerText = event.venue_location || '';
+    
+    // Schedule handling
+    const scheduleCol = document.getElementById('scheduleColumn');
+    const scheduleVal = document.getElementById('eventSchedule');
+    if (event.event_date && scheduleCol && scheduleVal) {
+        const dt = new Date(event.event_date);
+        const formatted = dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' @ ' + dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        scheduleVal.textContent = formatted;
+        scheduleCol.style.display = 'block';
+    }
+
     const statusLabel = document.getElementById('event-status-label');
     statusLabel.innerText = event.status === 'active' ? 'Booking Open' : (event.status.charAt(0).toUpperCase() + event.status.slice(1));
     statusLabel.className = `status-${event.status === 'active' ? 'open' : 'closed'}`;

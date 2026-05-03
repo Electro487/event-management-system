@@ -210,9 +210,19 @@ class AuthService
     public function updateProfilePicture(array $authUser, array $file): array
     {
         $uploadDir = dirname(__DIR__, 3) . '/public/assets/images/profiles/';
-        if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0777, true)) {
+                error_log("AuthService: Failed to create directory $uploadDir");
+                return ['ok' => false, 'status' => 500, 'message' => 'Failed to create upload directory.'];
+            }
+        }
 
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowed)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Invalid file type. Allowed: ' . implode(', ', $allowed)];
+        }
+
         $filename = 'profile_' . $authUser['id'] . '_' . time() . '.' . $ext;
         $target = $uploadDir . $filename;
 
@@ -225,6 +235,9 @@ class AuthService
                 }
                 return ['ok' => true, 'status' => 200, 'message' => 'Profile picture updated.', 'data' => ['path' => $path]];
             }
+            error_log("AuthService: Failed to update user profile in DB for user " . $authUser['id']);
+        } else {
+            error_log("AuthService: move_uploaded_file failed for user " . $authUser['id'] . ". Target: $target");
         }
         return ['ok' => false, 'status' => 500, 'message' => 'Upload failed.'];
     }

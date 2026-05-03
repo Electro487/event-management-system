@@ -24,14 +24,14 @@ $id = $_GET['id'] ?? 0;
 <body>
 
     <?php
-    $activePage = 'bookings';
+    $activePage = ($_GET['source'] ?? '') === 'tickets' ? 'tickets' : 'bookings';
     include_once dirname(__DIR__) . "/admin/partials/sidebar.php";
     ?>
 
     <main class="main-content">
         <header class="detail-header">
             <div class="header-left-info">
-                <div class="breadcrumb-container">
+                <div class="breadcrumb-container" id="admin-breadcrumb-container">
                     <a href="/EventManagementSystem/public/admin/bookings" class="bc-link">Bookings</a>
                     <span class="separator">❯</span>
                     <a href="/EventManagementSystem/public/admin/bookings/view?id=<?php echo $id; ?>"
@@ -46,7 +46,7 @@ $id = $_GET['id'] ?? 0;
             </div>
 
             <div class="header-right-actions">
-                <a href="/EventManagementSystem/public/admin/bookings" class="back-link"><i
+                <a href="/EventManagementSystem/public/admin/bookings" class="back-link" id="admin-back-link"><i
                         class="fa-solid fa-arrow-left"></i> Back to Bookings</a>
                 <div class="header-icons-center">
                     <div class="notifications-wrapper">
@@ -200,6 +200,11 @@ $id = $_GET['id'] ?? 0;
                         <span id="finance-remaining-display">
                             Rs. 0
                         </span>
+                    </div>
+
+                    <div id="admin-tx-row" class="finance-row" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 11px; color: #64748b;">TX ID</span>
+                        <span id="admin-transaction-id-display" style="font-family: monospace; font-size: 11px; color: #1e293b; word-break: break-all;">-</span>
                     </div>
 
                     <div class="payment-status">

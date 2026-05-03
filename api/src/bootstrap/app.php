@@ -18,6 +18,7 @@ require_once dirname(__DIR__, 3) . '/app/models/Event.php';
 require_once dirname(__DIR__, 3) . '/app/models/Booking.php';
 require_once dirname(__DIR__, 3) . '/app/models/Payment.php';
 require_once dirname(__DIR__, 3) . '/app/models/Notification.php';
+require_once dirname(__DIR__, 3) . '/app/models/Ticket.php';
 require_once dirname(__DIR__, 3) . '/app/helpers/MailHelper.php';
 require_once dirname(__DIR__) . '/services/AuthService.php';
 require_once dirname(__DIR__) . '/services/EventService.php';
@@ -83,7 +84,7 @@ try {
         return;
     }
 
-    [,, $handler, $middlewareStack] = $matchedRoute;
+    [, , $handler, $middlewareStack] = $matchedRoute;
     Request::capture($routeParams);
 
     foreach ($middlewareStack as $middlewareClass) {
