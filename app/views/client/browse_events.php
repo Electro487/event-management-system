@@ -32,7 +32,8 @@ $searchQuery = $_GET['search'] ?? '';
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
                 <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
-                <a href="/EventManagementSystem/public/client/requests">My Requests</a>
+                <a href="/EventManagementSystem/public/client/requests" class="<?php echo ($activePage ?? '') == 'requests' ? 'active' : ''; ?>">My Requests</a>
+                <a href="/EventManagementSystem/public/client/payments">Payment History</a>
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
@@ -860,6 +861,7 @@ $searchQuery = $_GET['search'] ?? '';
             });
         })();
     </script>
+    <?php include 'partials/feedback_popup.php'; ?>
 </body>
 
 </html>

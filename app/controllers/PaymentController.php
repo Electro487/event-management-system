@@ -68,8 +68,7 @@ class PaymentController
         require_once dirname(dirname(__DIR__)) . '/vendor/autoload.php';
         \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
 
-        $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
-        $advancePercent = $isConcert ? 1.00 : 0.50;
+        $advancePercent = 0.50; // Standardize to 50% advance for all events
         $advanceTarget = (float) $booking['total_amount'] * $advancePercent;
         $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking_id);
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
@@ -193,7 +192,7 @@ class PaymentController
                         $paymentModel->create($paymentData);
 
                         $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
-                        $advancePercent = $isConcert ? 1.00 : 0.50;
+                        $advancePercent = 0.50; // Standardize to 50% advance for all events
                         $advanceTarget = (float) $booking['total_amount'] * $advancePercent;
                         $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking_id);
                         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);

@@ -258,4 +258,47 @@ class PaymentService
         }
         return false;
     }
+    public function fullHistory(array $authUser): array
+    {
+        if (($authUser['role'] ?? null) !== 'client') {
+            return ['ok' => false, 'status' => 403, 'message' => 'Only clients can view their payment history.'];
+        }
+
+        $userId = (int)$authUser['id'];
+        $payments = $this->paymentModel->getByClientId($userId);
+        
+        // Calculate Stats Dynamically
+        $totalSpent = 0;
+        $totalPendingAmount = 0;
+        $confirmedCount = 0;
+
+        foreach ($payments as $p) {
+            // Money spent so far
+            $totalSpent += (float)($p['paid_amount'] ?? 0);
+
+            // Money yet to be paid
+            if ($p['booking_payment_status'] !== 'paid') {
+                $totalPendingAmount += ((float)$p['amount'] - (float)($p['paid_amount'] ?? 0));
+            }
+
+            // Confirmed count
+            $bStatus = strtolower($p['booking_status'] ?? '');
+            if ($bStatus === 'confirmed' || $bStatus === 'completed') {
+                $confirmedCount++;
+            }
+        }
+
+        return [
+            'ok' => true,
+            'status' => 200,
+            'data' => [
+                'payments' => $payments,
+                'stats' => [
+                    'total_spent' => $totalSpent,
+                    'confirmed_bookings' => $confirmedCount,
+                    'pending_amount' => $totalPendingAmount
+                ]
+            ]
+        ];
+    }
 }
