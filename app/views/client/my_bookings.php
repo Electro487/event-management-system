@@ -18,14 +18,15 @@
 
     <!-- Navbar -->
     <header class="header">
-        <a href="/EventManagementSystem/public/" class="logo"><img
+        <a href="/EventManagementSystem/public/client/home" class="logo"><img
                 src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home">Home</a>
+            <a href="/EventManagementSystem/public/client/home">Home</a>
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings" class="active">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/payments">Payment History</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -250,19 +251,27 @@
 
         <!-- 4 Stats Cards -->
         <div class="stats-grid">
-            <div class="stat-card total">
+            <div class="stat-card total"
+                onclick="filterBookings('all', document.querySelector('.filter-tab[onclick*=\'all\']'))"
+                style="cursor:pointer;">
                 <span class="stat-label">Total Bookings</span>
                 <span class="stat-value"><?php echo str_pad($totalBookings, 2, '0', STR_PAD_LEFT); ?></span>
             </div>
-            <div class="stat-card confirmed">
+            <div class="stat-card confirmed"
+                onclick="filterBookings('confirmed', document.querySelector('.filter-tab[onclick*=\'upcoming\']'))"
+                style="cursor:pointer;">
                 <span class="stat-label">Confirmed</span>
                 <span class="stat-value"><?php echo str_pad($confirmedCount, 2, '0', STR_PAD_LEFT); ?></span>
             </div>
-            <div class="stat-card pending">
+            <div class="stat-card pending"
+                onclick="filterBookings('pending', document.querySelector('.filter-tab[onclick*=\'upcoming\']'))"
+                style="cursor:pointer;">
                 <span class="stat-label">Pending</span>
                 <span class="stat-value"><?php echo str_pad($pendingCount, 2, '0', STR_PAD_LEFT); ?></span>
             </div>
-            <div class="stat-card completed">
+            <div class="stat-card completed"
+                onclick="filterBookings('completed', document.querySelector('.filter-tab[onclick*=\'completed\']'))"
+                style="cursor:pointer;">
                 <span class="stat-label">Completed</span>
                 <span class="stat-value"><?php echo str_pad($completedCount, 2, '0', STR_PAD_LEFT); ?></span>
             </div>
@@ -331,8 +340,10 @@
 
                 <!-- Payment Breakdown Section -->
                 <!-- Payment Breakdown Section -->
-                <div class="dp-info-list" id="standard-payment-breakdown" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
-                    <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">
+                <div class="dp-info-list" id="standard-payment-breakdown"
+                    style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+                    <div
+                        style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">
                         PAYMENT BREAKDOWN (50/50 POLICY)</div>
 
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
@@ -369,13 +380,13 @@
 
                 <!-- Pay Now Button (Hidden by default, shown via JS) -->
                 <a href="#" id="sb-pay-btn" class="btn-send-msg"
-                    style="display: none; background: #246A55; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600;">
+                    style="display: none; background: #246A55; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600; margin-bottom: 12px;">
                     <i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online
                 </a>
 
                 <!-- Print Ticket Button (Concerts Only) -->
                 <a href="#" id="sb-print-btn" class="btn-send-msg" target="_blank"
-                    style="display: none; background: #F59E0B; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600;">
+                    style="display: none; background: #F59E0B; color: white; text-align: center; text-decoration: none; border: none; font-weight: 600; margin-bottom: 12px;">
                     <i class="fa-solid fa-print"></i> Print Your Ticket
                 </a>
 
@@ -416,6 +427,39 @@
             return hours + ':' + minutes + ' ' + ampm;
         }
 
+        function updateStats() {
+            const total = bookingsData.length;
+            const confirmed = bookingsData.filter(b => b.status.toLowerCase() === 'confirmed').length;
+            const pending = bookingsData.filter(b => b.status.toLowerCase() === 'pending').length;
+            const completed = bookingsData.filter(b => b.status.toLowerCase() === 'completed').length;
+            const cancelled = bookingsData.filter(b => b.status.toLowerCase() === 'cancelled').length;
+
+            document.querySelector('.stat-card.total .stat-value').innerText = String(total).padStart(2, '0');
+            document.querySelector('.stat-card.confirmed .stat-value').innerText = String(confirmed).padStart(2, '0');
+            document.querySelector('.stat-card.pending .stat-value').innerText = String(pending).padStart(2, '0');
+            document.querySelector('.stat-card.completed .stat-value').innerText = String(completed).padStart(2, '0');
+
+            document.querySelector('.filter-tab[onclick*="all"] span').innerText = total;
+            document.querySelector('.filter-tab[onclick*="upcoming"] span').innerText = pending + confirmed;
+            document.querySelector('.filter-tab[onclick*="completed"] span').innerText = completed;
+            document.querySelector('.filter-tab[onclick*="cancelled"] span').innerText = cancelled;
+        }
+
+        function getValidImageUrl(imagePath) {
+            if (!imagePath) return '/EventManagementSystem/public/assets/images/placeholder.jpg';
+            if (imagePath.startsWith('[')) {
+                try {
+                    const paths = JSON.parse(imagePath);
+                    if (paths && paths.length > 0) {
+                        return (paths[0].startsWith('/')) ? paths[0] : '/EventManagementSystem/public/assets/images/events/' + paths[0];
+                    }
+                } catch (e) {
+                    console.error('Error parsing image_path JSON', e);
+                }
+            }
+            return (imagePath.startsWith('/')) ? imagePath : '/EventManagementSystem/public/assets/images/events/' + imagePath;
+        }
+
         function fetchBookings() {
             if (!window.emsApi) return;
             window.emsApi.apiFetch('/api/v1/bookings')
@@ -423,11 +467,12 @@
                     if (res.success && res.data && res.data.items) {
                         // Filter out concerts as per original logic
                         bookingsData = res.data.items.filter(b => (b.event_category || '').trim().toLowerCase() !== 'concert');
-                        
+
                         // Sort by created_at DESC
                         bookingsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
                         // Refresh UI
+                        updateStats();
                         applyFilter(currentFilterType);
                     }
                 })
@@ -459,16 +504,13 @@
 
             currentItems.forEach((booking, idx) => {
                 const actualIndex = startIndex + idx; // To map back to filteredBookings if needed
-                
+
                 const eSnap = booking.event_snapshot ? JSON.parse(booking.event_snapshot) : null;
                 const bListTitle = eSnap?.title || booking.event_title;
                 const bListCat = eSnap?.category || booking.event_category || 'Event';
-                
+
                 let rawImg = eSnap?.image_path || booking.event_image || '';
-                let bListImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
-                if (rawImg) {
-                    bListImg = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
-                }
+                let bListImg = getValidImageUrl(rawImg);
 
                 let catStyle = '';
                 if (bListCat === 'Exhibition' || bListCat.toLowerCase() === 'education') {
@@ -478,7 +520,8 @@
                 }
 
                 const isUpcoming = ['pending', 'confirmed'].includes(booking.status.toLowerCase());
-                const packageLabel = (bListCat.toLowerCase() === 'concert') ? booking.package_tier.charAt(0).toUpperCase() + booking.package_tier.slice(1) + ' Tier' : booking.package_tier.charAt(0).toUpperCase() + booking.package_tier.slice(1) + ' Package';
+                const safeTier = booking.package_tier ? booking.package_tier : 'standard';
+                const packageLabel = (bListCat.toLowerCase() === 'concert') ? safeTier.charAt(0).toUpperCase() + safeTier.slice(1) + ' Tier' : safeTier.charAt(0).toUpperCase() + safeTier.slice(1) + ' Package';
                 const guestLabel = (bListCat.toLowerCase() === 'concert') ? 'Tickets' : 'Guests';
 
                 const html = `
@@ -496,13 +539,13 @@
                                 <div class="b-middle">
                                     <span><i class="fa-solid fa-address-card"></i> ${packageLabel}</span>
                                     <span><i class="fa-solid fa-user-group"></i> ${booking.guest_count} ${guestLabel}</span>
-                                    <span><i class="fa-regular fa-calendar"></i> ${new Date(booking.event_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                                    <span><i class="fa-regular fa-calendar"></i> ${new Date(booking.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
                             </div>
                             <div class="b-bottom">
-                                <div class="b-date-booked">Booked on: ${new Date(booking.created_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</div>
+                                <div class="b-date-booked">Booked on: ${new Date(booking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                                 <div class="b-price-action">
-                                    <span class="b-price">Rs. ${parseFloat(booking.total_amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                                    <span class="b-price">Rs. ${parseFloat(booking.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                     <a href="/EventManagementSystem/public/client/bookings/view?id=${booking.id}" class="b-view-link">View Details</a>
                                 </div>
                             </div>
@@ -531,15 +574,15 @@
 
             pagControls.style.display = 'flex';
             let html = '';
-            
+
             html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button>`;
-            
+
             for (let i = 1; i <= totalPages; i++) {
                 html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
             }
-            
+
             html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fa-solid fa-chevron-right"></i></button>`;
-            
+
             pagControls.innerHTML = html;
         }
 
@@ -564,10 +607,7 @@
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');
 
             let rawImg = eSnap?.image_path || data.event_image || '';
-            let imgUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
-            if (rawImg) {
-                imgUrl = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
-            }
+            let imgUrl = getValidImageUrl(rawImg);
             document.getElementById('sb-img').src = imgUrl;
 
             const statusEl = document.getElementById('sb-status');
@@ -581,7 +621,8 @@
             // Derive package name
             const isConcert = (eSnap?.category || data.event_category || '').toLowerCase() === 'concert';
             let pLabel = isConcert ? 'SELECTED TIER' : 'SELECTED PACKAGE';
-            let pName = data.package_tier.charAt(0).toUpperCase() + data.package_tier.slice(1) + (isConcert ? ' Tier' : ' Package');
+            const safeTier2 = data.package_tier ? data.package_tier : 'standard';
+            let pName = safeTier2.charAt(0).toUpperCase() + safeTier2.slice(1) + (isConcert ? ' Tier' : ' Package');
             let pDesc = isConcert ? 'Allows entry to the event.' : 'Includes selected access & features.';
 
             if (pSnap && pSnap.description) {
@@ -651,7 +692,7 @@
                 if (payStatus === 'unpaid' && (data.status === 'pending' || data.status === 'confirmed')) {
                     payBtn.href = '/EventManagementSystem/public/client/payment/checkout?booking_id=' + data.id;
                     payBtn.innerHTML = isConcert ? '<i class="fa-solid fa-credit-card"></i> Pay for Ticket Online' : '<i class="fa-solid fa-credit-card"></i> Pay 50% Advance Online';
-                    payBtn.style.display = 'block';
+                    payBtn.style.display = 'flex';
                 } else {
                     payBtn.style.display = 'none';
                 }
@@ -660,7 +701,7 @@
             if (printBtn) {
                 if (isConcert && (data.status === 'confirmed' || data.status === 'completed')) {
                     printBtn.href = '/EventManagementSystem/public/client/ticket?id=' + data.id;
-                    printBtn.style.display = 'block';
+                    printBtn.style.display = 'flex';
                 } else {
                     printBtn.style.display = 'none';
                 }
@@ -743,6 +784,7 @@
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <?php include 'partials/feedback_popup.php'; ?>
 </body>
 
 </html>

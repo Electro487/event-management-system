@@ -34,6 +34,7 @@ $routes = [
     '/client/book/store' => 'ClientController@storeBooking',
     '/client/bookings' => 'ClientController@myBookings',
     '/client/tickets' => 'ClientController@myTickets',
+    '/client/payments' => 'ClientController@paymentHistory',
     '/client/bookings/cancel' => 'ClientController@cancelBooking',
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
     '/client/profile/update' => 'ClientController@updateProfile',

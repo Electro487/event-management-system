@@ -47,27 +47,27 @@ class ClientController
     public function home()
     {
         $this->checkAuth();
-        
+
         require_once dirname(__DIR__) . '/models/Booking.php';
         require_once dirname(__DIR__) . '/models/Event.php';
         $bookingModel = new Booking();
         $eventModel = new Event();
-        
+
         $userId = $_SESSION['user_id'];
         $bookings = $bookingModel->getByClient($userId);
-        
+
         // Stats
         $totalBookings = count($bookings);
         $confirmedCount = 0;
         $pendingCount = 0;
         $completedCount = 0;
         $upcomingCount = 0;
-        
+
         $today = date('Y-m-d');
         foreach ($bookings as &$b) {
             $status = strtolower($b['status']);
             $eventDate = !empty($b['event_date']) ? date('Y-m-d', strtotime($b['event_date'])) : null;
-            
+
             // Auto-complete confirmed bookings in the past
             if ($status === 'confirmed' && $eventDate && $eventDate < $today) {
                 $status = 'completed';
@@ -85,7 +85,7 @@ class ClientController
             }
         }
         unset($b);
-        
+
         $recentBookings = array_slice($bookings, 0, 5);
         $nextEvent = null;
         $daysLeft = 0;
@@ -98,13 +98,14 @@ class ClientController
                     $now = new DateTime();
                     $target = new DateTime($eventDate);
                     $interval = $now->diff($target);
-                    $daysLeft = (int)$interval->format('%r%a');
-                    if ($daysLeft < 0) $daysLeft = 0;
+                    $daysLeft = (int) $interval->format('%r%a');
+                    if ($daysLeft < 0)
+                        $daysLeft = 0;
                 }
                 break;
             }
         }
-        
+
         $featuredEvents = $eventModel->getRandomActiveEvents(3);
 
         // Initials for avatar fallback
@@ -118,32 +119,32 @@ class ClientController
     public function browseEvents()
     {
         $this->checkAuth();
-        
+
         require_once dirname(__DIR__) . '/models/Event.php';
         require_once dirname(__DIR__) . '/models/Booking.php';
         $eventModel = new Event();
         $bookingModel = new Booking();
-        
+
         $currentCategory = $_GET['category'] ?? 'All';
         $searchQuery = $_GET['search'] ?? '';
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $itemsPerPage = 6;
-        
+
         if ($currentCategory !== 'All' || !empty($searchQuery)) {
-            $events = $eventModel->getAllActiveEvents($currentCategory, $searchQuery, 100, 0); 
+            $events = $eventModel->getAllActiveEvents($currentCategory, $searchQuery, 100, 0);
         } else {
             $events = $eventModel->getAllActiveEvents('All', null, 100, 0);
         }
-        
+
         $totalActiveEvents = $eventModel->countActiveEvents($currentCategory, $searchQuery);
         $totalPages = ceil($totalActiveEvents / $itemsPerPage);
-        
+
         // Paginate for the PHP render (first load)
         $eventsSlice = array_slice($events, ($page - 1) * $itemsPerPage, $itemsPerPage);
-        $events = $eventsSlice; 
-        
+        $events = $eventsSlice;
+
         $categories = ['All', 'Weddings', 'Meetings', 'Cultural Events', 'Family Functions', 'Other Events and Programs'];
-        
+
         // Also need bookings for the toggleable "My Bookings" section on the same page
         $bookings = $bookingModel->getByClient($_SESSION['user_id']);
         $totalBookings = count($bookings);
@@ -153,10 +154,10 @@ class ClientController
         $upcomingCount = 0;
         $cancelledCount = 0;
         $today = date('Y-m-d');
-        foreach($bookings as &$b) {
+        foreach ($bookings as &$b) {
             $status = strtolower($b['status']);
             $eventDate = !empty($b['event_date']) ? date('Y-m-d', strtotime($b['event_date'])) : null;
-            
+
             if ($status === 'confirmed' && $eventDate && $eventDate < $today) {
                 $status = 'completed';
                 $b['status'] = 'completed';
@@ -234,13 +235,13 @@ class ClientController
     public function myBookings()
     {
         $this->checkAuth();
-        
+
         require_once dirname(__DIR__) . '/models/Booking.php';
         $bookingModel = new Booking();
         $allBookings = $bookingModel->getByClient($_SESSION['user_id']);
-        
+
         // Filter out concerts
-        $bookings = array_filter($allBookings, function($b) {
+        $bookings = array_filter($allBookings, function ($b) {
             return trim(strtolower($b['event_category'] ?? '')) !== 'concert';
         });
 
@@ -252,11 +253,11 @@ class ClientController
         $completedCount = 0;
         $upcomingCount = 0;
         $today = date('Y-m-d');
-        
+
         foreach ($bookings as &$b) {
             $status = strtolower($b['status']);
             $eventDate = !empty($b['event_date']) ? date('Y-m-d', strtotime($b['event_date'])) : null;
-            
+
             // Auto-complete logic for confirmed bookings in the past
             if ($status === 'confirmed' && $eventDate && $eventDate < $today) {
                 $status = 'completed';
@@ -278,20 +279,20 @@ class ClientController
         unset($b);
 
         $categories = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'];
-        
+
         require_once dirname(__DIR__) . '/views/client/my_bookings.php';
     }
 
     public function myTickets()
     {
         $this->checkAuth();
-        
+
         require_once dirname(__DIR__) . '/models/Booking.php';
         $bookingModel = new Booking();
         $allBookings = $bookingModel->getByClient($_SESSION['user_id']);
-        
+
         // Filter for concerts only
-        $tickets = array_filter($allBookings, function($b) {
+        $tickets = array_filter($allBookings, function ($b) {
             return trim(strtolower($b['event_category'] ?? '')) === 'concert';
         });
 
@@ -319,7 +320,7 @@ class ClientController
         $bookingModel = new Booking();
         $booking = $bookingModel->getById($id);
 
-        if (!$booking || (int)$booking['client_id'] !== (int)$_SESSION['user_id']) {
+        if (!$booking || (int) $booking['client_id'] !== (int) $_SESSION['user_id']) {
             header('Location: /EventManagementSystem/public/client/bookings');
             exit;
         }
@@ -327,22 +328,22 @@ class ClientController
         // Calculate payment progress for the view
         require_once dirname(__DIR__) . '/models/Payment.php';
         $paymentModel = new Payment();
-        
-        $totalAmount = (float)$booking['total_amount'];
+
+        $totalAmount = (float) $booking['total_amount'];
         $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');
         $advancePercent = $isConcert ? 1.00 : 0.50;
         $advanceTarget = $totalAmount * $advancePercent;
-        
+
         $paidAmount = $paymentModel->getSucceededTotalByBookingId($id);
-        
+
         // Backward compatibility: if DB says 'paid' but payments table is empty (Edge case)
         if ($paidAmount < 0.01 && (strtolower($booking['payment_status']) === 'paid')) {
             $paidAmount = $totalAmount;
         }
-        
+
         $paidAdvance = $paidAmount;
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
-        
+
         // Next installment is either the remaining advance or 0 if advance is complete
         $nextInstallmentAmount = $remainingAdvance;
 
@@ -383,7 +384,7 @@ class ClientController
         $bookingModel = new Booking();
         $booking = $bookingModel->getById($id);
 
-        if (!$booking || (int)$booking['client_id'] !== (int)$_SESSION['user_id']) {
+        if (!$booking || (int) $booking['client_id'] !== (int) $_SESSION['user_id']) {
             header('Location: /EventManagementSystem/public/client/bookings');
             exit;
         }
@@ -401,5 +402,11 @@ class ClientController
     {
         $this->checkAuth();
         require_once dirname(__DIR__) . '/views/client/feedback.php';
+    }
+
+    public function paymentHistory()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/views/client/payment_history.php';
     }
 }

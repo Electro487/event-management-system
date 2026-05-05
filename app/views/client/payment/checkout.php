@@ -202,5 +202,6 @@ if (!isset($booking)) {
             });
         });
     </script>
+    <?php include '../partials/feedback_popup.php'; ?>
 </body>
 </html>

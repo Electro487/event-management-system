@@ -42,6 +42,7 @@ return [
     ['POST', '/api/v1/payments/confirm', [PaymentApiController::class, 'confirm'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/payments/{bookingId}/summary', [PaymentApiController::class, 'summary'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/payments/{bookingId}/history', [PaymentApiController::class, 'history'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/payments/full-history', [PaymentApiController::class, 'fullHistory'], [JwtAuthMiddleware::class]],
 
     // Notifications
     ['GET', '/api/v1/notifications/latest', [NotificationApiController::class, 'latest'], [JwtAuthMiddleware::class]],

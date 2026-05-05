@@ -76,6 +76,7 @@ if (empty($items)) {
             <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/payments">Payment History</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
