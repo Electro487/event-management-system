@@ -69,6 +69,7 @@ $routes = [
     '/admin/bookings/cancel' => 'AdminController@cancelBooking',
     '/admin/bookings/mark-paid' => 'AdminController@markBookingPaid',
     '/admin/tickets' => 'AdminController@tickets',
+    '/admin/reports' => 'AdminController@reports',
 
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',

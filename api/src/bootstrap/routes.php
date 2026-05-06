@@ -36,6 +36,7 @@ return [
     ['GET', '/api/v1/dashboard/admin', [DashboardApiController::class, 'admin'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/dashboard/organizer', [DashboardApiController::class, 'organizer'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/dashboard/client', [DashboardApiController::class, 'client'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/admin/analytics', [AnalyticsApiController::class, 'index'], [JwtAuthMiddleware::class]],
 
     // Payments
     ['POST', '/api/v1/payments/checkout', [PaymentApiController::class, 'checkout'], [JwtAuthMiddleware::class]],

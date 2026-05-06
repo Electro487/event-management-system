@@ -319,4 +319,11 @@ class AdminController
         $activePage = 'feedback';
         require_once dirname(__DIR__) . '/views/admin/feedback.php';
     }
+
+    public function reports()
+    {
+        $this->checkAuth();
+        $activePage = 'reports';
+        require_once dirname(__DIR__) . '/views/admin/reports.php';
+    }
 }
