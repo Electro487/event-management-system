@@ -14,8 +14,9 @@
                 <li><a href="/EventManagementSystem/public/organizer/tickets" class="<?php echo ($activePage == 'tickets') ? 'active' : ''; ?>"><i
                             class="fas fa-ticket-alt"></i> Tickets</a></li>
 
-                <li><a href="/EventManagementSystem/public/organizer/messages" class="<?php echo ($activePage == 'messages') ? 'active' : ''; ?>"><i
-                            class="far fa-envelope"></i> Messages</a></li>
+
+                <li><a href="/EventManagementSystem/public/organizer/requests" class="<?php echo ($activePage == 'requests') ? 'active' : ''; ?>"><i
+                            class="fas fa-file-signature"></i> Requests</a></li>
                 <li><a href="/EventManagementSystem/public/organizer/feedback" class="<?php echo ($activePage == 'feedback') ? 'active' : ''; ?>"><i
                             class="far fa-comment-dots"></i> Feedback</a></li>
             </ul>

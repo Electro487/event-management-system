@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
 </head>
 
 <body>
@@ -26,6 +27,7 @@
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings" class="active">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/requests" class="<?php echo ($activePage ?? '') == 'requests' ? 'active' : ''; ?>">My Requests</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">

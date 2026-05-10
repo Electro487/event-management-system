@@ -200,7 +200,7 @@ class ClientController
         require_once dirname(__DIR__) . '/views/client/view_event.php';
     }
 
-    public function bookEvent()
+    public function modifyEvent()
     {
         $this->checkAuth();
         $id = $_GET['id'] ?? null;
@@ -218,6 +218,75 @@ class ClientController
         if (!$event) {
             header('Location: /EventManagementSystem/public/client/events');
             exit;
+        }
+
+        require_once dirname(__DIR__) . '/views/client/modify_event.php';
+    }
+
+    public function customRequests()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        $reqModel = new CustomEventRequest();
+        $requests = $reqModel->getByClientId($_SESSION['user_id']);
+        
+        require_once dirname(__DIR__) . '/views/client/custom_requests.php';
+    }
+
+    public function viewRequest()
+    {
+        $this->checkAuth();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /EventManagementSystem/public/client/requests');
+            exit;
+        }
+        
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        require_once dirname(__DIR__) . '/models/Message.php';
+        $reqModel = new CustomEventRequest();
+        $msgModel = new Message();
+        
+        $request = $reqModel->getById($id);
+        if (!$request || $request['client_id'] != $_SESSION['user_id']) {
+            header('Location: /EventManagementSystem/public/client/requests');
+            exit;
+        }
+        
+        $messages = $msgModel->getByRequestId($id);
+
+        require_once dirname(__DIR__) . '/views/client/view_request.php';
+    }
+
+    public function bookEvent()
+    {
+        $this->checkAuth();
+        $id = $_GET['id'] ?? null;
+        $packageTier = $_GET['package'] ?? 'basic';
+        $requestId = $_GET['request_id'] ?? null;
+
+        if (!$id) {
+            header('Location: /EventManagementSystem/public/client/events');
+            exit;
+        }
+
+        require_once dirname(__DIR__) . '/models/Event.php';
+        $eventModel = new Event();
+        $event = $eventModel->getById($id);
+
+        if (!$event) {
+            header('Location: /EventManagementSystem/public/client/events');
+            exit;
+        }
+
+        $customRequest = null;
+        if ($requestId) {
+            require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+            $crModel = new CustomEventRequest();
+            $customRequest = $crModel->getById($requestId);
+            if ($customRequest) {
+                $packageTier = $customRequest['base_package_tier'];
+            }
         }
 
         require_once dirname(__DIR__) . '/views/client/book_event.php';
@@ -327,6 +396,23 @@ class ClientController
         // Calculate payment progress for the view
         require_once dirname(__DIR__) . '/models/Payment.php';
         $paymentModel = new Payment();
+
+        // If this is a custom event booking, always load the negotiated package from the request
+        if (!empty($booking['custom_request_id'])) {
+            require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+            $crModel = new CustomEventRequest();
+            $customReq = $crModel->getById($booking['custom_request_id']);
+            if ($customReq) {
+                $customPkgs = json_decode($customReq['custom_packages'], true);
+                if (!empty($customPkgs['items'])) {
+                    $booking['package_snapshot'] = json_encode([
+                        'description' => 'Custom negotiated package based on ' . ucfirst($booking['package_tier']) . ' tier.',
+                        'items' => $customPkgs['items'],
+                        'price' => $customReq['proposed_price'] ?? $booking['total_amount']
+                    ]);
+                }
+            }
+        }
         
         $totalAmount = (float)$booking['total_amount'];
         $isConcert = (strtolower($booking['event_category'] ?? '') === 'concert');

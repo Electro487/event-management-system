@@ -60,6 +60,14 @@ return [
     ['POST', '/api/v1/admin/users/update-role', [UserApiController::class, 'updateRole'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/admin/users/toggle-block', [UserApiController::class, 'toggleBlock'], [JwtAuthMiddleware::class]],
 
+    // Custom Event Requests & Negotiation
+    ['POST', '/api/v1/custom-events/request', [CustomEventApiController::class, 'store'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/custom-events/requests', [CustomEventApiController::class, 'index'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/custom-events/requests/{id}', [CustomEventApiController::class, 'show'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/custom-events/requests/{id}/message', [CustomEventApiController::class, 'sendMessage'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/custom-events/requests/{id}/status', [CustomEventApiController::class, 'updateStatus'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/custom-events/requests/{id}/offer', [CustomEventApiController::class, 'updateOffer'], [JwtAuthMiddleware::class]],
+
     // Feedback
     ['GET', '/api/v1/feedback', [FeedbackApiController::class, 'list'], []],
     ['GET', '/api/v1/feedback/my', [FeedbackApiController::class, 'myFeedback'], [JwtAuthMiddleware::class]],

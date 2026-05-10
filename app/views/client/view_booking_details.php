@@ -102,6 +102,7 @@ $steps = [
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings" class="<?php echo (strtolower($eventCategory) !== 'concert') ? 'active' : ''; ?>">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets" class="<?php echo (strtolower($eventCategory) === 'concert') ? 'active' : ''; ?>">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/requests">My Requests</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">

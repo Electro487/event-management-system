@@ -37,6 +37,7 @@ if (empty($includedItemsList)) {
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-event.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
 </head>
 
 <body>
@@ -52,6 +53,7 @@ if (empty($includedItemsList)) {
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
                 <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+                <a href="/EventManagementSystem/public/client/requests">My Requests</a>
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
@@ -397,6 +399,10 @@ if (empty($includedItemsList)) {
                     <button class="btn-book-now" onclick="proceedToBooking(<?php echo $event['id']; ?>)">
                         Book Now <i class="fa-solid fa-arrow-right"></i>
                     </button>
+                    <button class="btn-modify-package" onclick="modifyPackage(<?php echo $event['id']; ?>)" style="margin-top: 10px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0;">
+                        Modify Package <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    
                     <p class="tax-note">* Prices are exclusive of taxes and subject to customization.</p>
                     <div class="policy-badge" style="margin-top: 15px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; display: flex; align-items: start; gap: 8px; line-height: 1.4;">
                         <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
@@ -478,6 +484,20 @@ if (empty($includedItemsList)) {
             if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
 
             window.location.href = `/EventManagementSystem/public/client/book?id=${eventId}&package=${selectedTier}`;
+        }
+
+        function modifyPackage(eventId) {
+            const activeTierEl = document.querySelector('.package-tier.active-tier');
+            if (!activeTierEl) {
+                alert('Please select a package tier to modify first.');
+                return;
+            }
+
+            let selectedTier = 'basic';
+            if (activeTierEl.classList.contains('standard')) selectedTier = 'standard';
+            if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
+
+            window.location.href = `/EventManagementSystem/public/client/events/modify?id=${eventId}&package=${selectedTier}`;
         }
     </script>
 

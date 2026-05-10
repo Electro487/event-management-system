@@ -13,14 +13,16 @@ class Booking
 
     public function create($data)
     {
-        $sql = "INSERT INTO bookings (event_id, event_snapshot, client_id, package_tier, package_snapshot, event_date, guest_count, full_name, email, phone, checkin_time, total_amount, status, payment_status) 
-                VALUES (:event_id, :event_snapshot, :client_id, :package_tier, :package_snapshot, :event_date, :guest_count, :full_name, :email, :phone, :checkin_time, :total_amount, :status, :payment_status)";
+        $sql = "INSERT INTO bookings (event_id, custom_request_id, event_snapshot, client_id, package_tier, package_snapshot, event_date, guest_count, full_name, email, phone, checkin_time, total_amount, status, payment_status) 
+                VALUES (:event_id, :custom_request_id, :event_snapshot, :client_id, :package_tier, :package_snapshot, :event_date, :guest_count, :full_name, :email, :phone, :checkin_time, :total_amount, :status, :payment_status)";
 
         $stmt = $this->db->prepare($sql);
 
         $status = $data['status'] ?? 'pending';
 
         $stmt->bindParam(':event_id', $data['event_id']);
+        $customRequestId = $data['custom_request_id'] ?? null;
+        $stmt->bindParam(':custom_request_id', $customRequestId);
         $stmt->bindParam(':event_snapshot', $data['event_snapshot']);
         $stmt->bindParam(':client_id', $data['client_id']);
         $stmt->bindParam(':package_tier', $data['package_tier']);
@@ -232,11 +234,17 @@ class Booking
         return (float)($result['total'] ?? 0);
     }
 
-    public function exists($event_id, $client_id)
+    public function exists($event_id, $client_id, $custom_request_id = null)
     {
-        $sql = "SELECT COUNT(*) as count FROM bookings WHERE event_id = :event_id AND client_id = :client_id AND status != 'cancelled'";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':event_id', $event_id);
+        if ($custom_request_id) {
+            $sql = "SELECT COUNT(*) as count FROM bookings WHERE custom_request_id = :custom_request_id AND client_id = :client_id AND status != 'cancelled'";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':custom_request_id', $custom_request_id);
+        } else {
+            $sql = "SELECT COUNT(*) as count FROM bookings WHERE event_id = :event_id AND client_id = :client_id AND custom_request_id IS NULL AND status != 'cancelled'";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':event_id', $event_id);
+        }
         $stmt->bindParam(':client_id', $client_id);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);

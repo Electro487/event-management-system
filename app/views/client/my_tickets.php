@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-tickets.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
 </head>
 
 <body>
@@ -27,6 +28,7 @@
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets" class="active">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/requests" class="<?php echo ($activePage ?? '') == 'requests' ? 'active' : ''; ?>">My Requests</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">

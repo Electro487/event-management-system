@@ -30,6 +30,8 @@ $routes = [
     '/organizer/bookings/mark-paid' => 'OrganizerController@markBookingPaid',
     '/organizer/tickets' => 'OrganizerController@tickets',
     '/organizer/messages' => 'OrganizerController@messages',
+    '/organizer/requests' => 'OrganizerController@customRequests',
+    '/organizer/requests/view' => 'OrganizerController@viewRequest',
     '/client/book' => 'ClientController@bookEvent',
     '/client/book/store' => 'ClientController@storeBooking',
     '/client/bookings' => 'ClientController@myBookings',
@@ -39,6 +41,10 @@ $routes = [
     '/client/profile/update' => 'ClientController@updateProfile',
     '/client/profile/delete-picture' => 'ClientController@deleteProfilePicture',
     '/client/ticket' => 'ClientController@viewTicket',
+
+    '/client/events/modify' => 'ClientController@modifyEvent',
+    '/client/requests' => 'ClientController@customRequests',
+    '/client/requests/view' => 'ClientController@viewRequest',
 
     // Payment Routes
     '/client/payment/checkout' => 'PaymentController@checkout',
@@ -70,6 +76,9 @@ $routes = [
     '/admin/bookings/mark-paid' => 'AdminController@markBookingPaid',
     '/admin/tickets' => 'AdminController@tickets',
     '/admin/reports' => 'AdminController@reports',
+    '/admin/messages' => 'AdminController@messages',
+    '/admin/requests' => 'AdminController@customRequests',
+    '/admin/requests/view' => 'AdminController@viewRequest',
 
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
