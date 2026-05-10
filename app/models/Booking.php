@@ -251,4 +251,89 @@ class Booking
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+
+    public function getBookingsByPackageTier()
+    {
+        $sql = "SELECT package_tier, COUNT(*) as count 
+                FROM bookings 
+                WHERE status != 'cancelled' 
+                GROUP BY package_tier";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /* Date based analytics methods */
+    public function getTotalSystemRevenueByDate($start, $end)
+    {
+        $sql = "SELECT SUM(amount) as total FROM payments WHERE status = 'succeeded' AND DATE(created_at) >= :start AND DATE(created_at) <= :end";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (float)($result['total'] ?? 0);
+    }
+
+    public function countAllByDate($start, $end)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE DATE(created_at) >= :start AND DATE(created_at) <= :end";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function countSuccessfulBookingsByDate($start, $end)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE (status IN ('confirmed', 'completed') OR payment_status = 'paid' OR payment_status = 'succeeded') AND DATE(created_at) >= :start AND DATE(created_at) <= :end";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function countByStatusAndDate($status, $start, $end)
+    {
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE status = :status AND DATE(created_at) >= :start AND DATE(created_at) <= :end";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':status', $status);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function getBookingsByPackageTierByDate($start, $end)
+    {
+        $sql = "SELECT package_tier, COUNT(*) as count 
+                FROM bookings 
+                WHERE status != 'cancelled' 
+                AND DATE(created_at) >= :start AND DATE(created_at) <= :end
+                GROUP BY package_tier";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRevenueOverTimeByDate($start, $end)
+    {
+        $sql = "SELECT DATE(created_at) as date, SUM(amount) as total 
+                FROM payments 
+                WHERE status = 'succeeded' 
+                AND DATE(created_at) >= :start AND DATE(created_at) <= :end
+                GROUP BY DATE(created_at)
+                ORDER BY DATE(created_at)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

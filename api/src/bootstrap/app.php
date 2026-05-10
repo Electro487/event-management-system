@@ -14,6 +14,7 @@ require_once dirname(__DIR__) . '/controllers/PaymentApiController.php';
 require_once dirname(__DIR__) . '/controllers/NotificationApiController.php';
 require_once dirname(__DIR__) . '/controllers/FeedbackApiController.php';
 require_once dirname(__DIR__) . '/controllers/UserApiController.php';
+require_once dirname(__DIR__) . '/controllers/AnalyticsApiController.php';
 require_once dirname(__DIR__, 3) . '/app/models/User.php';
 require_once dirname(__DIR__, 3) . '/app/models/Event.php';
 require_once dirname(__DIR__, 3) . '/app/models/Booking.php';
@@ -30,6 +31,8 @@ require_once dirname(__DIR__) . '/services/PaymentService.php';
 require_once dirname(__DIR__) . '/services/NotificationService.php';
 require_once dirname(__DIR__) . '/services/FeedbackService.php';
 require_once dirname(__DIR__) . '/services/UserService.php';
+require_once dirname(__DIR__) . '/services/AnalyticsService.php';
+
 
 $routes = require __DIR__ . '/routes.php';
 
