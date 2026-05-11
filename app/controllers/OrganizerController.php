@@ -211,4 +211,11 @@ class OrganizerController
         $activePage = 'feedback';
         require_once dirname(__DIR__) . '/views/organizer/feedback.php';
     }
+
+    public function promoCodes()
+    {
+        $this->checkAuth();
+        $activePage = 'promo_codes';
+        require_once dirname(__DIR__) . '/views/organizer/promo_codes.php';
+    }
 }

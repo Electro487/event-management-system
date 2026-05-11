@@ -92,4 +92,8 @@ $routes = [
     '/client/feedback' => 'ClientController@feedback',
     '/admin/feedback' => 'AdminController@feedback',
     '/organizer/feedback' => 'OrganizerController@feedback',
+
+    // Promo Codes
+    '/organizer/promo-codes' => 'OrganizerController@promoCodes',
+    '/admin/promo-codes' => 'AdminController@promoCodes',
 ];

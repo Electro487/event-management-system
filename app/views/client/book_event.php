@@ -454,11 +454,27 @@ if (empty($items)) {
                             </ul>
                         </div>
 
+                        <?php if ($isConcert): ?>
+                        <div class="promo-section" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">Have a Promo Code?</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="promo_code_input" placeholder="Enter code" style="flex: 1; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; text-transform: uppercase; outline: none;">
+                                <button type="button" onclick="applyPromoCode()" style="padding: 8px 16px; background: #1f6f59; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">Apply</button>
+                            </div>
+                            <div id="promo_message" style="font-size: 12px; margin-top: 8px; display: none;"></div>
+                            <input type="hidden" name="promo_code" id="applied_promo_code" value="">
+                        </div>
+                        <?php endif; ?>
+
                         <div class="price-breakdown">
                             <?php if ($isConcert): ?>
                                 <div class="price-row" style="color: #64748b; font-size: 13px; margin-bottom: 5px;">
                                     <span>Price per Ticket</span>
                                     <span>₨ <span id="display_base_price"><?php echo number_format($basePrice, 2); ?></span></span>
+                                </div>
+                                <div id="discount_row" class="price-row" style="color: #dc2626; font-size: 13px; margin-bottom: 5px; display: none;">
+                                    <span>Promo Discount (<span id="discount_percent">0</span>%)</span>
+                                    <span>- ₨ <span id="display_discount_amount">0.00</span></span>
                                 </div>
                                 <div class="price-row" style="color: #1f6f59; font-weight: 700; margin-bottom: 5px; font-size: 16px;">
                                     <span>Total Ticket Price</span>
@@ -467,6 +483,14 @@ if (empty($items)) {
                                 <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">Full payment required for instant ticket generation. Max 5 tickets.</div>
                             <?php else: ?>
                                 <div class="price-row" style="margin-bottom: 5px;">
+                                    <span>Subtotal</span>
+                                    <span>₨ <span id="display_subtotal_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
+                                </div>
+                                <div id="discount_row" class="price-row" style="color: #dc2626; font-size: 13px; margin-bottom: 5px; display: none;">
+                                    <span>Promo Discount (<span id="discount_percent">0</span>%)</span>
+                                    <span>- ₨ <span id="display_discount_amount">0.00</span></span>
+                                </div>
+                                <div class="price-row" style="margin-bottom: 5px; font-weight: 700;">
                                     <span>Total Amount</span>
                                     <span>₨ <span id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
                                 </div>
@@ -550,6 +574,7 @@ if (empty($items)) {
     <script>
         const BASE_PRICE = <?php echo $basePrice; ?>;
         const IS_CONCERT = <?php echo $isConcert ? 'true' : 'false'; ?>;
+        let appliedDiscountPercent = 0;
 
         function calculateTotal() {
             const qtyInput = document.getElementById('ticket_quantity');
@@ -561,13 +586,28 @@ if (empty($items)) {
                 alert('Maximum 5 tickets allowed per booking.');
             }
 
-            const total = BASE_PRICE * (IS_CONCERT ? qty : 1); // For weddings, total is fixed by package
-            
-            // For non-concerts, we don't multiply by guest count as it's a package price
-            // However, the user might want it to multiply. Let's stick to concert-only multiplication for now
-            // as per "money calculation should be dynamic like auto multiply the base cost"
+            const subtotal = BASE_PRICE * (IS_CONCERT ? qty : 1);
+            const discountAmount = (subtotal * appliedDiscountPercent) / 100;
+            const total = subtotal - discountAmount;
             
             document.querySelector('input[name="total_amount"]').value = total;
+            
+            // Update UI
+            const subtotalDisplay = document.getElementById('display_subtotal_amount');
+            if (subtotalDisplay) subtotalDisplay.innerText = subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const discountRow = document.getElementById('discount_row');
+            const discountDisplay = document.getElementById('display_discount_amount');
+            const discountPercentDisplay = document.getElementById('discount_percent');
+            
+            if (appliedDiscountPercent > 0) {
+                discountRow.style.display = 'flex';
+                discountDisplay.innerText = discountAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                discountPercentDisplay.innerText = appliedDiscountPercent;
+            } else {
+                discountRow.style.display = 'none';
+            }
+
             const totalDisplay = document.getElementById('display_total_amount');
             if (totalDisplay) totalDisplay.innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
@@ -577,6 +617,46 @@ if (empty($items)) {
                 
                 const balanceDisplay = document.getElementById('display_balance_amount');
                 if (balanceDisplay) balanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+        }
+
+        async function applyPromoCode() {
+            if (!IS_CONCERT) return;
+            const codeInput = document.getElementById('promo_code_input');
+            const code = codeInput.value.trim().toUpperCase();
+            const messageEl = document.getElementById('promo_message');
+            const hiddenInput = document.getElementById('applied_promo_code');
+
+            if (!code) {
+                alert('Please enter a promo code.');
+                return;
+            }
+
+            try {
+                messageEl.style.display = 'block';
+                messageEl.style.color = '#64748b';
+                messageEl.innerText = 'Validating code...';
+
+                const res = await window.emsApi.apiFetch('/api/v1/promo-codes/validate', {
+                    method: 'POST',
+                    body: { code }
+                });
+
+                if (res.success && res.data.valid) {
+                    appliedDiscountPercent = res.data.discount_percentage;
+                    hiddenInput.value = code;
+                    messageEl.style.color = '#15803d';
+                    messageEl.innerText = `Success! ${appliedDiscountPercent}% discount applied.`;
+                    calculateTotal();
+                } else {
+                    throw new Error(res.message || 'Invalid code');
+                }
+            } catch (err) {
+                appliedDiscountPercent = 0;
+                hiddenInput.value = '';
+                messageEl.style.color = '#dc2626';
+                messageEl.innerText = 'Invalid or expired promo code.';
+                calculateTotal();
             }
         }
 
@@ -590,7 +670,6 @@ if (empty($items)) {
 
                 if (!form.reportValidity()) return;
                 
-                // Final Check for Concert Limit
                 if (IS_CONCERT) {
                     const qty = parseInt(document.getElementById('ticket_quantity').value) || 0;
                     if (qty > 5) {
@@ -599,7 +678,6 @@ if (empty($items)) {
                     }
                 }
 
-                // Disable buttons
                 const submitBtns = form.querySelectorAll('button');
                 submitBtns.forEach(btn => {
                     btn.disabled = true;
@@ -620,6 +698,7 @@ if (empty($items)) {
                     phone: String(fd.get('phone') || ''),
                     checkin_time: String(fd.get('checkin_time') || ''),
                     total_amount: Number(fd.get('total_amount') || 0),
+                    promo_code: String(fd.get('promo_code') || '')
                 };
 
                 try {
@@ -644,7 +723,6 @@ if (empty($items)) {
                 } catch (err) {
                     console.error('API booking flow failed:', err);
                     alert('Error: ' + err.message);
-                    // Re-enable buttons on error
                     submitBtns.forEach(btn => {
                         btn.disabled = false;
                         btn.style.opacity = '1';

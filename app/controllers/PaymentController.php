@@ -223,9 +223,19 @@ class PaymentController
                                 // SEND EMAIL
                                 require_once dirname(__DIR__) . '/helpers/MailHelper.php';
                                 MailHelper::sendTicket($booking['email'], $booking, $generatedTickets, (string) $session->payment_intent);
+                            } else {
+                                // For non-concerts paid in full
+                                require_once dirname(__DIR__) . '/helpers/MailHelper.php';
+                                MailHelper::sendBookingConfirmation($booking['email'], $booking, $session->amount_total / 100, (string) $session->payment_intent);
                             }
                         } elseif ($paidAdvance > 0) {
                             $bookingModel->updatePaymentStatus($booking_id, 'partially_paid');
+                            
+                            // For non-concerts or partial payments, send a general booking confirmation email
+                            if (strtolower($booking['event_category'] ?? '') !== 'concert') {
+                                require_once dirname(__DIR__) . '/helpers/MailHelper.php';
+                                MailHelper::sendBookingConfirmation($booking['email'], $booking, $session->amount_total / 100, (string) $session->payment_intent);
+                            }
                         }
 
                         // 3. Notify Client
