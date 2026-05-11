@@ -34,6 +34,11 @@ class PaymentApiController
         $this->respond($this->service->fullHistory($GLOBALS['api_auth_user'] ?? []));
     }
 
+    public function adminDashboard(): void
+    {
+        $this->respond($this->service->adminDashboard($GLOBALS['api_auth_user'] ?? []));
+    }
+
     private function respond(array $result): void
     {
         if (!($result['ok'] ?? false)) {

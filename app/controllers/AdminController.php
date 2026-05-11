@@ -363,11 +363,18 @@ class AdminController
 
         $request = $requestModel->getById($id);
         if (!$request || ($request['organizer_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] != 'admin')) {
-             // Admin can see everything, but usually only their own created events if we follow the rule.
-             // Actually Admin role allows seeing everything.
+             // Admin can see everything
         }
 
         $messages = $messageModel->getByRequestId($id);
         require_once dirname(__DIR__) . '/views/admin/view_request.php';
     }
+
+    public function payments()
+    {
+        $this->checkAuth();
+        $activePage = 'payment_details';
+        require_once dirname(__DIR__) . '/views/admin/payment_details.php';
+    }
+
 }

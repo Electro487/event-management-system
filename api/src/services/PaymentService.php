@@ -301,4 +301,42 @@ class PaymentService
             ]
         ];
     }
+
+    public function organizerDashboard(array $authUser): array
+    {
+        if (($authUser['role'] ?? null) !== 'organizer') {
+            return ['ok' => false, 'status' => 403, 'message' => 'Only organizers can view their payment dashboard.'];
+        }
+
+        $organizerId = (int)$authUser['id'];
+        $stats = $this->bookingModel->getOrganizerPaymentStats($organizerId);
+        $bookings = $this->bookingModel->getByOrganizer($organizerId);
+
+        return [
+            'ok' => true,
+            'status' => 200,
+            'data' => [
+                'stats' => $stats,
+                'items' => $bookings
+            ]
+        ];
+    }
+    public function adminDashboard(array $authUser): array
+    {
+        if (($authUser['role'] ?? null) !== 'admin') {
+            return ['ok' => false, 'status' => 403, 'message' => 'Only admins can view the system payment dashboard.'];
+        }
+
+        $stats = $this->bookingModel->getSystemPaymentStats();
+        $bookings = $this->bookingModel->getAll(); // Already includes paid_amount, client_user_name, etc.
+
+        return [
+            'ok' => true,
+            'status' => 200,
+            'data' => [
+                'stats' => $stats,
+                'items' => $bookings
+            ]
+        ];
+    }
 }

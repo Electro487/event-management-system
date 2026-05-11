@@ -80,6 +80,8 @@ $routes = [
     '/admin/messages' => 'AdminController@messages',
     '/admin/requests' => 'AdminController@customRequests',
     '/admin/requests/view' => 'AdminController@viewRequest',
+    '/admin/payments' => 'AdminController@payments',
+
 
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
@@ -103,4 +105,5 @@ $routes = [
     '/client/feedback' => 'ClientController@feedback',
     '/admin/feedback' => 'AdminController@feedback',
     '/organizer/feedback' => 'OrganizerController@feedback',
+    '/organizer/payment_details' => 'OrganizerController@paymentDetails',
 ];
