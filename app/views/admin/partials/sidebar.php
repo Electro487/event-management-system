@@ -18,6 +18,8 @@
                             class="fas fa-ticket-alt"></i> Tickets</a></li>
                 <li><a href="/EventManagementSystem/public/admin/feedback" class="<?php echo ($activePage == 'feedback') ? 'active' : ''; ?>"><i
                             class="far fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/EventManagementSystem/public/admin/requests" class="<?php echo ($activePage == 'requests') ? 'active' : ''; ?>"><i
+                            class="fas fa-file-signature"></i> Requests</a></li>
                 <li><a href="/EventManagementSystem/public/admin/reports" class="<?php echo ($activePage == 'reports') ? 'active' : ''; ?>"><i
                             class="fas fa-chart-line"></i> Reports</a></li>
             </ul>

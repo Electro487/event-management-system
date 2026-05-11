@@ -176,6 +176,9 @@ class OrganizerController
     public function messages()
     {
         $this->checkAuth();
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        $requestModel = new CustomEventRequest();
+        $requests = $requestModel->getByOrganizerId($_SESSION['user_id']);
         require_once dirname(__DIR__) . '/views/organizer/messages.php';
     }
 
@@ -203,6 +206,43 @@ class OrganizerController
         // PATCH handling has been migrated to BookingApiController
         header('Location: /EventManagementSystem/public/organizer/bookings');
         exit;
+    }
+
+    public function customRequests()
+    {
+        $this->checkAuth();
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        $reqModel = new CustomEventRequest();
+        $requests = $reqModel->getByOrganizerId($_SESSION['user_id']);
+        
+        $activePage = 'requests';
+        require_once dirname(__DIR__) . '/views/organizer/custom_requests.php';
+    }
+
+    public function viewRequest()
+    {
+        $this->checkAuth();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /EventManagementSystem/public/organizer/requests');
+            exit;
+        }
+        
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        require_once dirname(__DIR__) . '/models/Message.php';
+        $reqModel = new CustomEventRequest();
+        $msgModel = new Message();
+        
+        $request = $reqModel->getById($id);
+        if (!$request || $request['organizer_id'] != $_SESSION['user_id']) {
+            header('Location: /EventManagementSystem/public/organizer/requests');
+            exit;
+        }
+        
+        $messages = $msgModel->getByRequestId($id);
+        $activePage = 'requests';
+
+        require_once dirname(__DIR__) . '/views/organizer/view_request.php';
     }
 
     public function feedback()
