@@ -35,9 +35,9 @@ if ($basePrice <= 0) {
     else if ($packageTier == 'premium') {
         $basePrice = 150000;
         // Cap premium concert tickets to 100k
-        if ($isConcert) $basePrice = 100000;
-    }
-    else
+        if ($isConcert)
+            $basePrice = 100000;
+    } else
         $basePrice = 20000;
 } else {
     // If we have a base price from DB, still cap it for premium concert tickets
@@ -107,35 +107,38 @@ if (empty($items)) {
                         </div>
                     </div>
                     <div class="nd-footer">
-                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
+                            Notifications <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php
-                    $initials = '';
-                    $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
-                    foreach($nameParts as $p) {
-                        $initials .= strtoupper(substr($p, 0, 1));
-                    }
-                    if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+                $initials = '';
+                $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+                foreach ($nameParts as $p) {
+                    $initials .= strtoupper(substr($p, 0, 1));
+                }
+                if (strlen($initials) > 2)
+                    $initials = substr($initials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
-                        <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                        <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                             <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar">
                         <?php else: ?>
                             <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
                         <?php endif; ?>
                     </div>
-                    
+
                     <!-- Dropdown Modal -->
                     <div id="profile-dropdown" class="profile-dropdown">
                         <div class="pd-top">
                             <div class="pd-avatar-container">
                                 <div class="pd-avatar">
-                                    <?php if(!empty($_SESSION['user_profile_pic'])): ?>
-                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
+                                    <?php if (!empty($_SESSION['user_profile_pic'])): ?>
+                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
+                                            style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
                                         <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
                                     <?php endif; ?>
@@ -143,21 +146,23 @@ if (empty($items)) {
                                 <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
                                     <i class="fa-solid fa-pen"></i>
                                 </label>
-                                <?php if(!empty($_SESSION['user_profile_pic'])): ?>
+                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                                     <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
                                         <i class="fa-solid fa-trash"></i>
                                     </div>
                                 <?php endif; ?>
-                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
+                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;"
+                                    onchange="uploadProfilePicture(this)">
                             </div>
                             <h3 class="pd-name"><?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?></h3>
                             <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
-                            <span class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
+                            <span
+                                class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
-                            <?php 
-                                $firstName = $nameParts[0] ?? '';
-                                $lastName = count($nameParts) > 1 ? end($nameParts) : '';
+                            <?php
+                            $firstName = $nameParts[0] ?? '';
+                            $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                             ?>
                             <div class="pd-detail">
                                 <label>FIRST NAME</label>
@@ -171,7 +176,7 @@ if (empty($items)) {
                                 <label>EMAIL ADDRESS</label>
                                 <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
                             </div>
-                            
+
                             <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
                                 <i class="fa-solid fa-star"></i> Rating &amp; Feedback
                             </a>
@@ -181,111 +186,111 @@ if (empty($items)) {
                         </div>
                     </div>
                 </div>
-                
+
                 <script>
-                function toggleProfileDropdown() {
-                    const dropdown = document.getElementById('profile-dropdown');
-                    dropdown.classList.toggle('show');
-                }
-                
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(event) {
-                    const container = document.getElementById('profile-container');
-                    if (container && !container.contains(event.target)) {
-                        document.getElementById('profile-dropdown').classList.remove('show');
+                    function toggleProfileDropdown() {
+                        const dropdown = document.getElementById('profile-dropdown');
+                        dropdown.classList.toggle('show');
                     }
-                });
 
-                function uploadProfilePicture(input) {
-                    if (input.files && input.files[0]) {
-                        const formData = new FormData();
-                        formData.append('profile_picture', input.files[0]);
-                        
-                        if (window.emsApi) {
-                            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
-                                method: 'POST',
-                                body: formData
-                            })
-                            .then(data => {
-                                if (data.success) {
-                                    const path = data.data?.path || data.path;
-                                    // Update header avatar
-                                    let headerIcon = document.getElementById('profile-icon');
-                                    headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
-                                    
-                                    // Update dropdown avatar
-                                    let dropdownAvatar = document.querySelector('.pd-avatar');
-                                    dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                    // Hide dropdown when clicking outside
+                    document.addEventListener('click', function (event) {
+                        const container = document.getElementById('profile-container');
+                        if (container && !container.contains(event.target)) {
+                            document.getElementById('profile-dropdown').classList.remove('show');
+                        }
+                    });
 
-                                    // Add delete icon if not exists
-                                    if (!document.querySelector('.pd-delete-icon')) {
-                                        let avatarContainer = document.querySelector('.pd-avatar-container');
-                                        let deleteBtn = document.createElement('div');
-                                        deleteBtn.className = 'pd-delete-icon';
-                                        deleteBtn.title = 'Remove Photo';
-                                        deleteBtn.onclick = deleteProfilePicture;
-                                        deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                        avatarContainer.appendChild(deleteBtn);
-                                    }
-                                } else {
-                                    alert(data.message || 'Error uploading image.');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('API Error:', error);
-                                alert('An error occurred during upload: ' + error.message);
-                            });
-                        } else {
-                            fetch('/EventManagementSystem/public/client/profile/update', {
-                                method: 'POST',
-                                body: formData
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) location.reload();
-                                else alert(data.message || 'Error uploading image.');
-                            })
-                            .catch(error => alert('An error occurred.'));
+                    function uploadProfilePicture(input) {
+                        if (input.files && input.files[0]) {
+                            const formData = new FormData();
+                            formData.append('profile_picture', input.files[0]);
+
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                    .then(data => {
+                                        if (data.success) {
+                                            const path = data.data?.path || data.path;
+                                            // Update header avatar
+                                            let headerIcon = document.getElementById('profile-icon');
+                                            headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+
+                                            // Update dropdown avatar
+                                            let dropdownAvatar = document.querySelector('.pd-avatar');
+                                            dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+
+                                            // Add delete icon if not exists
+                                            if (!document.querySelector('.pd-delete-icon')) {
+                                                let avatarContainer = document.querySelector('.pd-avatar-container');
+                                                let deleteBtn = document.createElement('div');
+                                                deleteBtn.className = 'pd-delete-icon';
+                                                deleteBtn.title = 'Remove Photo';
+                                                deleteBtn.onclick = deleteProfilePicture;
+                                                deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                                avatarContainer.appendChild(deleteBtn);
+                                            }
+                                        } else {
+                                            alert(data.message || 'Error uploading image.');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('API Error:', error);
+                                        alert('An error occurred during upload: ' + error.message);
+                                    });
+                            } else {
+                                fetch('/EventManagementSystem/public/client/profile/update', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) location.reload();
+                                        else alert(data.message || 'Error uploading image.');
+                                    })
+                                    .catch(error => alert('An error occurred.'));
+                            }
                         }
                     }
-                }
 
-                function deleteProfilePicture() {
-                    if (confirm('Are you sure you want to remove your profile picture?')) {
-                        if (window.emsApi) {
-                            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
-                                method: 'DELETE'
-                            })
-                            .then(data => {
-                                if (data.success) {
-                                    const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                    let headerIcon = document.getElementById('profile-icon');
-                                    headerIcon.innerHTML = initialsElement;
-                                    let dropdownAvatar = document.querySelector('.pd-avatar');
-                                    dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                    let deleteIcon = document.querySelector('.pd-delete-icon');
-                                    if (deleteIcon) deleteIcon.remove();
-                                } else {
-                                    alert('Error removing image.');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('API Error:', error);
-                                alert('An error occurred: ' + error.message);
-                            });
-                        } else {
-                            fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                                method: 'POST'
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) location.reload();
-                                else alert('Error removing image.');
-                            })
-                            .catch(error => alert('An error occurred.'));
+                    function deleteProfilePicture() {
+                        if (confirm('Are you sure you want to remove your profile picture?')) {
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                    method: 'DELETE'
+                                })
+                                    .then(data => {
+                                        if (data.success) {
+                                            const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                            let headerIcon = document.getElementById('profile-icon');
+                                            headerIcon.innerHTML = initialsElement;
+                                            let dropdownAvatar = document.querySelector('.pd-avatar');
+                                            dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                            let deleteIcon = document.querySelector('.pd-delete-icon');
+                                            if (deleteIcon) deleteIcon.remove();
+                                        } else {
+                                            alert('Error removing image.');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('API Error:', error);
+                                        alert('An error occurred: ' + error.message);
+                                    });
+                            } else {
+                                fetch('/EventManagementSystem/public/client/profile/delete-picture', {
+                                    method: 'POST'
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) location.reload();
+                                        else alert('Error removing image.');
+                                    })
+                                    .catch(error => alert('An error occurred.'));
+                            }
                         }
                     }
-                }
                 </script>
             <?php endif; ?>
         </div>
@@ -375,8 +380,11 @@ if (empty($items)) {
                             <div class="input-group">
                                 <label>EVENT DATE</label>
                                 <?php if (strtolower($event['category']) === 'concert'): ?>
-                                    <input type="text" value="<?php echo isset($event['event_date']) ? date('F d, Y', strtotime($event['event_date'])) : 'Fixed Date'; ?>" readonly style="background: #f1f5f9; cursor: not-allowed;">
-                                    <input type="hidden" name="event_date" value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
+                                    <input type="text"
+                                        value="<?php echo isset($event['event_date']) ? date('F d, Y', strtotime($event['event_date'])) : 'Fixed Date'; ?>"
+                                        readonly style="background: #f1f5f9; cursor: not-allowed;">
+                                    <input type="hidden" name="event_date"
+                                        value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
                                 <?php else: ?>
                                     <input type="date" name="event_date" required min="<?php echo date('Y-m-d'); ?>"
                                         value="<?php echo isset($event['event_date']) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>">
@@ -385,11 +393,13 @@ if (empty($items)) {
                             <div class="input-group">
                                 <label>TIME</label>
                                 <?php if (strtolower($event['category']) === 'concert'): ?>
-                                    <?php 
-                                        $fixedTime = isset($event['event_date']) ? date('h:i A', strtotime($event['event_date'])) : '06:00 PM';
+                                    <?php
+                                    $fixedTime = isset($event['event_date']) ? date('h:i A', strtotime($event['event_date'])) : '06:00 PM';
                                     ?>
-                                    <input type="text" value="<?php echo $fixedTime; ?>" readonly style="background: #f1f5f9; cursor: not-allowed;">
-                                    <input type="hidden" name="checkin_time" value="<?php echo date('H:i', strtotime($fixedTime)); ?>">
+                                    <input type="text" value="<?php echo $fixedTime; ?>" readonly
+                                        style="background: #f1f5f9; cursor: not-allowed;">
+                                    <input type="hidden" name="checkin_time"
+                                        value="<?php echo date('H:i', strtotime($fixedTime)); ?>">
                                 <?php else: ?>
                                     <input type="time" name="checkin_time" required value="10:00">
                                 <?php endif; ?>
@@ -397,10 +407,10 @@ if (empty($items)) {
                             <div class="input-group">
                                 <label><?php echo (strtolower($event['category']) === 'concert') ? 'NUMBER OF TICKETS' : 'GUEST COUNT'; ?></label>
                                 <div class="icon-input">
-                                    <input type="number" id="ticket_quantity" name="guest_count" required min="1" max="<?php echo $isConcert ? '5' : '10000'; ?>" step="1" 
-                                           placeholder="<?php echo $isConcert ? 'Qty' : '150'; ?>"
-                                           oninput="calculateTotal()"
-                                           onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                                    <input type="number" id="ticket_quantity" name="guest_count" required min="1"
+                                        max="<?php echo $isConcert ? '5' : '10000'; ?>" step="1"
+                                        placeholder="<?php echo $isConcert ? 'Qty' : '150'; ?>" oninput="calculateTotal()"
+                                        onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                                     <i class="fa-solid fa-ticket-alt"></i>
                                 </div>
                             </div>
@@ -430,7 +440,9 @@ if (empty($items)) {
                                     oninvalid="this.setCustomValidity('Please enter a 10-digit number starting with 9')"
                                     oninput="this.setCustomValidity('')"
                                     onkeypress="return event.charCode >= 48 && event.charCode <= 57">
-                                <small style="font-size: 11px; color: #1f6f59; font-weight: 500; margin-top: 4px; display: block;">* Must be exactly 10 digits starting with 9</small>
+                                <small
+                                    style="font-size: 11px; color: #1f6f59; font-weight: 500; margin-top: 4px; display: block;">*
+                                    Must be exactly 10 digits starting with 9</small>
                             </div>
                         </div>
                     </div>
@@ -445,19 +457,23 @@ if (empty($items)) {
                         <div class="summary-pkg-header">
                             <div>
                                 <h4><?php echo htmlspecialchars($event['category'] ?: 'Event'); ?></h4>
-                                <span class="pkg-badge"><?php echo strtoupper($packageTier); ?> <?php echo (strtolower($event['category']) === 'concert') ? 'TIER' : 'PACKAGE'; ?></span>
+                                <span class="pkg-badge"><?php echo strtoupper($packageTier); ?>
+                                    <?php echo (strtolower($event['category']) === 'concert') ? 'TIER' : 'PACKAGE'; ?></span>
                             </div>
-                            <?php 
-                                $tierIcon = 'fa-solid fa-award';
-                                if ($packageTier === 'basic') $tierIcon = 'fa-solid fa-box';
-                                if ($packageTier === 'standard') $tierIcon = 'fa-solid fa-certificate';
+                            <?php
+                            $tierIcon = 'fa-solid fa-award';
+                            if ($packageTier === 'basic')
+                                $tierIcon = 'fa-solid fa-box';
+                            if ($packageTier === 'standard')
+                                $tierIcon = 'fa-solid fa-certificate';
                             ?>
                             <i class="<?php echo $tierIcon; ?>" style="color:#1f6f59; font-size:24px;"></i>
                         </div>
                         <p class="pkg-desc"><?php echo htmlspecialchars($selectedPackageData['description'] ?? ''); ?></p>
 
                         <div class="whats-included">
-                            <span class="wi-label"><?php echo (strtolower($event['category']) === 'concert') ? "TICKET FEATURES" : "WHAT'S INCLUDED"; ?></span>
+                            <span
+                                class="wi-label"><?php echo (strtolower($event['category']) === 'concert') ? "TICKET FEATURES" : "WHAT'S INCLUDED"; ?></span>
                             <ul class="wi-list">
                                 <?php foreach ($items as $item): ?>
                                     <li><i class="fa-regular fa-circle-check" style="color:#1f6f59;"></i>
@@ -470,25 +486,32 @@ if (empty($items)) {
                             <?php if ($isConcert): ?>
                                 <div class="price-row" style="color: #64748b; font-size: 13px; margin-bottom: 5px;">
                                     <span>Price per Ticket</span>
-                                    <span>₨ <span id="display_base_price"><?php echo number_format($basePrice, 2); ?></span></span>
+                                    <span>₨ <span
+                                            id="display_base_price"><?php echo number_format($basePrice, 2); ?></span></span>
                                 </div>
-                                <div class="price-row" style="color: #1f6f59; font-weight: 700; margin-bottom: 5px; font-size: 16px;">
+                                <div class="price-row"
+                                    style="color: #1f6f59; font-weight: 700; margin-bottom: 5px; font-size: 16px;">
                                     <span>Total Ticket Price</span>
-                                    <span>₨ <span id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
+                                    <span>₨ <span
+                                            id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
                                 </div>
-                                <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">Full payment required for instant ticket generation. Max 5 tickets.</div>
+                                <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">Full payment required for
+                                    instant ticket generation. Max 5 tickets.</div>
                             <?php else: ?>
                                 <div class="price-row" style="margin-bottom: 5px;">
                                     <span>Total Amount</span>
-                                    <span>₨ <span id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
+                                    <span>₨ <span
+                                            id="display_total_amount"><?php echo number_format($totalAmount, 2); ?></span></span>
                                 </div>
                                 <div class="price-row" style="color: #1f6f59; font-weight: 600; margin-bottom: 5px;">
                                     <span>Advance (50% Online)</span>
-                                    <span>₨ <span id="display_advance_amount"><?php echo number_format($totalAmount * 0.5, 2); ?></span></span>
+                                    <span>₨ <span
+                                            id="display_advance_amount"><?php echo number_format($totalAmount * 0.5, 2); ?></span></span>
                                 </div>
                                 <div class="price-row" style="color: #64748b; font-size: 13px;">
                                     <span>Balance (50% Cash)</span>
-                                    <span>₨ <span id="display_balance_amount"><?php echo number_format($totalAmount * 0.5, 2); ?></span></span>
+                                    <span>₨ <span
+                                            id="display_balance_amount"><?php echo number_format($totalAmount * 0.5, 2); ?></span></span>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -496,32 +519,38 @@ if (empty($items)) {
                         <input type="hidden" name="pay_later" id="pay_later_flag" value="0">
 
                         <button type="submit" class="btn-confirm">
-                            Proceed to Pay <?php echo (strtolower($event['category']) === 'concert') ? 'for Ticket' : 'Advance'; ?> <i class="fa-solid fa-arrow-right"></i>
+                            Proceed to Pay
+                            <?php echo (strtolower($event['category']) === 'concert') ? 'for Ticket' : 'Advance'; ?> <i
+                                class="fa-solid fa-arrow-right"></i>
                         </button>
 
                         <?php if (strtolower($event['category']) !== 'concert'): ?>
-                        <button type="button" class="btn-confirm" onclick="submitWithPayLater()" 
+                            <button type="button" class="btn-confirm" onclick="submitWithPayLater()"
                                 style="background: transparent; color: #64748b; border: 1px solid #e2e8f0; margin-top: 10px;">
-                            I'll Pay Advance Later
-                        </button>
+                                I'll Pay Advance Later
+                            </button>
                         <?php endif; ?>
 
-                        <div class="policy-info" style="margin-top: 15px; padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; line-height: 1.4;">
-                            <i class="fa-solid fa-circle-info"></i> 
+                        <div class="policy-info"
+                            style="margin-top: 15px; padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; line-height: 1.4;">
+                            <i class="fa-solid fa-circle-info"></i>
                             <?php if (strtolower($event['category']) === 'concert'): ?>
-                                <b>Full Payment Required:</b> Tickets are non-refundable and require full online payment for instant confirmation and email delivery.
+                                <b>Full Payment Required:</b> Tickets are non-refundable and require full online payment for
+                                instant confirmation and email delivery.
                             <?php else: ?>
-                                <b>Advance Required:</b> A 50% non-refundable advance is required online to secure your booking. The remaining 50% balance must be paid in cash on the event day.
+                                <b>Advance Required:</b> A 50% non-refundable advance is required online to secure your booking.
+                                The remaining 50% balance must be paid in cash on the event day.
                             <?php endif; ?>
                         </div>
 
-                        <p class="terms-text" style="margin-top: 15px;">By clicking confirm, you agree to e-Plan's Terms of Service and Privacy
+                        <p class="terms-text" style="margin-top: 15px;">By clicking confirm, you agree to e-Plan's Terms of
+                            Service and Privacy
                             Policy.</p>
 
                         <script>
                             function submitWithPayLater() {
                                 const form = document.querySelector('form');
-                                
+
                                 // Manually trigger HTML5 validation
                                 if (!form.reportValidity()) {
                                     return; // Stop if form is invalid
@@ -566,7 +595,7 @@ if (empty($items)) {
         function calculateTotal() {
             const qtyInput = document.getElementById('ticket_quantity');
             let qty = parseInt(qtyInput.value) || 0;
-            
+
             if (IS_CONCERT && qty > 5) {
                 qty = 5;
                 qtyInput.value = 5;
@@ -574,21 +603,21 @@ if (empty($items)) {
             }
 
             const total = BASE_PRICE * (IS_CONCERT ? qty : 1); // For weddings, total is fixed by package
-            
+
             // For non-concerts, we don't multiply by guest count as it's a package price
             // However, the user might want it to multiply. Let's stick to concert-only multiplication for now
             // as per "money calculation should be dynamic like auto multiply the base cost"
-            
+
             document.querySelector('input[name="total_amount"]').value = total;
             const totalDisplay = document.getElementById('display_total_amount');
-            if (totalDisplay) totalDisplay.innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (totalDisplay) totalDisplay.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (!IS_CONCERT) {
                 const advanceDisplay = document.getElementById('display_advance_amount');
-                if (advanceDisplay) advanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                
+                if (advanceDisplay) advanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
                 const balanceDisplay = document.getElementById('display_balance_amount');
-                if (balanceDisplay) balanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (balanceDisplay) balanceDisplay.innerText = (total * 0.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
         }
 
@@ -601,7 +630,7 @@ if (empty($items)) {
                 e.preventDefault();
 
                 if (!form.reportValidity()) return;
-                
+
                 // Final Check for Concert Limit
                 if (IS_CONCERT) {
                     const qty = parseInt(document.getElementById('ticket_quantity').value) || 0;

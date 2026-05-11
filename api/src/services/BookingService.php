@@ -256,8 +256,9 @@ class BookingService
         if ($authUser['role'] === 'organizer' && (int)$booking['organizer_id'] !== (int)$authUser['id']) {
             return ['ok' => false, 'status' => 403, 'message' => 'Forbidden.'];
         }
-        if (strtolower($booking['payment_status'] ?? 'unpaid') !== 'partially_paid') {
-            return ['ok' => false, 'status' => 409, 'message' => 'Only partially_paid booking can be marked paid.'];
+        $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
+        if (!in_array($payStatus, ['unpaid', 'partially_paid'], true)) {
+            return ['ok' => false, 'status' => 409, 'message' => 'Only unpaid or partially_paid bookings can be marked paid.'];
         }
 
         $paidSoFar = $this->paymentModel->getSucceededTotalByBookingId($id);

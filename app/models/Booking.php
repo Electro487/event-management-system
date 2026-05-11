@@ -281,7 +281,7 @@ class Booking
         $stmt->bindParam(':end', $end);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return (float)($result['total'] ?? 0);
+        return (float) ($result['total'] ?? 0);
     }
 
     public function countAllByDate($start, $end)
@@ -292,7 +292,7 @@ class Booking
         $stmt->bindParam(':end', $end);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return (int)$result['count'];
+        return (int) $result['count'];
     }
 
     public function countSuccessfulBookingsByDate($start, $end)
@@ -303,7 +303,7 @@ class Booking
         $stmt->bindParam(':end', $end);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return (int)$result['count'];
+        return (int) $result['count'];
     }
 
     public function countByStatusAndDate($status, $start, $end)
@@ -315,7 +315,7 @@ class Booking
         $stmt->bindParam(':end', $end);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return (int)$result['count'];
+        return (int) $result['count'];
     }
 
     public function getBookingsByPackageTierByDate($start, $end)
@@ -346,18 +346,25 @@ class Booking
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
     public function getOrganizerPaymentStats($organizerId)
     {
         $sql = "SELECT 
-                    COALESCE(SUM(CASE WHEN b.status IN ('confirmed', 'completed') THEN (SELECT SUM(p.amount) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded') ELSE 0 END), 0) as total_earned,
-                    COALESCE(SUM(CASE WHEN b.status IN ('confirmed', 'completed') THEN (b.total_amount - (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded')) ELSE 0 END), 0) as pending_payouts,
+                    SUM(CASE 
+                        WHEN b.payment_status = 'paid' OR (SELECT COUNT(*) FROM tickets t WHERE t.booking_id = b.id) > 0 THEN b.total_amount 
+                        ELSE (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded')
+                    END) as total_earned,
+                    SUM(CASE 
+                        WHEN b.status IN ('confirmed', 'completed', 'pending') AND b.payment_status != 'paid' 
+                             AND (SELECT COUNT(*) FROM tickets t WHERE t.booking_id = b.id) = 0
+                        THEN (b.total_amount - (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded'))
+                        ELSE 0 
+                    END) as pending_payouts,
                     COUNT(CASE WHEN b.status IN ('confirmed', 'completed') THEN 1 END) as confirmed_count,
                     COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as cancelled_count
                 FROM bookings b
                 JOIN events e ON b.event_id = e.id
                 WHERE e.organizer_id = :organizer_id";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':organizer_id', $organizerId);
         $stmt->execute();
@@ -367,12 +374,20 @@ class Booking
     public function getSystemPaymentStats()
     {
         $sql = "SELECT 
-                    COALESCE(SUM((SELECT SUM(p.amount) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded')), 0) as total_revenue,
-                    COALESCE(SUM(CASE WHEN b.status IN ('confirmed', 'completed', 'pending') THEN (b.total_amount - (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded')) ELSE 0 END), 0) as total_pending,
+                    SUM(CASE 
+                        WHEN b.payment_status = 'paid' OR (SELECT COUNT(*) FROM tickets t WHERE t.booking_id = b.id) > 0 THEN b.total_amount 
+                        ELSE (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded')
+                    END) as total_revenue,
+                    SUM(CASE 
+                        WHEN b.status IN ('confirmed', 'completed', 'pending') AND b.payment_status != 'paid'
+                             AND (SELECT COUNT(*) FROM tickets t WHERE t.booking_id = b.id) = 0
+                        THEN (b.total_amount - (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.booking_id = b.id AND p.status = 'succeeded'))
+                        ELSE 0 
+                    END) as total_pending,
                     COUNT(CASE WHEN b.status IN ('confirmed', 'completed') THEN 1 END) as confirmed_count,
                     COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as cancelled_count
                 FROM bookings b";
-        
+
         $stmt = $this->db->query($sql);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
