@@ -23,9 +23,9 @@ class PaymentService
             return ['ok' => false, 'status' => 403, 'message' => 'Only clients can create payment checkout sessions.'];
         }
 
-        $bookingId = (int)($payload['booking_id'] ?? 0);
+        $bookingId = (int) ($payload['booking_id'] ?? 0);
         $booking = $this->bookingModel->getById($bookingId);
-        if (!$booking || (int)$booking['client_id'] !== (int)$authUser['id']) {
+        if (!$booking || (int) $booking['client_id'] !== (int) $authUser['id']) {
             return ['ok' => false, 'status' => 404, 'message' => 'Booking not found.'];
         }
         if (($booking['payment_status'] ?? '') === 'paid') {
@@ -36,7 +36,7 @@ class PaymentService
         $isConcert = (strtolower($eSnap['category'] ?? '') === 'concert');
         $targetMultiplier = $isConcert ? 1.0 : 0.5;
 
-        $advanceTarget = (float)$booking['total_amount'] * $targetMultiplier;
+        $advanceTarget = (float) $booking['total_amount'] * $targetMultiplier;
         $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
         $remainingAdvance = max(0, $advanceTarget - $paidAdvance);
 
@@ -57,23 +57,25 @@ class PaymentService
             \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => 'npr',
-                        'product_data' => [
-                            'name' => 'Booking for ' . $booking['event_title'],
-                            'description' => $booking['package_tier'] . ($isConcert ? ' Ticket - Full Payment' : ' Package - Installment toward 50% advance'),
+                'line_items' => [
+                    [
+                        'price_data' => [
+                            'currency' => 'npr',
+                            'product_data' => [
+                                'name' => 'Booking for ' . $booking['event_title'],
+                                'description' => $booking['package_tier'] . ($isConcert ? ' Ticket - Full Payment' : ' Package - Installment toward 50% advance'),
+                            ],
+                            'unit_amount' => (int) round($installmentAmount * 100),
                         ],
-                        'unit_amount' => (int)round($installmentAmount * 100),
-                    ],
-                    'quantity' => 1,
-                ]],
+                        'quantity' => 1,
+                    ]
+                ],
                 'mode' => 'payment',
                 'success_url' => URL_ROOT . '/client/payment/success?session_id={CHECKOUT_SESSION_ID}&booking_id=' . $bookingId,
                 'cancel_url' => URL_ROOT . '/client/payment/cancel?booking_id=' . $bookingId,
                 'metadata' => [
-                    'booking_id' => (string)$bookingId,
-                    'client_id' => (string)$authUser['id'],
+                    'booking_id' => (string) $bookingId,
+                    'client_id' => (string) $authUser['id'],
                     'payment_type' => $isConcert ? 'full_payment' : 'advance_installment',
                 ],
             ]);
@@ -100,14 +102,14 @@ class PaymentService
             return ['ok' => false, 'status' => 403, 'message' => 'Only clients can confirm Stripe payments.'];
         }
 
-        $sessionId = trim((string)($payload['session_id'] ?? ''));
-        $bookingId = (int)($payload['booking_id'] ?? 0);
+        $sessionId = trim((string) ($payload['session_id'] ?? ''));
+        $bookingId = (int) ($payload['booking_id'] ?? 0);
         if ($sessionId === '' || $bookingId <= 0) {
             return ['ok' => false, 'status' => 422, 'message' => 'session_id and booking_id are required.'];
         }
 
         $booking = $this->bookingModel->getById($bookingId);
-        if (!$booking || (int)$booking['client_id'] !== (int)$authUser['id']) {
+        if (!$booking || (int) $booking['client_id'] !== (int) $authUser['id']) {
             return ['ok' => false, 'status' => 404, 'message' => 'Booking not found.'];
         }
 
@@ -127,8 +129,8 @@ class PaymentService
             $this->paymentModel->create([
                 'booking_id' => $bookingId,
                 'client_id' => $authUser['id'],
-                'transaction_id' => (string)$session->payment_intent,
-                'amount' => ((float)$session->amount_total) / 100,
+                'transaction_id' => (string) $session->payment_intent,
+                'amount' => ((float) $session->amount_total) / 100,
                 'payment_method' => 'card',
                 'status' => 'succeeded',
                 'stripe_session_id' => $sessionId,
@@ -138,7 +140,7 @@ class PaymentService
             $isConcert = (strtolower($eSnap['category'] ?? '') === 'concert');
             $targetMultiplier = $isConcert ? 1.0 : 0.5;
 
-            $advanceTarget = (float)$booking['total_amount'] * $targetMultiplier;
+            $advanceTarget = (float) $booking['total_amount'] * $targetMultiplier;
             $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
             $amount = ((float)$session->amount_total) / 100;
             $remainingTarget = max(0, $advanceTarget - $paidAdvance);
@@ -146,13 +148,13 @@ class PaymentService
             if ($paidAdvance > 0) {
                 $newStatus = ($isConcert && $paidAdvance >= ($booking['total_amount'] - 0.01)) ? 'paid' : 'partially_paid';
                 $this->bookingModel->updatePaymentStatus($bookingId, $newStatus);
-                
+
                 // For concerts, we can automatically confirm the booking if paid in full
                 if ($isConcert && $newStatus === 'paid') {
                     $this->bookingModel->updateStatus($bookingId, 'confirmed');
 
                     // GENERATE TICKETS NOW (Only upon successful payment)
-                    $ticketCount = (int)$booking['guest_count'];
+                    $ticketCount = (int) $booking['guest_count'];
                     $generatedTickets = [];
                     for ($i = 0; $i < $ticketCount; $i++) {
                         $ticketCode = 'TKT-' . strtoupper(uniqid()) . '-' . ($i + 1);
@@ -173,14 +175,14 @@ class PaymentService
             }
 
             $notifTitle = $isConcert ? 'Ticket Payment Received' : 'Payment Received';
-            $notifMsg = $isConcert ? 
+            $notifMsg = $isConcert ?
                 'We have received your payment of NPR ' . number_format($amount, 2) . ' for ticket: ' . $booking['event_title'] . '. Your booking is now confirmed.' :
                 'We have received an advance installment of NPR ' . number_format($amount, 2) . ' for event: ' . $booking['event_title'] . '. Remaining online advance: NPR ' . number_format($remainingTarget, 2) . '.';
 
             $this->notificationModel->create($authUser['id'], $notifTitle, $notifMsg, 'payment', $bookingId);
 
             $adminMsg = ($isConcert ? 'Full payment' : 'An advance installment') . ' of NPR ' . number_format($amount, 2) . ' has been made by ' . ($authUser['fullname'] ?? $booking['full_name']) . ' for event: ' . $booking['event_title'] . '.';
-            
+
             $organizer = $this->userModel->findById($booking['organizer_id']);
             if ($organizer && $organizer['role'] === 'organizer') {
                 $this->notificationModel->create($booking['organizer_id'], 'New Payment', $adminMsg, 'payment_alert', $bookingId);
@@ -207,7 +209,7 @@ class PaymentService
         $isConcert = (strtolower($eSnap['category'] ?? '') === 'concert');
         $targetMultiplier = $isConcert ? 1.0 : 0.5;
 
-        $targetAmount = (float)$booking['total_amount'] * $targetMultiplier;
+        $targetAmount = (float) $booking['total_amount'] * $targetMultiplier;
         $paidSoFar = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
         $remaining = max(0, $targetAmount - $paidSoFar);
 
@@ -216,7 +218,7 @@ class PaymentService
             'status' => 200,
             'data' => [
                 'booking_id' => $bookingId,
-                'total_amount' => (float)$booking['total_amount'],
+                'total_amount' => (float) $booking['total_amount'],
                 'advance_target' => $targetAmount,
                 'paid_advance' => $paidSoFar,
                 'remaining_advance' => $remaining,
@@ -253,10 +255,10 @@ class PaymentService
             return true;
         }
         if ($role === 'organizer') {
-            return (int)$booking['organizer_id'] === (int)$authUser['id'];
+            return (int) $booking['organizer_id'] === (int) $authUser['id'];
         }
         if ($role === 'client') {
-            return (int)$booking['client_id'] === (int)$authUser['id'];
+            return (int) $booking['client_id'] === (int) $authUser['id'];
         }
         return false;
     }
@@ -269,22 +271,32 @@ class PaymentService
         $userId = (int)$authUser['id'];
         $payments = $this->paymentModel->getByClientId($userId);
         
-        // Calculate Stats Dynamically
+        // Calculate Stats - IDENTICAL logic to Admin revenue
         $totalSpent = 0;
         $totalPendingAmount = 0;
         $confirmedCount = 0;
 
         foreach ($payments as $p) {
-            // Money spent so far
-            $totalSpent += (float)($p['paid_amount'] ?? 0);
+            $bStatus = strtolower($p['booking_status'] ?? '');
+            $payStatus = strtolower($p['booking_payment_status'] ?? '');
+            $hasTicket = !empty($p['ticket_code']);
+            $total = (float)($p['amount'] ?? 0);
+            $onlinePaid = (float)($p['paid_amount'] ?? 0);
 
-            // Money yet to be paid
-            if ($p['booking_payment_status'] !== 'paid') {
-                $totalPendingAmount += ((float)$p['amount'] - (float)($p['paid_amount'] ?? 0));
+            // Total Spent = same formula as Admin's Total Revenue
+            if ($bStatus === 'cancelled') {
+                $totalSpent += $onlinePaid;
+                continue;
+            } elseif ($payStatus === 'paid' || $hasTicket) {
+                $totalSpent += $total;
+            } else {
+                $totalSpent += $onlinePaid;
             }
 
-            // Confirmed count
-            $bStatus = strtolower($p['booking_status'] ?? '');
+            if ($payStatus !== 'paid' && !$hasTicket) {
+                $totalPendingAmount += max(0, $total - $onlinePaid);
+            }
+
             if ($bStatus === 'confirmed' || $bStatus === 'completed') {
                 $confirmedCount++;
             }
@@ -319,10 +331,12 @@ class PaymentService
             'status' => 200,
             'data' => [
                 'stats' => $stats,
-                'items' => $bookings
+                'items' => $bookings,
+                'chart_data' => $this->calculateChartData($bookings)
             ]
         ];
     }
+
     public function adminDashboard(array $authUser): array
     {
         if (($authUser['role'] ?? null) !== 'admin') {
@@ -330,15 +344,70 @@ class PaymentService
         }
 
         $stats = $this->bookingModel->getSystemPaymentStats();
-        $bookings = $this->bookingModel->getAll(); // Already includes paid_amount, client_user_name, etc.
+        $bookings = $this->bookingModel->getAll();
 
         return [
             'ok' => true,
             'status' => 200,
             'data' => [
                 'stats' => $stats,
-                'items' => $bookings
+                'items' => $bookings,
+                'chart_data' => $this->calculateChartData($bookings)
             ]
+        ];
+    }
+
+    private function calculateChartData(array $bookings): array
+    {
+        $months = [];
+        $labels = [];
+        $received = [];
+        $remaining = [];
+        
+        for ($i = 5; $i >= 0; $i--) {
+            $date = new DateTime("first day of -$i months");
+            $m = $date->format('M');
+            $labels[] = strtoupper($m);
+            $months[$m] = count($labels) - 1;
+            $received[] = 0;
+            $remaining[] = 0;
+        }
+
+        foreach ($bookings as $b) {
+            $dateStr = $b['event_date'] ?? $b['event_start_date'] ?? null;
+            if (!$dateStr) continue;
+
+            $eventDate = new DateTime($dateStr);
+            $m = $eventDate->format('M');
+            
+            if (isset($months[$m])) {
+                $idx = $months[$m];
+                $status = strtolower($b['status'] ?? '');
+                $payStatus = strtolower($b['payment_status'] ?? 'unpaid');
+                $hasTicket = !empty($b['ticket_code']);
+                $total = (float)($b['total_amount'] ?? 0);
+                $onlinePaid = (float)($b['paid_amount'] ?? 0);
+
+                // Revenue logic (Includes cash if paid/ticketed, UNLESS cancelled)
+                if ($status === 'cancelled') {
+                    $received[$idx] += $onlinePaid;
+                } else if ($payStatus === 'paid' || $hasTicket) {
+                    $received[$idx] += $total;
+                } else {
+                    $received[$idx] += $onlinePaid;
+                }
+
+                // Pending logic (Only for non-cancelled)
+                if ($status !== 'cancelled' && $payStatus !== 'paid' && !$hasTicket) {
+                    $remaining[$idx] += max(0, $total - $onlinePaid);
+                }
+            }
+        }
+
+        return [
+            'labels' => $labels,
+            'received' => $received,
+            'remaining' => $remaining
         ];
     }
 }

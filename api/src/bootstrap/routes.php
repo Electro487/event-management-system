@@ -46,6 +46,7 @@ return [
     ['GET', '/api/v1/payments/{bookingId}/history', [PaymentApiController::class, 'history'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/payments/full-history', [PaymentApiController::class, 'fullHistory'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/payments/admin/dashboard', [PaymentApiController::class, 'adminDashboard'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/payments/organizer/dashboard', [PaymentApiController::class, 'organizerDashboard'], [JwtAuthMiddleware::class]],
 
     // Notifications
     ['GET', '/api/v1/notifications/latest', [NotificationApiController::class, 'latest'], [JwtAuthMiddleware::class]],

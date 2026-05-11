@@ -78,15 +78,13 @@ class Payment
                        b.created_at as created_at, b.status as booking_status, b.event_date as booking_event_date,
                        SUM(p.amount) as paid_amount, MAX(p.created_at) as paid_at,
                        e.title as live_title, e.event_date as live_date, 
-                       e.image_path as live_image, e.venue_name as live_venue,
+                       e.image_path as live_image, e.venue_name as live_venue, e.category as event_category,
                        t.ticket_code
                 FROM bookings b 
                 LEFT JOIN payments p ON b.id = p.booking_id AND p.status = 'succeeded'
                 LEFT JOIN events e ON b.event_id = e.id
                 LEFT JOIN tickets t ON b.id = t.booking_id
                 WHERE b.client_id = :client_id 
-                  AND b.status != 'cancelled'
-                  AND (b.payment_status != 'unpaid' OR b.status IN ('confirmed', 'completed') OR p.id IS NOT NULL)
                 GROUP BY b.id
                 ORDER BY b.created_at DESC";
         $stmt = $this->db->prepare($sql);
@@ -104,10 +102,8 @@ class Payment
             } elseif ($row['booking_payment_status'] === 'partially_paid') {
                 $row['ui_status'] = 'partial';
                 $row['ui_label'] = 'Half Paid';
-                // Ensure paid_amount reflects at least the 50% if marked partially paid
-                if ((float)($row['paid_amount'] ?? 0) <= 0) {
-                    $row['paid_amount'] = (float)$row['amount'] * 0.5;
-                }
+                // Use actual amount paid via gateway — do NOT assume 50%
+                $row['paid_amount'] = $row['paid_amount'] ?? 0;
             } else {
                 $row['ui_status'] = 'pending';
                 $row['ui_label'] = 'Pending';

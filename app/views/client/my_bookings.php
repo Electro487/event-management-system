@@ -430,6 +430,17 @@
             return hours + ':' + minutes + ' ' + ampm;
         }
 
+        function safeParse(json) {
+            if (!json) return null;
+            if (typeof json === 'object') return json;
+            try {
+                return JSON.parse(json);
+            } catch (e) {
+                console.error('SafeParse error:', e);
+                return null;
+            }
+        }
+
         function updateStats() {
             const total = bookingsData.length;
             const confirmed = bookingsData.filter(b => b.status.toLowerCase() === 'confirmed').length;
@@ -508,7 +519,7 @@
             currentItems.forEach((booking, idx) => {
                 const actualIndex = startIndex + idx; // To map back to filteredBookings if needed
 
-                const eSnap = booking.event_snapshot ? JSON.parse(booking.event_snapshot) : null;
+                const eSnap = safeParse(booking.event_snapshot);
                 const bListTitle = eSnap?.title || booking.event_title;
                 const bListCat = eSnap?.category || booking.event_category || 'Event';
 
@@ -549,7 +560,7 @@
                                 <div class="b-date-booked">Booked on: ${new Date(booking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                                 <div class="b-price-action">
                                     <span class="b-price">Rs. ${parseFloat(booking.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                    <a href="/EventManagementSystem/public/client/bookings/view?id=${booking.id}" class="b-view-link">View Details</a>
+                                    <a href="javascript:void(0)" onclick="event.stopPropagation(); selectBookingByObject(${booking.id}, this.closest('.b-item'))" class="b-view-link">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -578,13 +589,40 @@
             pagControls.style.display = 'flex';
             let html = '';
 
-            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button>`;
+            // Previous Button
+            html += `<button class="nav-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                        <i class="fa-solid fa-chevron-left"></i> Previous
+                    </button>`;
 
-            for (let i = 1; i <= totalPages; i++) {
-                html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            // Page Numbers Logic with Ellipsis
+            const delta = 1; // Numbers on each side of current page
+            const range = [];
+            for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+                range.push(i);
             }
 
-            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fa-solid fa-chevron-right"></i></button>`;
+            if (currentPage - delta > 2) {
+                range.unshift("...");
+            }
+            if (currentPage + delta < totalPages - 1) {
+                range.push("...");
+            }
+
+            range.unshift(1);
+            if (totalPages > 1) range.push(totalPages);
+
+            range.forEach(p => {
+                if (p === "...") {
+                    html += `<span class="pagination-ellipsis">...</span>`;
+                } else {
+                    html += `<button class="page-num ${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+                }
+            });
+
+            // Next Button
+            html += `<button class="nav-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                        Next <i class="fa-solid fa-chevron-right"></i>
+                    </button>`;
 
             pagControls.innerHTML = html;
         }
@@ -599,12 +637,12 @@
             document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
             if (element) element.classList.add('active');
 
-            const data = bookingsData.find(b => b.id === id);
+            const data = bookingsData.find(b => b.id == id);
             if (!data) return;
 
             // Snapshots
-            const eSnap = data.event_snapshot ? JSON.parse(data.event_snapshot) : null;
-            const pSnap = data.package_snapshot ? JSON.parse(data.package_snapshot) : null;
+            const eSnap = safeParse(data.event_snapshot);
+            const pSnap = safeParse(data.package_snapshot);
 
             // Populate Sidebar
             document.getElementById('sb-id').innerText = 'BK-' + String(data.id).padStart(3, '0');

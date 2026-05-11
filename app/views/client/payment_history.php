@@ -444,6 +444,34 @@ if (strlen($initials) > 2)
             color: #92400E;
         }
 
+        .cancelled-badge {
+            background: #FEE2E2;
+            color: #991B1B;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ticket-badge {
+            background: #ECFDF5;
+            color: #065F46;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .actions-col {
             display: flex;
             flex-direction: column;
@@ -955,6 +983,9 @@ if (strlen($initials) > 2)
 
             list.innerHTML = paginatedPayments.map(p => {
                 const eSnap = p.event_snapshot ? JSON.parse(p.event_snapshot) : {};
+                const category = (p.event_category || eSnap.category || '').toLowerCase();
+                const isConcert = category === 'concert';
+                
                 const eventTitle = eSnap.title || p.live_title || 'Event';
                 const eventDateRaw = eSnap.event_date || p.live_date || p.booking_event_date;
                 const eventDate = eventDateRaw ? formatDate(eventDateRaw) : 'TBA';
@@ -974,8 +1005,10 @@ if (strlen($initials) > 2)
                 const paidDate = p.status === 'succeeded' ? formatDateShort(p.paid_at || p.created_at) : 'Unpaid';
                 const paidDateColor = p.status === 'succeeded' ? '' : 'color: #DC2626; font-weight: 700;';
 
+                const isCancelled = (p.booking_status || '').toLowerCase() === 'cancelled';
+
                 return `
-                    <div class="payment-item">
+                    <div class="payment-item" style="${isCancelled ? 'opacity: 0.85;' : ''}">
                         <div class="event-img-container">
                             <img src="${imgUrl}" alt="Event" class="event-img">
                         </div>
@@ -983,6 +1016,8 @@ if (strlen($initials) > 2)
                             <div class="event-title-row">
                                 <a href="/EventManagementSystem/public/client/bookings/view?id=${p.booking_id}" class="event-title">${escapeHtml(eventTitle)}</a>
                                 <span class="tier-badge tier-${tier}">${tier}</span>
+                                ${isConcert ? `<span class="ticket-badge"><i class="fa-solid fa-ticket"></i> Ticket</span>` : ''}
+                                ${isCancelled ? `<span class="cancelled-badge"><i class="fa-solid fa-ban"></i> Cancelled</span>` : ''}
                             </div>
                             <div class="meta-grid">
                                 <div class="meta-col">
