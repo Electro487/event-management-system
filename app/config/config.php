@@ -17,3 +17,7 @@ if (file_exists($envFile)) {
 // Stripe Configuration
 define('STRIPE_PUBLISHABLE_KEY', $env['STRIPE_PUBLISHABLE_KEY'] ?? 'pk_test_placeholder');
 define('STRIPE_SECRET_KEY', $env['STRIPE_SECRET_KEY'] ?? 'sk_test_placeholder');
+
+// Gemini AI Chatbot Configuration
+define('GEMINI_API_KEY', $env['GEMINI_API_KEY'] ?? '');
+define('GEMINI_MODEL', $env['GEMINI_MODEL'] ?? 'gemini-2.0-flash');

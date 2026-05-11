@@ -289,4 +289,14 @@ class User
         $stmt = $pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getAllByRole(string $role)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT * FROM users WHERE role = :role AND is_blocked = 0";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':role', $role);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

@@ -389,7 +389,8 @@ function _updatePageUI(data) {
             'message': 'fa-solid fa-message',
             'feedback': 'fa-solid fa-comment-dots',
             'feedback_reply': 'fa-solid fa-reply',
-            'feedback_mention': 'fa-solid fa-at'
+            'feedback_mention': 'fa-solid fa-at',
+            'promo_code': 'fa-solid fa-tags'
         };
         const iconClass = icons[n.type] || 'fa-regular fa-bell';
 
@@ -432,7 +433,7 @@ function _showToast(n) {
 
     const toast = document.createElement('div');
     toast.className = 'notif-toast showing';
-    const icons = { 'booking': 'fa-solid fa-bookmark', 'booking_approve': 'fa-solid fa-circle-check', 'booking_cancel': 'fa-solid fa-circle-xmark', 'event': 'fa-regular fa-calendar-plus', 'event_update': 'fa-solid fa-pen-to-square', 'message': 'fa-solid fa-message', 'feedback': 'fa-solid fa-comment-dots' };
+    const icons = { 'booking': 'fa-solid fa-bookmark', 'booking_approve': 'fa-solid fa-circle-check', 'booking_cancel': 'fa-solid fa-circle-xmark', 'event': 'fa-regular fa-calendar-plus', 'event_update': 'fa-solid fa-pen-to-square', 'message': 'fa-solid fa-message', 'feedback': 'fa-solid fa-comment-dots', 'promo_code': 'fa-solid fa-tags' };
     const iconClass = icons[n.type] || 'fa-solid fa-bell';
 
     toast.innerHTML = `

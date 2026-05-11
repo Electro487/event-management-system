@@ -320,6 +320,13 @@ class AdminController
         require_once dirname(__DIR__) . '/views/admin/feedback.php';
     }
 
+    public function promoCodes()
+    {
+        $this->checkAuth();
+        $activePage = 'promo_codes';
+        require_once dirname(__DIR__) . '/views/admin/promo_codes.php';
+    }
+
     public function reports()
     {
         $this->checkAuth();
@@ -376,5 +383,4 @@ class AdminController
         $activePage = 'payment_details';
         require_once dirname(__DIR__) . '/views/admin/payment_details.php';
     }
-
 }

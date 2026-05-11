@@ -623,6 +623,7 @@ $displayName = $fullName;
     </script>
 
     <?php include 'partials/feedback_popup.php'; ?>
+    <?php require_once dirname(__DIR__) . '/partials/chatbot_widget.php'; ?>
 </body>
 
 </html>

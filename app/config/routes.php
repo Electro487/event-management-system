@@ -105,5 +105,7 @@ $routes = [
     '/client/feedback' => 'ClientController@feedback',
     '/admin/feedback' => 'AdminController@feedback',
     '/organizer/feedback' => 'OrganizerController@feedback',
+    '/organizer/promo-codes' => 'OrganizerController@promoCodes',
+    '/admin/promo-codes' => 'AdminController@promoCodes',
     '/organizer/payment_details' => 'OrganizerController@paymentDetails',
 ];

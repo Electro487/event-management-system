@@ -13,7 +13,9 @@ class MailHelper
             $envFile = dirname(dirname(__DIR__)) . '/.env';
             if (file_exists($envFile)) {
                 $env = parse_ini_file($envFile);
+                error_log("MailHelper: .env loaded. Host: " . ($env['MAIL_HOST'] ?? 'MISSING'));
             } else {
+                error_log("MailHelper: .env NOT FOUND at " . $envFile);
                 throw new Exception("Environment file not found.");
             }
 
@@ -22,8 +24,8 @@ class MailHelper
             $mail->SMTPAuth   = true;
             $mail->Username   = $env['MAIL_USER'] ?? '';
             $mail->Password   = $env['MAIL_PASS'] ?? '';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = 465;
 
             $mail->setFrom($env['MAIL_USER'], 'Event Management System');
             $mail->addAddress($email);
@@ -69,8 +71,8 @@ class MailHelper
             $mail->SMTPAuth   = true;
             $mail->Username   = $env['MAIL_USER'] ?? '';
             $mail->Password   = $env['MAIL_PASS'] ?? '';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = 465;
 
             $mail->setFrom($env['MAIL_USER'], 'Event Management System');
             $mail->addAddress($email);
@@ -118,6 +120,67 @@ class MailHelper
             return true;
         } catch (Exception $e) {
             error_log("Ticket Mailer Error: " . $mail->ErrorInfo);
+            return false;
+        }
+    }
+
+    public static function sendBookingConfirmation($email, $booking, $amountPaid, $transactionId = null)
+    {
+        error_log("MailHelper: Attempting to send booking confirmation to $email");
+        $mail = new PHPMailer(true);
+        try {
+            $envFile = dirname(dirname(__DIR__)) . '/.env';
+            if (file_exists($envFile)) {
+                $env = parse_ini_file($envFile);
+            } else {
+                error_log("MailHelper: .env NOT FOUND for confirmation");
+                throw new Exception("Environment file not found.");
+            }
+
+            $mail->isSMTP();
+            $mail->Host       = $env['MAIL_HOST'] ?? 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $env['MAIL_USER'] ?? '';
+            $mail->Password   = $env['MAIL_PASS'] ?? '';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = 465;
+
+            $mail->setFrom($env['MAIL_USER'], 'Event Management System');
+            $mail->addAddress($email);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Booking Confirmation - ' . ($booking['event_title'] ?? 'Your Event Booking');
+            
+            $txHtml = $transactionId ? "<p><strong>Transaction ID:</strong> <span style='font-family: monospace;'>$transactionId</span></p>" : "";
+
+            $mail->Body = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
+                    <div style='text-align: center; margin-bottom: 20px;'>
+                        <h1 style='color: #246A55;'>Booking Successful!</h1>
+                        <p style='color: #64748b;'>We have received your payment for the event booking.</p>
+                    </div>
+                    
+                    <div style='background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+                        <h3 style='margin-top: 0; color: #1e293b;'>Booking Summary</h3>
+                        <p><strong>Event:</strong> " . ($booking['event_title'] ?? 'Event') . "</p>
+                        <p><strong>Date:</strong> " . date('M d, Y', strtotime($booking['event_date'])) . "</p>
+                        <p><strong>Package:</strong> " . ucfirst($booking['package_tier']) . "</p>
+                        <p><strong>Amount Paid:</strong> NPR " . number_format($amountPaid, 2) . "</p>
+                        $txHtml
+                    </div>
+                    
+                    <p>Thank you for choosing our services. Your booking is now being processed by our team.</p>
+                    <p>You can view your booking status and details anytime in your dashboard.</p>
+                    
+                    <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+                    <p style='font-size: 12px; color: #777; text-align: center;'>&copy; " . date('Y') . " Event Management System</p>
+                </div>
+            ";
+
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Booking Mailer Error: " . $mail->ErrorInfo);
             return false;
         }
     }

@@ -8,6 +8,7 @@ class BookingService
     private Notification $notificationModel;
     private Payment $paymentModel;
     private Ticket $ticketModel;
+    private PromoCode $promoCodeModel;
 
     public function __construct()
     {
@@ -17,6 +18,7 @@ class BookingService
         $this->notificationModel = new Notification();
         $this->paymentModel = new Payment();
         $this->ticketModel = new Ticket();
+        $this->promoCodeModel = new PromoCode();
     }
 
     public function list(array $authUser): array
@@ -117,8 +119,17 @@ class BookingService
             return ['ok' => false, 'status' => 422, 'message' => 'Event date is required.'];
         }
 
-        $totalAmount = (float)($payload['total_amount'] ?? 0);
-        $guestCount = (int)($payload['guest_count'] ?? 0);
+        if (!$selectedPackage) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Invalid package selected.'];
+        }
+
+        $basePrice = (float)($selectedPackage['price'] ?? 0);
+        $guestCount = (int)($payload['guest_count'] ?? 1);
+        if ($guestCount <= 0) $guestCount = 1;
+
+        // Recalculate Subtotal
+        $subtotal = $basePrice * ($isConcert ? $guestCount : 1);
+        $totalAmount = $subtotal;
 
         if ($isConcert) {
             // Enforcement: Max 5 tickets
@@ -127,8 +138,22 @@ class BookingService
             }
             
             // Protection: Cap premium concert prices at 100k
-            if ($tierKey === 'premium' && ($totalAmount / $guestCount) > 100000) {
+            if ($tierKey === 'premium' && $basePrice > 100000) {
                 $totalAmount = 100000 * $guestCount;
+            }
+        }
+
+        // Apply Promo Code Discount (ONLY FOR CONCERTS / TICKETS)
+        $promoCode = $payload['promo_code'] ?? null;
+        if (!empty($promoCode) && $isConcert) {
+            $promo = $this->promoCodeModel->getByCode($promoCode);
+            if ($promo) {
+                $discount = ($totalAmount * (float)$promo['discount_percentage']) / 100;
+                $totalAmount -= $discount;
+                $this->promoCodeModel->incrementUsage($promo['id']);
+                error_log("Promo Code Applied: $promoCode, Discount: $discount, New Total: $totalAmount");
+            } else {
+                error_log("Promo Code Invalid or Expired: $promoCode");
             }
         }
 

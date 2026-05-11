@@ -142,6 +142,8 @@ class PaymentService
 
             $advanceTarget = (float) $booking['total_amount'] * $targetMultiplier;
             $paidAdvance = $this->paymentModel->getSucceededTotalByBookingId($bookingId);
+            $amount = ((float)$session->amount_total) / 100;
+            $remainingTarget = max(0, $advanceTarget - $paidAdvance);
 
             if ($paidAdvance > 0) {
                 $newStatus = ($isConcert && $paidAdvance >= ($booking['total_amount'] - 0.01)) ? 'paid' : 'partially_paid';
@@ -165,12 +167,12 @@ class PaymentService
                     }
 
                     // SEND EMAIL
-                    MailHelper::sendTicket($booking['email'], $booking, $generatedTickets, (string) $session->payment_intent);
+                    MailHelper::sendTicket($booking['email'], $booking, $generatedTickets, (string)$session->payment_intent);
+                } else {
+                    // For non-concerts, send a general booking confirmation email
+                    MailHelper::sendBookingConfirmation($booking['email'], $booking, $amount, (string)$session->payment_intent);
                 }
             }
-
-            $remainingTarget = max(0, $advanceTarget - $paidAdvance);
-            $amount = ((float) $session->amount_total) / 100;
 
             $notifTitle = $isConcert ? 'Ticket Payment Received' : 'Payment Received';
             $notifMsg = $isConcert ?

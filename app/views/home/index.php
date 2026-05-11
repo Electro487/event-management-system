@@ -449,6 +449,8 @@
         });
     </script>
 
+<?php require_once dirname(__DIR__) . '/partials/chatbot_widget.php'; ?>
+
 </body>
 
 </html>

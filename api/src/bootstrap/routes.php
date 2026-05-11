@@ -80,4 +80,13 @@ return [
     ['PATCH', '/api/v1/feedback', [FeedbackApiController::class, 'update'], [JwtAuthMiddleware::class]],
     ['PATCH', '/api/v1/feedback/reply', [FeedbackApiController::class, 'updateReply'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/feedback/stats', [FeedbackApiController::class, 'stats'], []],
+
+    // Chatbot (OpenRouter)
+    ['POST', '/api/v1/chat', [ChatApiController::class, 'chat'], []],
+
+    // Promo Codes
+    ['GET', '/api/v1/promo-codes', [PromoCodeApiController::class, 'index'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/promo-codes', [PromoCodeApiController::class, 'store'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/promo-codes/validate', [PromoCodeApiController::class, 'validate'], [JwtAuthMiddleware::class]],
+    ['DELETE', '/api/v1/promo-codes/{id}', [PromoCodeApiController::class, 'delete'], [JwtAuthMiddleware::class]],
 ];
