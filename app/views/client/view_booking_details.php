@@ -624,7 +624,7 @@ $steps = [
             // Replace checkout link to prefer API-created checkout url (optional)
             const payLink = document.querySelector('a[href*="/client/payment/checkout"]');
             if (payLink) {
-                const match = payLink.getAttribute('href').match(/booking_id=(\\d+)/);
+                const match = payLink.getAttribute('href').match(/booking_id=(\d+)/);
                 const bookingId = match ? match[1] : null;
                 if (bookingId) {
                     payLink.addEventListener('click', async function (e) {

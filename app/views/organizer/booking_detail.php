@@ -449,9 +449,9 @@
                         `;
                     }
                     
-                    if (status !== 'cancelled' && pStat === 'partially_paid') {
+                    if (status !== 'cancelled' && (pStat === 'partially_paid' || pStat === 'unpaid')) {
                         btnsHtml += `
-                            <button type="button" class="btn-manage" style="background: #10b981; color: white; margin-top:10px;" onclick="updateStatus('mark-paid', 'Confirm that you have received the remaining 50% cash balance?')">
+                            <button type="button" class="btn-manage" style="background: #10b981; color: white; margin-top:10px;" onclick="updateStatus('mark-paid', 'Confirm that you have received the cash balance?')">
                                 <i class="fa-solid fa-money-bill-check"></i> Mark as Fully Paid (Cash)
                             </button>
                         `;

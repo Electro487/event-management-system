@@ -497,6 +497,52 @@
             height: 100%;
             background: #fbbf24;
             border-radius: 4px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .status-badge.on-track { background: #065f46; color: #a7f3d0; border: 1px solid #067d5a; }
+        .status-badge.needs-attention { background: #991b1b; color: #fecaca; border: 1px solid #b91c1c; }
+        .status-badge.exceeded { background: #fbbf24; color: #78350f; border: 1px solid #f59e0b; }
+
+        .secondary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sec-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sec-stat .label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #a7f3d0;
+            text-transform: uppercase;
+        }
+
+        .sec-stat .val {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
         }
 
         .header-right {
@@ -726,10 +772,22 @@
             </div>
             <div class="status-card">
                 <div>
+                    <div id="admin-status-badge" class="status-badge on-track">System Stable</div>
                     <h3>Global Financial Health</h3>
-                    <p id="admin-financial-desc">Loading platform status...</p>
+                    <p id="admin-financial-desc" style="margin-bottom: 16px;">Analyzing platform status...</p>
+
+                    <div class="secondary-stats">
+                        <div class="sec-stat">
+                            <span class="label">Potential Volume</span>
+                            <span class="val">Rs. <span id="admin-potential-total">0</span></span>
+                        </div>
+                        <div class="sec-stat">
+                            <span class="label">Next Milestone</span>
+                            <span class="val">Rs. <span id="admin-next-milestone">5.0M</span></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="goal-section">
+                <div class="goal-section" style="margin-top: 24px;">
                     <span class="goal-label">Platform Volume Goal</span>
                     <div class="goal-value">
                         Rs. 25,00,000 <span class="goal-percent" id="goal-percent-text">0% Complete</span>
@@ -852,13 +910,42 @@
                 // Update Goal section (Dynamic)
                 const target = 2500000;
                 const percent = Math.min(100, Math.round((totalEarned / target) * 100));
-                
-                // Simulated dynamic growth based on system volume
-                const growth = 15 + (confirmedCount % 8);
+                const potentialVolume = totalEarned + pendingPayouts;
 
-                document.getElementById('admin-financial-desc').textContent = `The platform revenue has stabilized with a ${growth}% increase in cross-category bookings. Strategic goal is to achieve Rs. 2.5M in total volume by year-end.`;
+                let desc = "";
+                let statusText = "Stable";
+                let statusClass = "on-track";
+                let nextMilestone = "5.0M";
+
+                if (percent < 25) {
+                    desc = `Platform is in early growth phase. Volume target of Rs. 2.5M is currently ${percent}% complete.`;
+                    statusText = "Scaling Up";
+                } else if (percent < 50) {
+                    desc = `Steady system performance. The platform has processed ${percent}% of the quarterly goal.`;
+                    statusText = "Performing";
+                } else if (percent < 75) {
+                    desc = `Strong quarterly trajectory! Potential system volume is projected at Rs. ${potentialVolume.toLocaleString()}.`;
+                    statusText = "High Growth";
+                } else if (percent < 100) {
+                    desc = `Exceptional system volume! Platform is approaching its primary quarterly target.`;
+                    statusText = "Peak Performance";
+                } else {
+                    desc = `Strategic milestone reached! Platform volume has exceeded the Rs. 2.5M goal. Focus shifting to the next tier.`;
+                    statusText = "Target Exceeded";
+                    statusClass = "exceeded";
+                    nextMilestone = "10.0M";
+                }
+
+                document.getElementById('admin-financial-desc').textContent = desc;
+                document.getElementById('admin-status-badge').textContent = statusText;
+                document.getElementById('admin-status-badge').className = `status-badge ${statusClass}`;
+                document.getElementById('admin-potential-total').textContent = potentialVolume.toLocaleString();
+                document.getElementById('admin-next-milestone').textContent = nextMilestone;
+
                 document.getElementById('goal-percent-text').textContent = `${percent}% Complete`;
-                document.getElementById('goal-progress-bar').style.width = `${percent}%`;
+                setTimeout(() => {
+                    document.getElementById('goal-progress-bar').style.width = `${percent}%`;
+                }, 100);
             }
 
             function renderTable() {
@@ -969,8 +1056,15 @@
                         const m = new Date(parts[0], parts[1] - 1, parts[2]).toLocaleString('default', { month: 'short' });
                         if (monthIndices.hasOwnProperty(m)) {
                             const idx = monthIndices[m];
+                            const status = (b.status || '').toLowerCase();
+                            
+                            // "RECEIVED" part - always include what was actually paid
                             realConfirmed[idx] += parseFloat(b.paid_amount || 0);
-                            realPending[idx] += Math.max(0, parseFloat(b.total_amount || 0) - parseFloat(b.paid_amount || 0));
+                            
+                            // "REMAINING" part - only include for non-cancelled bookings
+                            if (status !== 'cancelled') {
+                                realPending[idx] += Math.max(0, parseFloat(b.total_amount || 0) - parseFloat(b.paid_amount || 0));
+                            }
                         }
                     }
                 });

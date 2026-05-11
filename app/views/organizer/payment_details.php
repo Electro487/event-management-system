@@ -534,6 +534,66 @@
             height: 100%;
             background: #fbbf24;
             border-radius: 4px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .status-badge.on-track {
+            background: #065f46;
+            color: #a7f3d0;
+            border: 1px solid #067d5a;
+        }
+
+        .status-badge.needs-attention {
+            background: #991b1b;
+            color: #fecaca;
+            border: 1px solid #b91c1c;
+        }
+
+        .status-badge.exceeded {
+            background: #fbbf24;
+            color: #78350f;
+            border: 1px solid #f59e0b;
+        }
+
+        .secondary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sec-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sec-stat .label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #a7f3d0;
+            text-transform: uppercase;
+        }
+
+        .sec-stat .val {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
         }
 
         /* Top Header Adjustments */
@@ -769,10 +829,22 @@
             </div>
             <div class="status-card">
                 <div>
+                    <div id="org-status-badge" class="status-badge on-track">On Track</div>
                     <h3>Financial Status</h3>
-                    <p id="org-financial-desc">Loading status...</p>
+                    <p id="org-financial-desc" style="margin-bottom: 16px;">Analyzing your revenue data...</p>
+
+                    <div class="secondary-stats">
+                        <div class="sec-stat">
+                            <span class="label">Potential Earnings</span>
+                            <span class="val">Rs. <span id="org-potential-total">0</span></span>
+                        </div>
+                        <div class="sec-stat">
+                            <span class="label">Next Milestone</span>
+                            <span class="val">Rs. <span id="org-next-milestone">200k</span></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="goal-section">
+                <div class="goal-section" style="margin-top: 24px;">
                     <span class="goal-label">Quarterly Goal</span>
                     <div class="goal-value">
                         Rs. 1,50,000 <span class="goal-percent" id="org-goal-percent">0% Complete</span>
@@ -872,13 +944,11 @@
             async function fetchData() {
                 fetchCategories(); // Populate categories dropdown
                 try {
-                    const response = await window.emsApi.apiFetch('/api/v1/bookings');
-                    allBookings = response.data?.items || response.data || [];
+                    const response = await window.emsApi.apiFetch('/api/v1/payments/organizer/dashboard');
+                    allBookings = response.data?.items || [];
+                    const serverStats = response.data?.stats || null;
 
-                    // Filter for current organizer if not already filtered by backend
-                    // Assuming backend already filters by logged in user ID for /api/v1/bookings if role is organizer
-
-                    updateStats();
+                    updateStats(serverStats);
                     renderTable();
                     renderChart();
                 } catch (error) {
@@ -887,7 +957,59 @@
                 }
             }
 
-            function updateStats() {
+            function updateStats(serverStats = null) {
+                if (serverStats) {
+                    const totalEarned = parseFloat(serverStats.total_earned || 0);
+                    const pendingPayouts = parseFloat(serverStats.pending_payouts || 0);
+                    const confirmedCount = serverStats.confirmed_count || 0;
+                    const cancelledCount = serverStats.cancelled_count || 0;
+
+                    document.getElementById('stat-total-earned').textContent = totalEarned.toLocaleString();
+                    document.getElementById('stat-pending-payouts').textContent = pendingPayouts.toLocaleString();
+                    document.getElementById('stat-confirmed-count').textContent = confirmedCount;
+                    document.getElementById('stat-cancelled-count').textContent = cancelledCount;
+
+                    const target = 150000;
+                    const percent = Math.min(100, Math.round((totalEarned / target) * 100));
+                    const potentialTotal = totalEarned + pendingPayouts;
+
+                    let desc = "";
+                    let statusText = "On Track";
+                    let statusClass = "on-track";
+                    let nextMilestone = "200,000";
+
+                    if (percent < 25) {
+                        desc = `You're in the early stages of this quarter. Focus on securing more bookings to hit your Rs. 150k target.`;
+                        statusText = "Starting Up";
+                    } else if (percent < 50) {
+                        desc = `Good steady progress! You've reached ${percent}% of your goal. Keep the momentum going.`;
+                        statusText = "Growing";
+                    } else if (percent < 75) {
+                        desc = `Strong performance! You're past the halfway mark. Your potential quarterly total is Rs. ${potentialTotal.toLocaleString()}.`;
+                        statusText = "Strong";
+                    } else if (percent < 100) {
+                        desc = `Excellent work! You're very close to your quarterly goal. Just a few more successful events needed.`;
+                        statusText = "Almost There";
+                    } else {
+                        desc = `Congratulations! You've exceeded your quarterly goal. Strategic focus should now shift to the next growth phase.`;
+                        statusText = "Goal Achieved";
+                        statusClass = "exceeded";
+                        nextMilestone = "300,000";
+                    }
+
+                    document.getElementById('org-financial-desc').textContent = desc;
+                    document.getElementById('org-status-badge').textContent = statusText;
+                    document.getElementById('org-status-badge').className = `status-badge ${statusClass}`;
+                    document.getElementById('org-potential-total').textContent = potentialTotal.toLocaleString();
+                    document.getElementById('org-next-milestone').textContent = nextMilestone;
+
+                    document.getElementById('org-goal-percent').textContent = `${percent}% Complete`;
+                    setTimeout(() => {
+                        document.getElementById('org-progress-bar').style.width = `${percent}%`;
+                    }, 100);
+                    return;
+                }
+
                 let totalEarned = 0;
                 let pendingPayouts = 0;
                 let confirmedCount = 0;
@@ -908,9 +1030,11 @@
                         eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                     }
 
-                    if (status === 'confirmed' || status === 'completed') {
+                    if (status === 'confirmed' || status === 'completed' || status === 'pending') {
                         totalEarned += paid;
-                        confirmedCount++;
+                        if (status === 'confirmed' || status === 'completed') {
+                            confirmedCount++;
+                        }
                         pendingPayouts += (total - paid);
 
                         // Dynamic: events in next 7 days that are not fully paid
@@ -931,12 +1055,48 @@
                 const target = 150000;
                 const percent = Math.min(100, Math.round((totalEarned / target) * 100));
 
+                // Enhanced Dynamic Description & Insights
+                const potentialTotal = totalEarned + pendingPayouts;
+                let desc = "";
+                let statusText = "On Track";
+                let statusClass = "on-track";
+                let nextMilestone = "200,000";
+
+                if (percent < 25) {
+                    desc = `You're in the early stages of this quarter. Focus on securing more bookings to hit your Rs. 150k target.`;
+                    statusText = "Starting Up";
+                } else if (percent < 50) {
+                    desc = `Good steady progress! You've reached ${percent}% of your goal. Keep the momentum going.`;
+                    statusText = "Growing";
+                } else if (percent < 75) {
+                    desc = `Strong performance! You're past the halfway mark. Your potential quarterly total is Rs. ${potentialTotal.toLocaleString()}.`;
+                    statusText = "Strong";
+                } else if (percent < 100) {
+                    desc = `Excellent work! You're very close to your quarterly goal. Just a few more successful events needed.`;
+                    statusText = "Almost There";
+                } else {
+                    desc = `Congratulations! You've exceeded your quarterly goal. Strategic focus should now shift to the next growth phase.`;
+                    statusText = "Goal Achieved";
+                    statusClass = "exceeded";
+                    nextMilestone = "300,000";
+                }
+
                 // Growth calculation based on confirmed vs total count (simulated trend)
                 const growth = 12 + (confirmedCount % 5);
+                if (upcomingPayouts > 0) {
+                    desc += ` You have ${upcomingPayouts} upcoming payouts scheduled for next week.`;
+                }
 
-                document.getElementById('org-financial-desc').textContent = `Your revenue has increased by ${growth}% compared to last quarter. You have ${upcomingPayouts} upcoming payouts scheduled for next week.`;
+                document.getElementById('org-financial-desc').textContent = desc;
+                document.getElementById('org-status-badge').textContent = statusText;
+                document.getElementById('org-status-badge').className = `status-badge ${statusClass}`;
+                document.getElementById('org-potential-total').textContent = potentialTotal.toLocaleString();
+                document.getElementById('org-next-milestone').textContent = nextMilestone;
+
                 document.getElementById('org-goal-percent').textContent = `${percent}% Complete`;
-                document.getElementById('org-progress-bar').style.width = `${percent}%`;
+                setTimeout(() => {
+                    document.getElementById('org-progress-bar').style.width = `${percent}%`;
+                }, 100);
             }
 
             function renderTable() {
@@ -1110,8 +1270,15 @@
 
                         if (monthIndices.hasOwnProperty(month)) {
                             const idx = monthIndices[month];
+                            const status = (b.status || '').toLowerCase();
+
+                            // "CONFIRMED" part - always include what was actually paid
                             realConfirmed[idx] += paid;
-                            realPending[idx] += Math.max(0, total - paid);
+
+                            // "PENDING" part - only include for non-cancelled bookings
+                            if (status !== 'cancelled') {
+                                realPending[idx] += Math.max(0, total - paid);
+                            }
                         }
                     }
                 });

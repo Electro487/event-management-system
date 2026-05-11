@@ -59,7 +59,7 @@ class PaymentController
         $booking = $bookingModel->getById($booking_id);
 
         // Security: Ensure booking belongs to this client and is not fully settled
-        if (!$booking || $booking['client_id'] !== $_SESSION['user_id'] || $booking['payment_status'] === 'paid') {
+        if (!$booking || (int)$booking['client_id'] !== (int)$_SESSION['user_id'] || $booking['payment_status'] === 'paid') {
             header('Location: /EventManagementSystem/public/client/events#my-bookings');
             exit;
         }

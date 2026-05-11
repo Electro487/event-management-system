@@ -294,7 +294,7 @@ function renderStatusActions(booking) {
         `;
     }
 
-    if (status !== 'cancelled' && pStat === 'partially_paid') {
+    if (status !== 'cancelled' && (pStat === 'partially_paid' || pStat === 'unpaid')) {
         html += `
             <button type="button" class="btn-manage" style="background: #10b981; color: white; margin-top: 10px;" onclick="updateBookingStatus('mark-paid')">
                 <i class="fa-solid fa-money-bill-check"></i> Mark as Fully Paid (Cash)
@@ -326,7 +326,7 @@ async function updateBookingStatus(action) {
         confirmMsg = "Are you sure you want to CANCEL this booking? This action cannot be undone.";
         url = `/api/v1/bookings/${bookingId}/cancel`;
     } else if (action === 'mark-paid') {
-        confirmMsg = "Confirm that you have received the remaining 50% cash balance for this booking?";
+        confirmMsg = "Confirm that you have received the cash balance for this booking?";
         url = `/api/v1/bookings/${bookingId}/mark-paid`;
     }
 
