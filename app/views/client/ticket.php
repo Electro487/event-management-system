@@ -18,16 +18,20 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Ticket - <?php echo htmlspecialchars($eventTitle); ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Libre+Barcode+128&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Libre+Barcode+128&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary: #246A55;
             --accent: #FFC24A;
             --bg: #f8fafc;
         }
+
         body {
             margin: 0;
             padding: 40px;
@@ -36,18 +40,21 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             display: flex;
             justify-content: center;
         }
+
         .ticket-container {
             width: 800px;
             background: white;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             position: relative;
         }
+
         /* Stub Notch Effect */
-        .ticket-container::before, .ticket-container::after {
+        .ticket-container::before,
+        .ticket-container::after {
             content: '';
             position: absolute;
             left: 580px;
@@ -57,8 +64,14 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             border-radius: 50%;
             z-index: 10;
         }
-        .ticket-container::before { top: -15px; }
-        .ticket-container::after { bottom: -15px; }
+
+        .ticket-container::before {
+            top: -15px;
+        }
+
+        .ticket-container::after {
+            bottom: -15px;
+        }
 
         .ticket-header {
             background: var(--primary);
@@ -68,7 +81,13 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             justify-content: space-between;
             align-items: center;
         }
-        .logo { font-weight: 800; font-size: 24px; letter-spacing: -1px; }
+
+        .logo {
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -1px;
+        }
+
         .tier-tag {
             background: var(--accent);
             color: #1a1e23;
@@ -82,12 +101,14 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             display: flex;
             padding: 0;
         }
+
         .main-info {
             flex: 1;
             padding: 40px;
             border-right: 2px dashed #e2e8f0;
             position: relative;
         }
+
         .stub {
             width: 220px;
             padding: 40px 20px;
@@ -98,15 +119,29 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             text-align: center;
         }
 
-        h1 { margin: 0; color: #1e293b; font-size: 32px; font-weight: 800; line-height: 1.1; }
-        .category { color: var(--primary); font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; }
-        
+        h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .category {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
         .details-grid {
             margin-top: 35px;
             display: grid;
             grid-template-columns: 1.5fr 1fr;
             gap: 25px;
         }
+
         .detail-item label {
             display: block;
             font-size: 11px;
@@ -116,6 +151,7 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             letter-spacing: 1px;
             margin-bottom: 5px;
         }
+
         .detail-item span {
             display: block;
             font-size: 18px;
@@ -123,10 +159,29 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             font-weight: 600;
         }
 
-        .qr-section { margin-top: 0; }
-        .qr-section img { width: 140px; height: 140px; margin-bottom: 15px; }
-        .ticket-id { font-family: 'Libre Barcode 128', cursive; font-size: 40px; margin-top: 20px; color: #1e293b; }
-        .ticket-id-text { font-size: 12px; color: #94a3b8; font-weight: 600; font-family: monospace; }
+        .qr-section {
+            margin-top: 0;
+        }
+
+        .qr-section img {
+            width: 140px;
+            height: 140px;
+            margin-bottom: 15px;
+        }
+
+        .ticket-id {
+            font-family: 'Libre Barcode 128', cursive;
+            font-size: 40px;
+            margin-top: 20px;
+            color: #1e293b;
+        }
+
+        .ticket-id-text {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+            font-family: monospace;
+        }
 
         .print-btn {
             position: fixed;
@@ -146,12 +201,24 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
         }
 
         @media print {
-            body { padding: 0; background: white; }
-            .ticket-container { box-shadow: none; border: 1px solid #eee; margin: 0 auto; }
-            .print-btn { display: none; }
+            body {
+                padding: 0;
+                background: white;
+            }
+
+            .ticket-container {
+                box-shadow: none;
+                border: 1px solid #eee;
+                margin: 0 auto;
+            }
+
+            .print-btn {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <a href="javascript:window.print()" class="print-btn">
@@ -167,7 +234,7 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
             <div class="main-info">
                 <span class="category">CONCERT ADMISSION</span>
                 <h1><?php echo htmlspecialchars($eventTitle); ?></h1>
-                
+
                 <div class="details-grid">
                     <div class="detail-item">
                         <label>Date & Time</label>
@@ -205,5 +272,7 @@ $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
         </div>
     </div>
 
+
 </body>
+
 </html>

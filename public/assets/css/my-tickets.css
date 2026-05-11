@@ -179,6 +179,8 @@
     font-weight: 700;
     font-size: 14px;
     transition: all 0.2s;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .btn-primary-ticket:hover {
@@ -199,6 +201,8 @@
     font-size: 14px;
     transition: all 0.2s;
     border: 1.5px solid #e2e8f0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .btn-secondary-ticket-full:hover {
@@ -220,6 +224,8 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .btn-print-ticket:hover {

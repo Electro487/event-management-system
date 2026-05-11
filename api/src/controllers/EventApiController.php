@@ -58,6 +58,11 @@ class EventApiController
         $this->respond($result);
     }
 
+    public function categories(): void
+    {
+        $this->respond($this->service->getCategories());
+    }
+
     private function respond(array $result): void
     {
         if (!($result['ok'] ?? false)) {

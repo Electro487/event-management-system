@@ -115,11 +115,12 @@
             color: #666;
             font-size: 16px;
         }
-        
+
         @media (max-width: 900px) {
             .reviews-grid {
                 grid-template-columns: 1fr !important;
             }
+
             .recent-reviews-section {
                 padding: 40px 20px 60px;
             }
@@ -128,7 +129,8 @@
 </head>
 
 <body>
-    <?php if (session_status() == PHP_SESSION_NONE) session_start(); ?>
+    <?php if (session_status() == PHP_SESSION_NONE)
+        session_start(); ?>
 
     <header class="header">
         <div class="header-left">
@@ -333,102 +335,102 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (!window.emsApi) return;
-            
+
             // 1. Fetch Stats
             window.emsApi.apiFetch('/api/v1/feedback/stats')
-            .then(res => {
-                if (res.success) {
-                    const stats = res.data;
-                    const avg = parseFloat(stats.avg);
-                    const total = parseInt(stats.total);
-                    
-                    document.getElementById('avg-rating').textContent = avg.toFixed(1);
-                    
-                    const starContainer = document.getElementById('star-rating-container');
-                    let starsHtml = '';
-                    const fullStars = Math.floor(avg);
-                    const halfStar = (avg - fullStars >= 0.5) ? 1 : 0;
-                    const emptyStars = 5 - fullStars - halfStar;
+                .then(res => {
+                    if (res.success) {
+                        const stats = res.data;
+                        const avg = parseFloat(stats.avg);
+                        const total = parseInt(stats.total);
 
-                    for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fa-solid fa-star"></i>';
-                    if (halfStar) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
-                    for (let i = 0; i < emptyStars; i++) starsHtml += '<i class="fa-regular fa-star"></i>';
-                    
-                    starContainer.innerHTML = starsHtml;
-                    
-                    let label = 'Good';
-                    if (avg >= 4.5) label = 'Excellent';
-                    else if (avg >= 3.5) label = 'Very Good';
-                    else if (avg >= 2.5) label = 'Good';
-                    else if (avg >= 1.5) label = 'Fair';
-                    else label = 'Poor';
-                    
-                    document.getElementById('review-meta-text').innerHTML = `Based on ${total} reviews &bull; ${label}`;
-                }
-            })
-            .catch(err => console.error('Failed to load landing stats:', err));
+                        document.getElementById('avg-rating').textContent = avg.toFixed(1);
+
+                        const starContainer = document.getElementById('star-rating-container');
+                        let starsHtml = '';
+                        const fullStars = Math.floor(avg);
+                        const halfStar = (avg - fullStars >= 0.5) ? 1 : 0;
+                        const emptyStars = 5 - fullStars - halfStar;
+
+                        for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fa-solid fa-star"></i>';
+                        if (halfStar) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+                        for (let i = 0; i < emptyStars; i++) starsHtml += '<i class="fa-regular fa-star"></i>';
+
+                        starContainer.innerHTML = starsHtml;
+
+                        let label = 'Good';
+                        if (avg >= 4.5) label = 'Excellent';
+                        else if (avg >= 3.5) label = 'Very Good';
+                        else if (avg >= 2.5) label = 'Good';
+                        else if (avg >= 1.5) label = 'Fair';
+                        else label = 'Poor';
+
+                        document.getElementById('review-meta-text').innerHTML = `Based on ${total} reviews &bull; ${label}`;
+                    }
+                })
+                .catch(err => console.error('Failed to load landing stats:', err));
 
             // 2. Fetch Recent Reviews
             window.emsApi.apiFetch('/api/v1/feedback')
-            .then(res => {
-                if (res.success) {
-                    const allReviews = res.data || [];
-                    const grid = document.getElementById('reviews-grid');
-                    
-                    if (allReviews.length === 0) {
-                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No reviews shared yet.</div>';
-                        return;
-                    }
+                .then(res => {
+                    if (res.success) {
+                        const allReviews = res.data || [];
+                        const grid = document.getElementById('reviews-grid');
 
-                    // --- SELECTION LOGIC ---
-                    // 1. Sort by rating DESC, then date DESC
-                    const sorted = [...allReviews].sort((a, b) => {
-                        if (b.rating !== a.rating) return b.rating - a.rating;
-                        return new Date(b.created_at) - new Date(a.created_at);
-                    });
-
-                    const selected = [];
-                    const seenUsers = new Set();
-
-                    // Pass 1: Prioritize different users (top review for each unique user)
-                    for (const r of sorted) {
-                        if (selected.length >= 3) break;
-                        if (!seenUsers.has(r.client_id)) {
-                            selected.push(r);
-                            seenUsers.add(r.client_id);
+                        if (allReviews.length === 0) {
+                            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No reviews shared yet.</div>';
+                            return;
                         }
-                    }
 
-                    // Pass 2: If we still need more to hit 3, pick remaining top reviews even if user is duplicate
-                    if (selected.length < 3) {
+                        // --- SELECTION LOGIC ---
+                        // 1. Sort by rating DESC, then date DESC
+                        const sorted = [...allReviews].sort((a, b) => {
+                            if (b.rating !== a.rating) return b.rating - a.rating;
+                            return new Date(b.created_at) - new Date(a.created_at);
+                        });
+
+                        const selected = [];
+                        const seenUsers = new Set();
+
+                        // Pass 1: Prioritize different users (top review for each unique user)
                         for (const r of sorted) {
                             if (selected.length >= 3) break;
-                            // Check if this specific review object is already selected
-                            if (!selected.some(s => s.id === r.id)) {
+                            if (!seenUsers.has(r.client_id)) {
                                 selected.push(r);
+                                seenUsers.add(r.client_id);
                             }
                         }
-                    }
 
-                    // --- RENDER ---
-                    grid.style.setProperty('--review-count', selected.length);
-                    
-                    grid.innerHTML = selected.map(r => {
-                        const stars = [];
-                        for(let i=1; i<=5; i++) stars.push(`<i class="${i <= r.rating ? 'fas' : 'far'} fa-star"></i>`);
-                        
-                        const nameParts = r.client_name.split(' ');
-                        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : '')).toUpperCase();
-                        
-                        const avatarHtml = r.client_profile_pic 
-                            ? `<img src="${r.client_profile_pic}" class="review-user-avatar">`
-                            : `<div class="review-user-avatar">${initials}</div>`;
+                        // Pass 2: If we still need more to hit 3, pick remaining top reviews even if user is duplicate
+                        if (selected.length < 3) {
+                            for (const r of sorted) {
+                                if (selected.length >= 3) break;
+                                // Check if this specific review object is already selected
+                                if (!selected.some(s => s.id === r.id)) {
+                                    selected.push(r);
+                                }
+                            }
+                        }
 
-                        return `
+                        // --- RENDER ---
+                        grid.style.setProperty('--review-count', selected.length);
+
+                        grid.innerHTML = selected.map(r => {
+                            const stars = [];
+                            for (let i = 1; i <= 5; i++) stars.push(`<i class="${i <= r.rating ? 'fas' : 'far'} fa-star"></i>`);
+
+                            const nameParts = r.client_name.split(' ');
+                            const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : '')).toUpperCase();
+
+                            const avatarHtml = r.client_profile_pic
+                                ? `<img src="${r.client_profile_pic}" class="review-user-avatar">`
+                                : `<div class="review-user-avatar">${initials}</div>`;
+
+                            return `
                             <div class="review-card">
                                 <div class="review-card-header">
                                     <div class="review-card-stars">${stars.join('')}</div>
-                                    <div class="review-card-date">${new Date(r.created_at).toLocaleDateString('en-US', {month: 'short', year: 'numeric'})}</div>
+                                    <div class="review-card-date">${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
                                 </div>
                                 <p class="review-card-comment">"${r.comment}"</p>
                                 <div class="review-card-user">
@@ -437,13 +439,13 @@
                                 </div>
                             </div>
                         `;
-                    }).join('');
-                }
-            })
-            .catch(err => {
-                console.error('Failed to load reviews:', err);
-                document.getElementById('reviews-grid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Failed to load testimonials.</div>';
-            });
+                        }).join('');
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load reviews:', err);
+                    document.getElementById('reviews-grid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Failed to load testimonials.</div>';
+                });
         });
     </script>
 

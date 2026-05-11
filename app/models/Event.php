@@ -228,7 +228,6 @@ class Event {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
     /**
      * Get top performing events based on revenue
      */
@@ -307,6 +306,16 @@ class Event {
 
     public function getAllCategories(): array {
         $sql = "SELECT DISTINCT category FROM events WHERE category IS NOT NULL AND category != ''";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * Get unique event categories from the database
+     * @return array
+     */
+    public function getCategories(): array {
+        $sql = "SELECT DISTINCT category FROM events WHERE category IS NOT NULL AND category != '' ORDER BY category ASC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }

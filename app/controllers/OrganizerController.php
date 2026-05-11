@@ -251,4 +251,11 @@ class OrganizerController
         $activePage = 'feedback';
         require_once dirname(__DIR__) . '/views/organizer/feedback.php';
     }
+
+    public function paymentDetails()
+    {
+        $this->checkAuth();
+        $activePage = 'payment_details';
+        require_once dirname(__DIR__) . '/views/organizer/payment_details.php';
+    }
 }

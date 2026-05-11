@@ -22,12 +22,17 @@ $activeFilter = $_GET['type'] ?? 'all';
 
 // Build header initials
 $initials = '';
-$nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
+$fullName = trim($_SESSION['user_fullname'] ?? '');
+if (!$fullName) $fullName = 'User';
+$nameParts = explode(' ', $fullName);
+
 foreach ($nameParts as $p) {
-    $initials .= strtoupper(substr(trim($p), 0, 1));
+    if (!empty($p)) $initials .= strtoupper(substr($p, 0, 1));
 }
-if (strlen($initials) > 2)
-    $initials = substr($initials, 0, 2);
+if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+$firstName   = $nameParts[0] ?? '';
+$lastName    = count($nameParts) > 1 ? end($nameParts) : '';
+$displayName = $fullName;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,7 +68,7 @@ if (strlen($initials) > 2)
 
     <!-- Client Navbar -->
     <header class="header">
-        <a href="/EventManagementSystem/public/" class="logo">
+        <a href="/EventManagementSystem/public/client/home" class="logo">
             <img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;">
         </a>
@@ -72,48 +77,84 @@ if (strlen($initials) > 2)
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/payments">Payment History</a>
         </nav>
         <div class="nav-icons">
+            <div class="notifications-wrapper">
+                <div class="notification-bell-btn" id="notification-bell">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                </div>
+                <!-- Notifications Dropdown -->
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="nd-header">
+                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
+                        <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
+                    </div>
+                    <div class="nd-content" id="nd-list">
+                        <div class="nd-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <p>No new notifications</p>
+                        </div>
+                    </div>
+                    <div class="nd-footer">
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
+                            Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
 
-            <!-- Profile Avatar & Hidden Dropdown -->
             <?php if (isset($_SESSION['user_id'])): ?>
-
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar"
-                                style="width:100%;height:100%;object-fit:cover;">
+                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar" style="width:100%;height:100%;object-fit:cover;">
                         <?php else: ?>
                             <span id="header-initials" style="font-size:14px;"><?php echo htmlspecialchars($initials); ?></span>
                         <?php endif; ?>
                     </div>
+
+
                     <div id="profile-dropdown" class="profile-dropdown">
                         <div class="pd-top">
                             <div class="pd-avatar-container">
                                 <div class="pd-avatar">
                                     <?php if (!empty($_SESSION['user_profile_pic'])): ?>
                                         <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
-                                            style="width:100%;height:100%;object-fit:cover;" id="dropdown-avatar">
+                                            style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
-                                        <span id="dropdown-initials"
-                                            style="font-size:28px;color:white;"><?php echo htmlspecialchars($initials); ?></span>
+                                        <span id="dropdown-initials" style="font-size:28px;color:white;"><?php echo htmlspecialchars($initials); ?></span>
                                     <?php endif; ?>
                                 </div>
+                                <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
+                                    <i class="fa-solid fa-pen"></i>
+                                </label>
+                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
+                                    <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
                             </div>
-                            <h3 class="pd-name"><?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?></h3>
-                            <span class="pd-role">Client</span>
+                            <h3 class="pd-name"><?php echo htmlspecialchars($displayName); ?></h3>
+                            <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
+                            <span
+                                class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
-                            <?php
-                            $firstName = $nameParts[0] ?? '';
-                            $lastName = count($nameParts) > 1 ? end($nameParts) : '';
-                            ?>
-                            <div class="pd-detail"><label>FIRST NAME</label>
+                            <div class="pd-detail">
+                                <label>FIRST NAME</label>
                                 <div><?php echo htmlspecialchars($firstName); ?></div>
                             </div>
-                            <div class="pd-detail"><label>LAST NAME</label>
+                            <div class="pd-detail">
+                                <label>LAST NAME</label>
                                 <div><?php echo htmlspecialchars($lastName); ?></div>
                             </div>
+                            <div class="pd-detail">
+                                <label>EMAIL ADDRESS</label>
+                                <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
+                            </div>
+
                             <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
                                 <i class="fa-solid fa-star"></i> Rating &amp; Feedback
                             </a>
@@ -125,15 +166,85 @@ if (strlen($initials) > 2)
                 </div>
                 <script>
                     function toggleProfileDropdown() {
-                        document.getElementById('profile-dropdown').classList.toggle('show');
+                        const dropdown = document.getElementById('profile-dropdown');
+                        dropdown.classList.toggle('show');
                     }
-                    document.addEventListener('click', function (e) {
-                        const c = document.getElementById('profile-container');
-                        if (c && !c.contains(e.target)) {
-                            const d = document.getElementById('profile-dropdown');
-                            if (d) d.classList.remove('show');
+
+                    document.addEventListener('click', function(event) {
+                        const container = document.getElementById('profile-container');
+                        if (container && !container.contains(event.target)) {
+                            document.getElementById('profile-dropdown').classList.remove('show');
                         }
                     });
+
+                    function uploadProfilePicture(input) {
+                        if (input.files && input.files[0]) {
+                            const formData = new FormData();
+                            formData.append('profile_picture', input.files[0]);
+
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        const path = data.data?.path || data.path;
+                                        let headerIcon = document.getElementById('profile-icon');
+                                        headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                        
+                                        let dropdownAvatar = document.querySelector('.pd-avatar');
+                                        dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                                        
+                                        if (!document.querySelector('.pd-delete-icon')) {
+                                            let avatarContainer = document.querySelector('.pd-avatar-container');
+                                            let deleteBtn = document.createElement('div');
+                                            deleteBtn.className = 'pd-delete-icon';
+                                            deleteBtn.title = 'Remove Photo';
+                                            deleteBtn.onclick = deleteProfilePicture;
+                                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                            avatarContainer.appendChild(deleteBtn);
+                                        }
+                                    } else {
+                                        alert(data.message || 'Error uploading image.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('API Error:', error);
+                                    alert('An error occurred during upload.');
+                                });
+                            }
+                        }
+                    }
+
+                    function deleteProfilePicture() {
+                        if (confirm('Are you sure you want to remove your profile picture?')) {
+                            if (window.emsApi) {
+                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
+                                    method: 'DELETE'
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        const initialsElement = '<span id="header-initials" style="font-size:14px;"><?php echo htmlspecialchars($initials); ?></span>';
+                                        let headerIcon = document.getElementById('profile-icon');
+                                        headerIcon.innerHTML = initialsElement;
+                                        
+                                        let dropdownAvatar = document.querySelector('.pd-avatar');
+                                        dropdownAvatar.innerHTML = '<span id="dropdown-initials" style="font-size:28px;color:white;"><?php echo htmlspecialchars($initials); ?></span>';
+                                        
+                                        let deleteIcon = document.querySelector('.pd-delete-icon');
+                                        if (deleteIcon) deleteIcon.remove();
+                                    } else {
+                                        alert('Error removing image.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('API Error:', error);
+                                    alert('An error occurred.');
+                                });
+                            }
+                        }
+                    }
                 </script>
             <?php endif; ?>
         </div>
