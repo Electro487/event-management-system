@@ -164,7 +164,7 @@
             color: #1e293b;
             background: var(--white);
             transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             outline: none;
         }
 
@@ -199,7 +199,7 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .dropdown-selected:hover {
@@ -244,8 +244,15 @@
         }
 
         @keyframes dropdownFadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .dropdown-option {
@@ -814,13 +821,13 @@
 
                         hiddenInput.value = val;
                         selected.querySelector('span').textContent = text;
-                        
+
                         dropdown.querySelectorAll('.dropdown-option').forEach(opt => opt.classList.remove('selected'));
                         e.target.classList.add('selected');
 
                         options.classList.remove('show');
                         selected.classList.remove('active');
-                        
+
                         if (onSelect) onSelect(val);
                     }
                 });
@@ -848,9 +855,9 @@
                         const categories = response.data;
                         const optionsContainer = document.getElementById('eventTypeOptions');
                         const currentVal = eventTypeFilter.value;
-                        
+
                         optionsContainer.innerHTML = '<div class="dropdown-option' + (currentVal === 'all' ? ' selected' : '') + '" data-value="all">All Events</div>';
-                        
+
                         categories.forEach(cat => {
                             const val = cat.toLowerCase();
                             const isSelected = val === currentVal;
@@ -923,9 +930,9 @@
                 // Update Goal section (Dynamic)
                 const target = 150000;
                 const percent = Math.min(100, Math.round((totalEarned / target) * 100));
-                
+
                 // Growth calculation based on confirmed vs total count (simulated trend)
-                const growth = 12 + (confirmedCount % 5); 
+                const growth = 12 + (confirmedCount % 5);
 
                 document.getElementById('org-financial-desc').textContent = `Your revenue has increased by ${growth}% compared to last quarter. You have ${upcomingPayouts} upcoming payouts scheduled for next week.`;
                 document.getElementById('org-goal-percent').textContent = `${percent}% Complete`;
@@ -993,13 +1000,13 @@
                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                                     <span style="font-weight: 700; color: #1e293b; font-size: 16px;">Rs. ${amount}</span>
                                     <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;">
-                                        ${(function() {
-                                            const payStatus = (b.payment_status || 'unpaid').toLowerCase();
-                                            if (status === 'cancelled') return '<span style="color: #64748b; background: #f1f5f9;">Cancelled</span>';
-                                            if (payStatus === 'paid') return '<span style="color: #059669; background: #ecfdf5;">Fully Paid</span>';
-                                            if (payStatus === 'partially_paid') return '<span style="color: #d97706; background: #fffbeb;">Half Paid</span>';
-                                            return '<span style="color: #dc2626; background: #fef2f2;">Pending</span>';
-                                        })()}
+                                        ${(function () {
+                            const payStatus = (b.payment_status || 'unpaid').toLowerCase();
+                            if (status === 'cancelled') return '<span style="color: #64748b; background: #f1f5f9;">Cancelled</span>';
+                            if (payStatus === 'paid') return '<span style="color: #059669; background: #ecfdf5;">Fully Paid</span>';
+                            if (payStatus === 'partially_paid') return '<span style="color: #d97706; background: #fffbeb;">Half Paid</span>';
+                            return '<span style="color: #dc2626; background: #fef2f2;">Pending</span>';
+                        })()}
                                     </div>
                                 </div>
                             </td>
@@ -1093,7 +1100,7 @@
                 allBookings.forEach(b => {
                     const dateStr = b.event_date || b.event_start_date || '';
                     const parts = dateStr.split(' ')[0].split('-');
-                    
+
                     if (parts.length === 3) {
                         // Use year, month (0-indexed), day to create date object without timezone shifts
                         const date = new Date(parts[0], parts[1] - 1, parts[2]);

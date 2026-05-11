@@ -500,10 +500,4 @@ class ClientController
         $this->checkAuth();
         require_once dirname(__DIR__) . '/views/client/feedback.php';
     }
-
-    public function paymentHistory()
-    {
-        $this->checkAuth();
-        require_once dirname(__DIR__) . '/views/client/payment_history.php';
-    }
 }
