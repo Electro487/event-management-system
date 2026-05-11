@@ -30,15 +30,22 @@ $routes = [
     '/organizer/bookings/mark-paid' => 'OrganizerController@markBookingPaid',
     '/organizer/tickets' => 'OrganizerController@tickets',
     '/organizer/messages' => 'OrganizerController@messages',
+    '/organizer/requests' => 'OrganizerController@customRequests',
+    '/organizer/requests/view' => 'OrganizerController@viewRequest',
     '/client/book' => 'ClientController@bookEvent',
     '/client/book/store' => 'ClientController@storeBooking',
     '/client/bookings' => 'ClientController@myBookings',
     '/client/tickets' => 'ClientController@myTickets',
+    '/client/payments' => 'ClientController@paymentHistory',
     '/client/bookings/cancel' => 'ClientController@cancelBooking',
     '/client/bookings/view' => 'ClientController@viewBookingDetails',
     '/client/profile/update' => 'ClientController@updateProfile',
     '/client/profile/delete-picture' => 'ClientController@deleteProfilePicture',
     '/client/ticket' => 'ClientController@viewTicket',
+
+    '/client/events/modify' => 'ClientController@modifyEvent',
+    '/client/requests' => 'ClientController@customRequests',
+    '/client/requests/view' => 'ClientController@viewRequest',
 
     // Payment Routes
     '/client/payment/checkout' => 'PaymentController@checkout',
@@ -69,6 +76,12 @@ $routes = [
     '/admin/bookings/cancel' => 'AdminController@cancelBooking',
     '/admin/bookings/mark-paid' => 'AdminController@markBookingPaid',
     '/admin/tickets' => 'AdminController@tickets',
+    '/admin/reports' => 'AdminController@reports',
+    '/admin/messages' => 'AdminController@messages',
+    '/admin/requests' => 'AdminController@customRequests',
+    '/admin/requests/view' => 'AdminController@viewRequest',
+    '/admin/payments' => 'AdminController@payments',
+
 
     '/admin/profile/update' => 'AdminController@updateProfile',
     '/admin/profile/delete-picture' => 'AdminController@deleteProfilePicture',
@@ -92,8 +105,7 @@ $routes = [
     '/client/feedback' => 'ClientController@feedback',
     '/admin/feedback' => 'AdminController@feedback',
     '/organizer/feedback' => 'OrganizerController@feedback',
-
-    // Promo Codes
     '/organizer/promo-codes' => 'OrganizerController@promoCodes',
     '/admin/promo-codes' => 'AdminController@promoCodes',
+    '/organizer/payment_details' => 'OrganizerController@paymentDetails',
 ];

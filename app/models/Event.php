@@ -228,4 +228,95 @@ class Event {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    /**
+     * Get top performing events based on revenue
+     */
+    public function getTopPerformingEvents($limit = 3): array {
+        $sql = "SELECT e.id, e.title, e.category, e.image_path, SUM(p.amount) as total_revenue
+                FROM events e
+                JOIN bookings b ON e.id = b.event_id
+                JOIN payments p ON b.id = p.booking_id
+                WHERE p.status = 'succeeded'
+                GROUP BY e.id
+                ORDER BY total_revenue DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get revenue breakdown by category for the pie chart
+     */
+    public function getRevenueByCategory(): array {
+        $sql = "SELECT e.category, SUM(p.amount) as total_revenue
+                FROM events e
+                JOIN bookings b ON e.id = b.event_id
+                JOIN payments p ON b.id = p.booking_id
+                WHERE p.status = 'succeeded'
+                GROUP BY e.category";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /* Date based analytics methods */
+    public function countAllByDate($start, $end): int {
+        $sql = "SELECT COUNT(*) as count FROM events WHERE DATE(created_at) >= :start AND DATE(created_at) <= :end";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['count'];
+    }
+
+    public function getTopPerformingEventsByDate($limit, $start, $end): array {
+        $sql = "SELECT e.id, e.title, e.category, e.image_path, SUM(p.amount) as total_revenue
+                FROM events e
+                JOIN bookings b ON e.id = b.event_id
+                JOIN payments p ON b.id = p.booking_id
+                WHERE p.status = 'succeeded' 
+                AND DATE(p.created_at) >= :start AND DATE(p.created_at) <= :end
+                GROUP BY e.id
+                ORDER BY total_revenue DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRevenueByCategoryByDate($start, $end): array {
+        $sql = "SELECT e.category, SUM(p.amount) as total_revenue
+                FROM events e
+                JOIN bookings b ON e.id = b.event_id
+                JOIN payments p ON b.id = p.booking_id
+                WHERE p.status = 'succeeded'
+                AND DATE(p.created_at) >= :start AND DATE(p.created_at) <= :end
+                GROUP BY e.category";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllCategories(): array {
+        $sql = "SELECT DISTINCT category FROM events WHERE category IS NOT NULL AND category != ''";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * Get unique event categories from the database
+     * @return array
+     */
+    public function getCategories(): array {
+        $sql = "SELECT DISTINCT category FROM events WHERE category IS NOT NULL AND category != '' ORDER BY category ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }

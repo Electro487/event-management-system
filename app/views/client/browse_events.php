@@ -16,6 +16,7 @@ $searchQuery = $_GET['search'] ?? '';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
 </head>
 
 <body>
@@ -31,6 +32,8 @@ $searchQuery = $_GET['search'] ?? '';
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
                 <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+                <a href="/EventManagementSystem/public/client/requests" class="<?php echo ($activePage ?? '') == 'requests' ? 'active' : ''; ?>">My Requests</a>
+                <a href="/EventManagementSystem/public/client/payments">Payment History</a>
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
@@ -858,6 +861,7 @@ $searchQuery = $_GET['search'] ?? '';
             });
         })();
     </script>
+    <?php include 'partials/feedback_popup.php'; ?>
 </body>
 
 </html>

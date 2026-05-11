@@ -59,7 +59,9 @@ class BookingService
         }
 
         $eventId = (int)($payload['event_id'] ?? 0);
-        if ($eventId <= 0 || $this->bookingModel->exists($eventId, $authUser['id'])) {
+        $customRequestId = isset($payload['custom_request_id']) ? (int)$payload['custom_request_id'] : null;
+        
+        if ($eventId <= 0 || $this->bookingModel->exists($eventId, $authUser['id'], $customRequestId)) {
             return ['ok' => false, 'status' => 409, 'message' => 'You have already booked this event.'];
         }
 
@@ -72,6 +74,29 @@ class BookingService
         $tierKey = (string)($payload['package_tier'] ?? 'basic');
         $allPackages = json_decode($event['packages'] ?? '{}', true);
         $selectedPackage = $allPackages[$tierKey] ?? null;
+
+        // If this is a custom event booking, use the negotiated package from the request
+        $customRequest = null;
+        if ($customRequestId) {
+            require_once dirname(__DIR__, 3) . '/app/models/CustomEventRequest.php';
+            $crModel = new CustomEventRequest();
+            $customRequest = $crModel->getById($customRequestId);
+            if ($customRequest) {
+                $customPkgs = json_decode($customRequest['custom_packages'], true);
+                if (!empty($customPkgs)) {
+                    // Build a proper package snapshot from the negotiated custom packages
+                    $selectedPackage = [
+                        'description' => 'Custom negotiated package based on ' . ucfirst($tierKey) . ' tier.',
+                        'items' => $customPkgs['items'] ?? [],
+                        'price' => $customRequest['proposed_price'] ?? $totalAmount
+                    ];
+                }
+                // Use the negotiated price as the total amount
+                if (!empty($customRequest['proposed_price'])) {
+                    $totalAmount = (float)$customRequest['proposed_price'];
+                }
+            }
+        }
 
         $eventSnapshot = [
             'title' => $event['title'],
@@ -134,6 +159,7 @@ class BookingService
 
         $data = [
             'event_id' => $eventId,
+            'custom_request_id' => $customRequestId,
             'event_snapshot' => json_encode($eventSnapshot),
             'client_id' => $authUser['id'],
             'package_tier' => $tierKey,

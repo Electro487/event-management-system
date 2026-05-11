@@ -241,4 +241,12 @@ class EventService
 
         return $packages;
     }
+    public function getCategories(): array
+    {
+        return [
+            'ok' => true,
+            'status' => 200,
+            'data' => $this->eventModel->getCategories()
+        ];
+    }
 }

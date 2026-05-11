@@ -37,6 +37,7 @@ if (empty($includedItemsList)) {
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-event.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
+    <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
 </head>
 
 <body>
@@ -52,6 +53,9 @@ if (empty($includedItemsList)) {
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
                 <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+                <a href="/EventManagementSystem/public/client/requests">My Requests</a>
+                <a href="/EventManagementSystem/public/client/payments">Payment History</a>
+
             <?php endif; ?>
         </nav>
         <div class="nav-icons">
@@ -73,7 +77,8 @@ if (empty($includedItemsList)) {
                         </div>
                     </div>
                     <div class="nd-footer">
-                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
+                            Notifications <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -84,12 +89,14 @@ if (empty($includedItemsList)) {
                 foreach ($nameParts as $p) {
                     $initials .= strtoupper(substr($p, 0, 1));
                 }
-                if (strlen($initials) > 2) $initials = substr($initials, 0, 2);
+                if (strlen($initials) > 2)
+                    $initials = substr($initials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
+                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
+                                style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
                         <?php else: ?>
                             <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
                         <?php endif; ?>
@@ -101,7 +108,8 @@ if (empty($includedItemsList)) {
                             <div class="pd-avatar-container">
                                 <div class="pd-avatar">
                                     <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
+                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
+                                            style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
                                         <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
                                     <?php endif; ?>
@@ -114,11 +122,13 @@ if (empty($includedItemsList)) {
                                         <i class="fa-solid fa-trash"></i>
                                     </div>
                                 <?php endif; ?>
-                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
+                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;"
+                                    onchange="uploadProfilePicture(this)">
                             </div>
                             <h3 class="pd-name"><?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?></h3>
                             <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
-                            <span class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
+                            <span
+                                class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
                             <?php
@@ -155,7 +165,7 @@ if (empty($includedItemsList)) {
                     }
 
                     // Hide dropdown when clicking outside
-                    document.addEventListener('click', function(event) {
+                    document.addEventListener('click', function (event) {
                         const container = document.getElementById('profile-container');
                         if (container && !container.contains(event.target)) {
                             document.getElementById('profile-dropdown').classList.remove('show');
@@ -172,40 +182,40 @@ if (empty($includedItemsList)) {
                                     method: 'POST',
                                     body: formData
                                 })
-                                .then(data => {
-                                    if (data.success) {
-                                        const path = data.data?.path || data.path;
-                                        // Update header avatar
-                                        let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                    .then(data => {
+                                        if (data.success) {
+                                            const path = data.data?.path || data.path;
+                                            // Update header avatar
+                                            let headerIcon = document.getElementById('profile-icon');
+                                            headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
 
-                                        // Update dropdown avatar
-                                        let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                                            // Update dropdown avatar
+                                            let dropdownAvatar = document.querySelector('.pd-avatar');
+                                            dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
 
-                                        // Add delete icon if not exists
-                                        if (!document.querySelector('.pd-delete-icon')) {
-                                            let avatarContainer = document.querySelector('.pd-avatar-container');
-                                            let deleteBtn = document.createElement('div');
-                                            deleteBtn.className = 'pd-delete-icon';
-                                            deleteBtn.title = 'Remove Photo';
-                                            deleteBtn.onclick = deleteProfilePicture;
-                                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                            avatarContainer.appendChild(deleteBtn);
+                                            // Add delete icon if not exists
+                                            if (!document.querySelector('.pd-delete-icon')) {
+                                                let avatarContainer = document.querySelector('.pd-avatar-container');
+                                                let deleteBtn = document.createElement('div');
+                                                deleteBtn.className = 'pd-delete-icon';
+                                                deleteBtn.title = 'Remove Photo';
+                                                deleteBtn.onclick = deleteProfilePicture;
+                                                deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                                avatarContainer.appendChild(deleteBtn);
+                                            }
+                                        } else {
+                                            alert(data.message || 'Error uploading image.');
                                         }
-                                    } else {
-                                        alert(data.message || 'Error uploading image.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('API Error:', error);
-                                    alert('An error occurred during upload: ' + error.message);
-                                });
+                                    })
+                                    .catch(error => {
+                                        console.error('API Error:', error);
+                                        alert('An error occurred during upload: ' + error.message);
+                                    });
                             } else {
                                 fetch('/EventManagementSystem/public/client/profile/update', {
-                                        method: 'POST',
-                                        body: formData
-                                    })
+                                    method: 'POST',
+                                    body: formData
+                                })
                                     .then(response => response.json())
                                     .then(data => {
                                         if (data.success) location.reload();
@@ -222,27 +232,27 @@ if (empty($includedItemsList)) {
                                 window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                                     method: 'DELETE'
                                 })
-                                .then(data => {
-                                    if (data.success) {
-                                        const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                        let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = initialsElement;
-                                        let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                        let deleteIcon = document.querySelector('.pd-delete-icon');
-                                        if (deleteIcon) deleteIcon.remove();
-                                    } else {
-                                        alert('Error removing image.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('API Error:', error);
-                                    alert('An error occurred: ' + error.message);
-                                });
+                                    .then(data => {
+                                        if (data.success) {
+                                            const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                            let headerIcon = document.getElementById('profile-icon');
+                                            headerIcon.innerHTML = initialsElement;
+                                            let dropdownAvatar = document.querySelector('.pd-avatar');
+                                            dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
+                                            let deleteIcon = document.querySelector('.pd-delete-icon');
+                                            if (deleteIcon) deleteIcon.remove();
+                                        } else {
+                                            alert('Error removing image.');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('API Error:', error);
+                                        alert('An error occurred: ' + error.message);
+                                    });
                             } else {
                                 fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                                        method: 'POST'
-                                    })
+                                    method: 'POST'
+                                })
                                     .then(response => response.json())
                                     .then(data => {
                                         if (data.success) location.reload();
@@ -270,7 +280,7 @@ if (empty($includedItemsList)) {
 
         <!-- Hero Section -->
         <div class="hero">
-            <?php 
+            <?php
             if (!empty($event['image_path'])) {
                 $image = ($event['image_path'][0] === '/') ? $event['image_path'] : '/EventManagementSystem/public/assets/images/events/' . $event['image_path'];
             } else {
@@ -339,11 +349,12 @@ if (empty($includedItemsList)) {
                             </p>
                         </div>
                         <?php if (!empty($event['event_date'])): ?>
-                        <div class="detail-col">
-                            <h4>Date & Time</h4>
-                            <p><?php echo date('F d, Y', strtotime($event['event_date'])); ?></p>
-                            <span style="font-size:11px; color:#6b7280;">Scheduled at <?php echo date('h:i A', strtotime($event['event_date'])); ?></span>
-                        </div>
+                            <div class="detail-col">
+                                <h4>Date & Time</h4>
+                                <p><?php echo date('F d, Y', strtotime($event['event_date'])); ?></p>
+                                <span style="font-size:11px; color:#6b7280;">Scheduled at
+                                    <?php echo date('h:i A', strtotime($event['event_date'])); ?></span>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -374,7 +385,7 @@ if (empty($includedItemsList)) {
 
                             $priceValue = $pkgData['price'] ?? ($pkgData['price_range'] ?? '');
                             $priceDisplay = !empty($priceValue) ? 'Rs. ' . number_format((float) str_replace(['Rs.', ',', ' '], '', $priceValue), 0) : 'Custom Pricing';
-                    ?>
+                            ?>
                             <div class="package-tier <?php echo $cssClass; ?>"
                                 onclick="selectPackage('<?php echo $tierKey; ?>', this)">
                                 <?php if ($tierKey === 'standard'): ?>
@@ -389,7 +400,7 @@ if (empty($includedItemsList)) {
                                     <?php echo htmlspecialchars($pkgData['description'] ?: 'Complete set of services curated for this tier.'); ?>
                                 </div>
                             </div>
-                    <?php
+                            <?php
                         endif;
                     endforeach;
                     ?>
@@ -397,10 +408,17 @@ if (empty($includedItemsList)) {
                     <button class="btn-book-now" onclick="proceedToBooking(<?php echo $event['id']; ?>)">
                         Book Now <i class="fa-solid fa-arrow-right"></i>
                     </button>
+                    <button class="btn-modify-package" onclick="modifyPackage(<?php echo $event['id']; ?>)" style="margin-top: 10px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0;">
+                        Modify Package <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    
                     <p class="tax-note">* Prices are exclusive of taxes and subject to customization.</p>
-                    <div class="policy-badge" style="margin-top: 15px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; display: flex; align-items: start; gap: 8px; line-height: 1.4;">
+                    <div class="policy-badge"
+                        style="margin-top: 15px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; display: flex; align-items: start; gap: 8px; line-height: 1.4;">
                         <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
-                        <span><b>Payment Policy:</b> Securing this event requires a non-refundable <b>50% advance payment</b> online. The remaining balance will be collected in cash on the event day.</span>
+                        <span><b>Payment Policy:</b> Securing this event requires a non-refundable <b>50% advance
+                                payment</b> online. The remaining balance will be collected in cash on the event
+                            day.</span>
                     </div>
                 </div>
 
@@ -479,6 +497,20 @@ if (empty($includedItemsList)) {
 
             window.location.href = `/EventManagementSystem/public/client/book?id=${eventId}&package=${selectedTier}`;
         }
+
+        function modifyPackage(eventId) {
+            const activeTierEl = document.querySelector('.package-tier.active-tier');
+            if (!activeTierEl) {
+                alert('Please select a package tier to modify first.');
+                return;
+            }
+
+            let selectedTier = 'basic';
+            if (activeTierEl.classList.contains('standard')) selectedTier = 'standard';
+            if (activeTierEl.classList.contains('premium')) selectedTier = 'premium';
+
+            window.location.href = `/EventManagementSystem/public/client/events/modify?id=${eventId}&package=${selectedTier}`;
+        }
     </script>
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
@@ -496,6 +528,7 @@ if (empty($includedItemsList)) {
                 .catch(() => { /* keep PHP render */ });
         })();
     </script>
+
 </body>
 
 </html>

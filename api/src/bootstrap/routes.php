@@ -19,6 +19,7 @@ return [
 
     // Events
     ['GET', '/api/v1/events', [EventApiController::class, 'index'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/events/categories', [EventApiController::class, 'categories'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/events/{id}', [EventApiController::class, 'show'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/events', [EventApiController::class, 'store'], [JwtAuthMiddleware::class]],
     ['PUT', '/api/v1/events/{id}', [EventApiController::class, 'update'], [JwtAuthMiddleware::class]],
@@ -36,12 +37,15 @@ return [
     ['GET', '/api/v1/dashboard/admin', [DashboardApiController::class, 'admin'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/dashboard/organizer', [DashboardApiController::class, 'organizer'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/dashboard/client', [DashboardApiController::class, 'client'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/admin/analytics', [AnalyticsApiController::class, 'index'], [JwtAuthMiddleware::class]],
 
     // Payments
     ['POST', '/api/v1/payments/checkout', [PaymentApiController::class, 'checkout'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/payments/confirm', [PaymentApiController::class, 'confirm'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/payments/{bookingId}/summary', [PaymentApiController::class, 'summary'], [JwtAuthMiddleware::class]],
     ['GET', '/api/v1/payments/{bookingId}/history', [PaymentApiController::class, 'history'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/payments/full-history', [PaymentApiController::class, 'fullHistory'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/payments/admin/dashboard', [PaymentApiController::class, 'adminDashboard'], [JwtAuthMiddleware::class]],
 
     // Notifications
     ['GET', '/api/v1/notifications/latest', [NotificationApiController::class, 'latest'], [JwtAuthMiddleware::class]],
@@ -58,6 +62,14 @@ return [
     ['GET', '/api/v1/admin/users', [UserApiController::class, 'index'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/admin/users/update-role', [UserApiController::class, 'updateRole'], [JwtAuthMiddleware::class]],
     ['POST', '/api/v1/admin/users/toggle-block', [UserApiController::class, 'toggleBlock'], [JwtAuthMiddleware::class]],
+
+    // Custom Event Requests & Negotiation
+    ['POST', '/api/v1/custom-events/request', [CustomEventApiController::class, 'store'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/custom-events/requests', [CustomEventApiController::class, 'index'], [JwtAuthMiddleware::class]],
+    ['GET', '/api/v1/custom-events/requests/{id}', [CustomEventApiController::class, 'show'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/custom-events/requests/{id}/message', [CustomEventApiController::class, 'sendMessage'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/custom-events/requests/{id}/status', [CustomEventApiController::class, 'updateStatus'], [JwtAuthMiddleware::class]],
+    ['POST', '/api/v1/custom-events/requests/{id}/offer', [CustomEventApiController::class, 'updateOffer'], [JwtAuthMiddleware::class]],
 
     // Feedback
     ['GET', '/api/v1/feedback', [FeedbackApiController::class, 'list'], []],

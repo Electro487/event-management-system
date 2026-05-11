@@ -85,7 +85,8 @@ $steps = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking #EPLN-<?php echo str_pad($booking['id'], 5, '0', STR_PAD_LEFT); ?> - e-Plan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/view-booking-details.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet"
+        href="/EventManagementSystem/public/assets/css/view-booking-details.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
 </head>
@@ -102,6 +103,8 @@ $steps = [
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings" class="<?php echo (strtolower($eventCategory) !== 'concert') ? 'active' : ''; ?>">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets" class="<?php echo (strtolower($eventCategory) === 'concert') ? 'active' : ''; ?>">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/requests">My Requests</a>
+            <a href="/EventManagementSystem/public/client/payments">Payment History</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -122,7 +125,8 @@ $steps = [
                         </div>
                     </div>
                     <div class="nd-footer">
-                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All Notifications <i class="fa-solid fa-arrow-right"></i></a>
+                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
+                            Notifications <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -133,12 +137,14 @@ $steps = [
                 foreach ($nameParts as $p) {
                     $headerInitials .= strtoupper(substr($p, 0, 1));
                 }
-                if (strlen($headerInitials) > 2) $headerInitials = substr($headerInitials, 0, 2);
+                if (strlen($headerInitials) > 2)
+                    $headerInitials = substr($headerInitials, 0, 2);
                 ?>
                 <div style="position: relative;" id="profile-container">
                     <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
                         <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
+                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
+                                style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">
                         <?php else: ?>
                             <span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>
                         <?php endif; ?>
@@ -150,7 +156,8 @@ $steps = [
                             <div class="pd-avatar-container">
                                 <div class="pd-avatar">
                                     <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
+                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
+                                            style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
                                     <?php else: ?>
                                         <span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>
                                     <?php endif; ?>
@@ -163,11 +170,13 @@ $steps = [
                                         <i class="fa-solid fa-trash"></i>
                                     </div>
                                 <?php endif; ?>
-                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
+                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;"
+                                    onchange="uploadProfilePicture(this)">
                             </div>
                             <h3 class="pd-name"><?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?></h3>
                             <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
-                            <span class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
+                            <span
+                                class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
                             <?php
@@ -204,7 +213,7 @@ $steps = [
                     }
 
                     // Hide dropdown when clicking outside
-                    document.addEventListener('click', function(event) {
+                    document.addEventListener('click', function (event) {
                         const container = document.getElementById('profile-container');
                         if (container && !container.contains(event.target)) {
                             document.getElementById('profile-dropdown').classList.remove('show');
@@ -221,40 +230,40 @@ $steps = [
                                     method: 'POST',
                                     body: formData
                                 })
-                                .then(data => {
-                                    if (data.success) {
-                                        const path = data.data?.path || data.path;
-                                        // Update header avatar
-                                        let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
+                                    .then(data => {
+                                        if (data.success) {
+                                            const path = data.data?.path || data.path;
+                                            // Update header avatar
+                                            let headerIcon = document.getElementById('profile-icon');
+                                            headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
 
-                                        // Update dropdown avatar
-                                        let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
+                                            // Update dropdown avatar
+                                            let dropdownAvatar = document.querySelector('.pd-avatar');
+                                            dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
 
-                                        // Add delete icon if not exists
-                                        if (!document.querySelector('.pd-delete-icon')) {
-                                            let avatarContainer = document.querySelector('.pd-avatar-container');
-                                            let deleteBtn = document.createElement('div');
-                                            deleteBtn.className = 'pd-delete-icon';
-                                            deleteBtn.title = 'Remove Photo';
-                                            deleteBtn.onclick = deleteProfilePicture;
-                                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                            avatarContainer.appendChild(deleteBtn);
+                                            // Add delete icon if not exists
+                                            if (!document.querySelector('.pd-delete-icon')) {
+                                                let avatarContainer = document.querySelector('.pd-avatar-container');
+                                                let deleteBtn = document.createElement('div');
+                                                deleteBtn.className = 'pd-delete-icon';
+                                                deleteBtn.title = 'Remove Photo';
+                                                deleteBtn.onclick = deleteProfilePicture;
+                                                deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                                                avatarContainer.appendChild(deleteBtn);
+                                            }
+                                        } else {
+                                            alert(data.message || 'Error uploading image.');
                                         }
-                                    } else {
-                                        alert(data.message || 'Error uploading image.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('API Error:', error);
-                                    alert('An error occurred during upload: ' + error.message);
-                                });
+                                    })
+                                    .catch(error => {
+                                        console.error('API Error:', error);
+                                        alert('An error occurred during upload: ' + error.message);
+                                    });
                             } else {
                                 fetch('/EventManagementSystem/public/client/profile/update', {
-                                        method: 'POST',
-                                        body: formData
-                                    })
+                                    method: 'POST',
+                                    body: formData
+                                })
                                     .then(response => response.json())
                                     .then(data => {
                                         if (data.success) location.reload();
@@ -271,27 +280,27 @@ $steps = [
                                 window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
                                     method: 'DELETE'
                                 })
-                                .then(data => {
-                                    if (data.success) {
-                                        const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
-                                        let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = initialsElement;
-                                        let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
-                                        let deleteIcon = document.querySelector('.pd-delete-icon');
-                                        if (deleteIcon) deleteIcon.remove();
-                                    } else {
-                                        alert('Error removing image.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('API Error:', error);
-                                    alert('An error occurred: ' + error.message);
-                                });
+                                    .then(data => {
+                                        if (data.success) {
+                                            const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
+                                            let headerIcon = document.getElementById('profile-icon');
+                                            headerIcon.innerHTML = initialsElement;
+                                            let dropdownAvatar = document.querySelector('.pd-avatar');
+                                            dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($headerInitials); ?></span>';
+                                            let deleteIcon = document.querySelector('.pd-delete-icon');
+                                            if (deleteIcon) deleteIcon.remove();
+                                        } else {
+                                            alert('Error removing image.');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('API Error:', error);
+                                        alert('An error occurred: ' + error.message);
+                                    });
                             } else {
                                 fetch('/EventManagementSystem/public/client/profile/delete-picture', {
-                                        method: 'POST'
-                                    })
+                                    method: 'POST'
+                                })
                                     .then(response => response.json())
                                     .then(data => {
                                         if (data.success) location.reload();
@@ -335,7 +344,8 @@ $steps = [
             <!-- Left Column: All Booking Details -->
             <div class="left-col">
                 <div class="card-section">
-                    <h2 class="card-title"><i class="fa-regular fa-id-badge"></i> <?php echo $isConcert ? 'Ticket' : 'Booking'; ?> Information</h2>
+                    <h2 class="card-title"><i class="fa-regular fa-id-badge"></i>
+                        <?php echo $isConcert ? 'Ticket' : 'Booking'; ?> Information</h2>
 
                     <div class="info-grid">
                         <div class="info-item">
@@ -352,14 +362,14 @@ $steps = [
                         <div class="info-item">
                             <span class="info-label">Check-in Time</span>
                             <span class="info-val"><?php
-                                                    $time = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
-                                                    // If it's in 24hr format from input (HH:mm), convert to AM/PM
-                                                    if (preg_match('/^\d{2}:\d{2}$/', $time)) {
-                                                        echo date('h:i A', strtotime($time));
-                                                    } else {
-                                                        echo htmlspecialchars($time);
-                                                    }
-                                                    ?></span>
+                            $time = !empty($booking['checkin_time']) ? $booking['checkin_time'] : '10:00 AM';
+                            // If it's in 24hr format from input (HH:mm), convert to AM/PM
+                            if (preg_match('/^\d{2}:\d{2}$/', $time)) {
+                                echo date('h:i A', strtotime($time));
+                            } else {
+                                echo htmlspecialchars($time);
+                            }
+                            ?></span>
                             <i class="fa-regular fa-clock info-icon"></i>
                         </div>
                         <div class="info-item">
@@ -401,8 +411,7 @@ $steps = [
                     <div class="info-grid" style="grid-template-columns: 1fr;">
                         <div class="info-item" style="border-left-color: #ffc241;">
                             <span class="info-label">Venue</span>
-                            <span
-                                class="info-val"><?php echo htmlspecialchars($venueName); ?></span>
+                            <span class="info-val"><?php echo htmlspecialchars($venueName); ?></span>
                             <span style="display:block; font-size:12px; color:var(--text-gray); margin-top:4px;">
                                 <?php echo htmlspecialchars($venueLocation); ?>
                             </span>
@@ -425,7 +434,7 @@ $steps = [
                     <div class="timeline">
                         <?php foreach ($steps as $step):
                             $cls = getStepClass($step['key'], $displayStatus, $currentDate, $eventDate);
-                        ?>
+                            ?>
                             <div class="timeline-item <?php echo $cls; ?>">
                                 <div class="tl-dot">
                                     <div class="dot-inner"><i class="fa-solid fa-check"></i></div>
@@ -440,7 +449,8 @@ $steps = [
                 </div>
 
                 <div class="summary-box">
-                    <h3><?php echo (strtolower($eventCategory) === 'concert') ? 'Ticket Payment Summary' : 'Payment Summary'; ?></h3>
+                    <h3><?php echo (strtolower($eventCategory) === 'concert') ? 'Ticket Payment Summary' : 'Payment Summary'; ?>
+                    </h3>
 
                     <div class="price-row">
                         <span><?php echo (strtolower($eventCategory) === 'concert') ? 'Total Ticket Price' : 'Total Booking Amount'; ?></span>
@@ -450,92 +460,93 @@ $steps = [
                     <?php
                     $isConcert = (strtolower($eventCategory) === 'concert');
                     $payStatus = strtolower($booking['payment_status'] ?? 'unpaid');
-                    
-                    if (!isset($paidAdvance)) $paidAdvance = 0;
-                    
+
+                    if (!isset($paidAdvance))
+                        $paidAdvance = $paymentModel->getSucceededTotalByBookingId($booking['id']);
+
                     $isFullyPaid = ($payStatus === 'paid');
                     $balance = max(0, $booking['total_amount'] - $paidAdvance);
 
-                    if (!$isConcert):
-                        $advance = isset($advanceTarget) ? $advanceTarget : ($booking['total_amount'] * 0.5);
-                        $remainingAdvance = max(0, $advance - $paidAdvance);
-                        $hasAnyAdvancePaid = ($paidAdvance > 0.009);
-                        $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $hasAnyAdvancePaid);
-                        if ($isAdvanceComplete) $remainingAdvance = 0;
-                        $isPartiallyPaid = ($payStatus === 'partially_paid');
+                    // Standardize 50% advance for all events
+                    $advance = $booking['total_amount'] * 0.5;
+                    $remainingAdvance = max(0, $advance - $paidAdvance);
+                    $hasAnyAdvancePaid = ($paidAdvance > 0.009);
+                    $isAdvanceComplete = ($remainingAdvance <= 0.009) || ($remainingAdvance < 50 && $hasAnyAdvancePaid);
+                    
+                    if ($isAdvanceComplete)
+                        $remainingAdvance = 0;
+                    
+                    $isPartiallyPaid = ($payStatus === 'partially_paid');
                     ?>
-                        <div class="price-row">
-                            <span>Advance (50% Online)</span>
-                            <span style="color: <?php echo ($isAdvanceComplete || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
-                                Rs. <?php echo number_format($paidAdvance, 2); ?> / <?php echo number_format($advance, 2); ?>
-                                <?php if ($isAdvanceComplete || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
-                            </span>
-                        </div>
 
-                        <div class="price-row">
-                            <span>Remaining Online Advance</span>
-                            <span style="color: <?php echo $isAdvanceComplete ? '#10b981' : '#ef4444'; ?>; font-weight: 600;">
-                                Rs. <?php echo number_format($remainingAdvance, 2); ?>
-                            </span>
-                        </div>
+                    <div class="price-row">
+                        <span>Advance (50% Online)</span>
+                        <span style="color: <?php echo ($isAdvanceComplete || $isFullyPaid) ? '#10b981' : '#64748b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($paidAdvance, 2); ?> /
+                            <?php echo number_format($advance, 2); ?>
+                            <?php if ($isAdvanceComplete || $isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
+                    </div>
 
-                        <div class="price-row">
-                            <span>Balance (50% Cash on Event Day)</span>
-                            <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
-                                Rs. <?php echo number_format($balance, 2); ?>
-                                <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
-                            </span>
-                        </div>
-                    <?php else: ?>
-                        <div class="price-row" style="background: rgba(255,194,65,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-                            <span style="font-size: 13px; color: #475569;">Payment Received (Online)</span>
-                            <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 700; font-size: 16px;">
-                                Rs. <?php echo number_format($paidAdvance, 2); ?>
-                                <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle" style="margin-left: 4px;"></i><?php endif; ?>
-                            </span>
-                        </div>
-                        <div class="price-row" style="background: rgba(239,68,68,0.03); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-                            <span style="font-size: 13px; color: #475569;">Outstanding Balance</span>
-                            <span style="color: <?php echo ($balance <= 0.01) ? '#10b981' : '#ef4444'; ?>; font-weight: 700; font-size: 16px;">
-                                Rs. <?php echo number_format($balance, 2); ?>
-                            </span>
-                        </div>
-                    <?php endif; ?>
+                    <div class="price-row">
+                        <span>Remaining Online Advance</span>
+                        <span style="color: <?php echo $isAdvanceComplete ? '#10b981' : '#ef4444'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($remainingAdvance, 2); ?>
+                        </span>
+                    </div>
+
+                    <div class="price-row">
+                        <span>Balance (50% Cash on Event Day)</span>
+                        <span style="color: <?php echo $isFullyPaid ? '#10b981' : '#f59e0b'; ?>; font-weight: 600;">
+                            Rs. <?php echo number_format($balance, 2); ?>
+                            <?php if ($isFullyPaid): ?><i class="fa-solid fa-check-circle"></i><?php endif; ?>
+                        </span>
+                    </div>
 
                     <?php if (!empty($transactionId)): ?>
-                    <div class="price-row" style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid #e2e8f0; flex-direction: column; align-items: flex-start; gap: 4px;">
-                        <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Transaction ID (TX ID)</span>
-                        <span style="font-family: monospace; color: #1e293b; font-size: 12px; word-break: break-all;"><?php echo htmlspecialchars($transactionId); ?></span>
-                    </div>
+                        <div class="price-row"
+                            style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid #e2e8f0; flex-direction: column; align-items: flex-start; gap: 4px;">
+                            <span
+                                style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Transaction
+                                ID (TX ID)</span>
+                            <span
+                                style="font-family: monospace; color: #1e293b; font-size: 12px; word-break: break-all;"><?php echo htmlspecialchars($transactionId); ?></span>
+                        </div>
                     <?php endif; ?>
 
-                    <div class="price-row total <?php echo ($isFullyPaid || (isset($isAdvanceComplete) && $isAdvanceComplete)) ? 'paid' : 'pending'; ?>" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <div class="price-row total <?php echo ($isFullyPaid || $isAdvanceComplete) ? 'paid' : 'pending'; ?>"
+                        style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
                         <span>Current Status</span>
                         <span>
                             <?php
-                            if ($isFullyPaid) echo 'FULLY PAID';
-                            elseif ($isConcert) echo 'PAYMENT PENDING';
-                            elseif ($isAdvanceComplete) echo 'ADVANCE COMPLETE';
-                            elseif ($hasAnyAdvancePaid) echo 'ADVANCE PARTIALLY PAID';
-                            else echo 'PAYMENT PENDING';
+                            if ($isFullyPaid)
+                                echo 'FULLY PAID';
+                            elseif ($isAdvanceComplete)
+                                echo 'ADVANCE COMPLETE';
+                            elseif ($hasAnyAdvancePaid)
+                                echo 'ADVANCE PARTIALLY PAID';
+                            else
+                                echo 'PAYMENT PENDING';
                             ?>
                         </span>
                     </div>
 
-                    <?php if (!$isFullyPaid && (!$isConcert ? !$isAdvanceComplete : true)): ?>
+                    <?php if (!$isFullyPaid && !$isAdvanceComplete): ?>
                         <div style="margin-top: 20px;">
                             <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=<?php echo $booking['id']; ?>"
                                 class="btn-primary"
                                 style="display: block; text-align: center; background: #246A55; color: white;">
-                                <i class="fa-solid fa-credit-card"></i> <?php echo $isConcert ? 'Pay for Ticket' : 'Pay Next Installment'; ?> (Rs. <?php echo number_format($balance, 2); ?>)
+                                <i class="fa-solid fa-credit-card"></i>
+                                Pay Advance Installment (Rs. <?php echo number_format($remainingAdvance, 2); ?>)
                             </a>
                         </div>
                     <?php endif; ?>
 
-                    <div class="policy-note" style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
+                    <div class="policy-note"
+                        style="margin-top:15px; padding:12px; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;">
                         <span style="font-size:12px; color:#0369a1; display:flex; gap:8px; line-height:1.4;">
                             <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i>
-                            <span><b>Payment Policy:</b> <?php echo $isConcert ? 'All ticket sales are final and non-refundable. Tickets are confirmed only after full online payment.' : 'Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer by or on the day of the event.'; ?></span>
+                            <span><b>Payment Policy:</b> Advanced payments are non-refundable. Remaining 50% balance must be settled in cash with the organizer by or on the day of the event.</span>
                         </span>
                     </div>
 
@@ -556,9 +567,9 @@ $steps = [
                         </div>
                     <?php endif; ?>
 
-                    <?php 
-                        $backUrl = (strtolower($eventCategory) === 'concert') ? '/EventManagementSystem/public/client/tickets' : '/EventManagementSystem/public/client/bookings';
-                        $backLabel = (strtolower($eventCategory) === 'concert') ? 'Back to My Tickets' : 'Back to My Bookings';
+                    <?php
+                    $backUrl = (strtolower($eventCategory) === 'concert') ? '/EventManagementSystem/public/client/tickets' : '/EventManagementSystem/public/client/bookings';
+                    $backLabel = (strtolower($eventCategory) === 'concert') ? 'Back to My Tickets' : 'Back to My Bookings';
                     ?>
                     <a href="<?php echo $backUrl; ?>" class="btn-primary"
                         style="margin-top: 15px; color:#1a1e23; background:#ffc241;">
@@ -635,6 +646,7 @@ $steps = [
             }
         })();
     </script>
+
 </body>
 
 </html>

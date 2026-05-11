@@ -326,4 +326,61 @@ class AdminController
         $activePage = 'promo_codes';
         require_once dirname(__DIR__) . '/views/admin/promo_codes.php';
     }
+
+    public function reports()
+    {
+        $this->checkAuth();
+        $activePage = 'reports';
+        require_once dirname(__DIR__) . '/views/admin/reports.php';
+    }
+
+    public function messages()
+    {
+        $this->checkAuth();
+        $activePage = 'messages';
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        $requestModel = new CustomEventRequest();
+        $requests = $requestModel->getByOrganizerId($_SESSION['user_id']); // Admins can see their created events requests
+        require_once dirname(__DIR__) . '/views/admin/messages.php';
+    }
+
+    public function customRequests()
+    {
+        $this->checkAuth();
+        $activePage = 'requests';
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        $requestModel = new CustomEventRequest();
+        $requests = $requestModel->getByOrganizerId($_SESSION['user_id']);
+        require_once dirname(__DIR__) . '/views/admin/custom_requests.php';
+    }
+
+    public function viewRequest()
+    {
+        $this->checkAuth();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /EventManagementSystem/public/admin/dashboard');
+            exit;
+        }
+
+        require_once dirname(__DIR__) . '/models/CustomEventRequest.php';
+        require_once dirname(__DIR__) . '/models/Message.php';
+        $requestModel = new CustomEventRequest();
+        $messageModel = new Message();
+
+        $request = $requestModel->getById($id);
+        if (!$request || ($request['organizer_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] != 'admin')) {
+             // Admin can see everything
+        }
+
+        $messages = $messageModel->getByRequestId($id);
+        require_once dirname(__DIR__) . '/views/admin/view_request.php';
+    }
+
+    public function payments()
+    {
+        $this->checkAuth();
+        $activePage = 'payment_details';
+        require_once dirname(__DIR__) . '/views/admin/payment_details.php';
+    }
 }

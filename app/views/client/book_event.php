@@ -3,6 +3,16 @@ $packages = isset($event['packages']) ? json_decode($event['packages'], true) : 
 
 // Find package details
 $selectedPackageData = $packages[$packageTier] ?? null;
+
+if ($customRequest) {
+    $customData = json_decode($customRequest['custom_packages'], true);
+    $selectedPackageData = [
+        'description' => 'Negotiated Custom Package',
+        'price' => $customRequest['proposed_price'],
+        'items' => $customData['items'] ?? []
+    ];
+}
+
 if (!$selectedPackageData) {
     // Fallback if not configured in DB for this event but passed in URL
     $selectedPackageData = [
@@ -76,6 +86,7 @@ if (empty($items)) {
             <a href="/EventManagementSystem/public/client/events" class="active">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/payments">Payment History</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">
@@ -338,6 +349,7 @@ if (empty($items)) {
             <form action="/EventManagementSystem/public/client/book/store" method="POST" class="booking-grid">
 
                 <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event['id']); ?>">
+                <input type="hidden" name="custom_request_id" value="<?php echo htmlspecialchars($requestId ?? ''); ?>">
                 <input type="hidden" name="package_tier" value="<?php echo htmlspecialchars($packageTier); ?>">
                 <input type="hidden" name="total_amount" value="<?php echo $totalAmount; ?>">
 
@@ -690,6 +702,7 @@ if (empty($items)) {
 
                 const payload = {
                     event_id: Number(fd.get('event_id')),
+                    custom_request_id: fd.get('custom_request_id') ? Number(fd.get('custom_request_id')) : null,
                     package_tier: String(fd.get('package_tier') || ''),
                     event_date: String(fd.get('event_date') || ''),
                     guest_count: Number(fd.get('guest_count') || 0),

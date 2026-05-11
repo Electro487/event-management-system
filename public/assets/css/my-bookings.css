@@ -550,6 +550,7 @@
 
 .btn-send-msg {
     width: 100%;
+    box-sizing: border-box;
     background: #ffc241;
     color: #000;
     border: none;
@@ -563,10 +564,82 @@
     align-items: center;
     gap: 8px;
     transition: background 0.2s;
+    margin-top: 0;
 }
 
 .btn-send-msg:hover {
     background: #eab308;
+}
+
+/* ── Pay Advance Button — same shape as Send Message ── */
+.btn-pay-advance {
+    width: 100%;
+    background: #246A55;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 0.2s;
+    margin-bottom: 10px;
+}
+
+.btn-pay-advance:hover {
+    background: #1b5343;
+}
+
+/* ── Print Ticket Button — same shape ── */
+.btn-print-ticket {
+    width: 100%;
+    background: #F59E0B;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 0.2s;
+    margin-bottom: 10px;
+}
+
+.btn-print-ticket:hover {
+    background: #d97706;
+}
+
+/* ── Cancel Booking Button ── */
+.btn-cancel-booking {
+    width: 100%;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1.5px solid #fca5a5;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-cancel-booking:hover {
+    background: #fecaca;
+    border-color: #f87171;
 }
 
 .empty-state {
