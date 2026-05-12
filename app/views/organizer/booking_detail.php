@@ -306,7 +306,11 @@
                 const statusBadge = document.getElementById('statusBadge');
                 statusBadge.textContent = displayStatus.toUpperCase();
                 statusBadge.className = `badge-status ${displayStatus}`;
-                document.getElementById('eventTitleDisplay').textContent = `${eTitle} - ${b.package_tier} Package`;
+                
+                // Capitalize package tier
+                const rawTier = b.package_tier || '';
+                const capitalizedTier = rawTier.charAt(0).toUpperCase() + rawTier.slice(1);
+                document.getElementById('eventTitleDisplay').textContent = `${eTitle} - ${capitalizedTier} Package`;
 
                 // Client Card
                 const clientAvatar = document.getElementById('clientAvatar');
@@ -349,7 +353,7 @@
                 document.getElementById('venueLocationDisplay').textContent = eSnap?.venue_location || b.venue_location || 'Bhaktapur';
 
                 // Package
-                document.getElementById('packageTierTitle').textContent = `${b.package_tier} Package`;
+                document.getElementById('packageTierTitle').textContent = `${capitalizedTier} Package`;
                 const pkgData = pSnap || (JSON.parse(b.event_packages || '{}')[tierKey] || {});
                 document.getElementById('packageOverview').textContent = pkgData.description || `Most popular for ${tierKey} events`;
                 document.getElementById('packagePriceDisplay').textContent = `Rs. ${parseFloat(b.total_amount).toLocaleString()}`;

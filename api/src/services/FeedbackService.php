@@ -13,23 +13,39 @@ class FeedbackService
         $this->userModel = new User();
     }
 
-    public function getAll(?int $rating = null): array
+    public function getAll(?int $rating = null, int $page = 1, int $limit = 10): array
     {
-        $feedbacks = $this->feedbackModel->getAll($rating);
+        $feedbacks = $this->feedbackModel->getAll($rating, $page, $limit);
+        $total = $this->feedbackModel->getTotalCount($rating);
+        
         return [
             'ok' => true,
             'status' => 200,
-            'data' => $feedbacks
+            'data' => $feedbacks,
+            'pagination' => [
+                'total' => $total,
+                'totalPages' => ceil($total / $limit),
+                'currentPage' => $page,
+                'limit' => $limit
+            ]
         ];
     }
 
-    public function getByClient(int $clientId): array
+    public function getByClient(int $clientId, int $page = 1, int $limit = 10): array
     {
-        $feedbacks = $this->feedbackModel->getByClient($clientId);
+        $feedbacks = $this->feedbackModel->getByClient($clientId, $page, $limit);
+        $total = $this->feedbackModel->getTotalCountByClient($clientId);
+        
         return [
             'ok' => true,
             'status' => 200,
-            'data' => $feedbacks
+            'data' => $feedbacks,
+            'pagination' => [
+                'total' => $total,
+                'totalPages' => ceil($total / $limit),
+                'currentPage' => $page,
+                'limit' => $limit
+            ]
         ];
     }
 
@@ -64,7 +80,7 @@ class FeedbackService
             }
 
             // Handle Mentions
-            $this->processMentions($data['comment'], (int)$feedbackId, $authUser);
+            $this->processMentions($data['comment'], (int) $feedbackId, $authUser);
 
             return ['ok' => true, 'status' => 201, 'data' => ['id' => $feedbackId, 'message' => 'Thank you for your feedback!']];
         }
@@ -103,11 +119,11 @@ class FeedbackService
                 $title = "Response to Your Feedback";
                 $message = "The {$replierRole} has replied to your feedback thread.";
                 $this->notificationModel->create($feedback['client_id'], $title, $message, 'feedback_reply', $feedbackId);
-                
+
                 // Cross-notification between Admin and Organizer
                 $crossTitle = "{$replierRole} Replied to Feedback";
                 $crossMessage = "{$authUser['fullname']} ({$replierRole}) has replied to a feedback thread.";
-                
+
                 if ($userRole === 'organizer') {
                     // Notify all admins when an organizer replies
                     foreach ($this->userModel->getAdmins() as $admin) {
@@ -122,7 +138,7 @@ class FeedbackService
             }
 
             // Handle Mentions
-            $this->processMentions($replyText, (int)$feedbackId, $authUser);
+            $this->processMentions($replyText, (int) $feedbackId, $authUser);
 
             return ['ok' => true, 'status' => 201, 'data' => ['success' => true]];
         }
@@ -158,43 +174,26 @@ class FeedbackService
 
     public function getStats(): array
     {
-        $feedbacks = $this->feedbackModel->getAll();
-        $total = count($feedbacks);
-        $sum = 0;
-        $counts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
-
-        foreach ($feedbacks as $fb) {
-            $r = (int) $fb['rating'];
-            $sum += $r;
-            if (isset($counts[$r])) {
-                $counts[$r]++;
-            }
-        }
-
-        $avg = $total > 0 ? round($sum / $total, 1) : 0;
+        $stats = $this->feedbackModel->getRatingStats();
 
         return [
             'ok' => true,
             'status' => 200,
-            'data' => [
-                'total' => $total,
-                'avg' => $avg,
-                'counts' => $counts
-            ]
+            'data' => $stats
         ];
     }
 
     private function processMentions(string $text, int $feedbackId, array $sender): void
     {
         $senderName = $sender['fullname'] ?? 'A user';
-        $senderId = (int)($sender['id'] ?? 0);
+        $senderId = (int) ($sender['id'] ?? 0);
 
         // Handle @admin
         if (stripos($text, '@admin') !== false) {
             $title = "Mentioned in Feedback";
             $message = "Admin was mentioned in a feedback message by {$senderName}.";
             foreach ($this->userModel->getAdmins() as $admin) {
-                if ((int)$admin['id'] !== $senderId) {
+                if ((int) $admin['id'] !== $senderId) {
                     $this->notificationModel->create($admin['id'], $title, $message, 'feedback_mention', $feedbackId);
                 }
             }
@@ -205,7 +204,7 @@ class FeedbackService
             $title = "Mentioned in Feedback";
             $message = "Organizer was mentioned in a feedback message by {$senderName}.";
             foreach ($this->userModel->getOrganizers() as $organizer) {
-                if ((int)$organizer['id'] !== $senderId) {
+                if ((int) $organizer['id'] !== $senderId) {
                     $this->notificationModel->create($organizer['id'], $title, $message, 'feedback_mention', $feedbackId);
                 }
             }
@@ -215,7 +214,7 @@ class FeedbackService
         if (stripos($text, '@client') !== false) {
             $feedback = $this->feedbackModel->getById($feedbackId);
             if ($feedback && isset($feedback['client_id'])) {
-                if ((int)$feedback['client_id'] !== $senderId) {
+                if ((int) $feedback['client_id'] !== $senderId) {
                     $title = "Mentioned in Feedback";
                     $message = "Client was mentioned in a feedback message by {$senderName}.";
                     $this->notificationModel->create($feedback['client_id'], $title, $message, 'feedback_mention', $feedbackId);

@@ -24,6 +24,7 @@
             <a href="/EventManagementSystem/public/client/bookings" class="<?php echo ($activePage ?? '') == 'bookings' ? 'active' : ''; ?>">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets" class="<?php echo ($activePage ?? '') == 'tickets' ? 'active' : ''; ?>">My Tickets</a>
             <a href="/EventManagementSystem/public/client/requests" class="<?php echo ($activePage ?? '') == 'requests' ? 'active' : ''; ?>">My Requests</a>
+            <a href="/EventManagementSystem/public/client/payments" class="<?php echo ($activePage ?? '') == 'payments' ? 'active' : ''; ?>">Payment History</a>
         </nav>
         <div class="nav-icons">
             <div class="notifications-wrapper">

@@ -950,7 +950,6 @@
 
                     updateStats(serverStats);
                     renderTable();
-                    renderChart();
                 } catch (error) {
                     console.error('Error fetching data:', error);
                     tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Failed to load data.</td></tr>';
@@ -1177,6 +1176,7 @@
                 }).join('');
 
                 renderPagination(filtered.length);
+                renderChart(filtered);
             }
 
             function renderPagination(totalItems) {
@@ -1238,46 +1238,52 @@
                 document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth' });
             };
 
-            function renderChart() {
+            function renderChart(data = allBookings) {
                 const ctx = document.getElementById('earningsChart').getContext('2d');
 
                 // Generate last 6 months (ending with the CURRENT month)
-                const months = [];
+                const monthKeys = [];
                 const labels = [];
                 const d = new Date();
                 for (let i = 5; i >= 0; i--) {
                     const m = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                    const monthKey = m.getFullYear() + '-' + m.getMonth();
                     const monthName = m.toLocaleString('default', { month: 'short' });
-                    months.push(monthName);
+                    monthKeys.push(monthKey);
                     labels.push(monthName.toUpperCase());
                 }
 
                 const realConfirmed = new Array(6).fill(0);
                 const realPending = new Array(6).fill(0);
                 const monthIndices = {};
-                months.forEach((m, i) => monthIndices[m] = i);
+                monthKeys.forEach((key, i) => monthIndices[key] = i);
 
-                allBookings.forEach(b => {
+                data.forEach(b => {
                     const dateStr = b.event_date || b.event_start_date || '';
                     const parts = dateStr.split(' ')[0].split('-');
 
                     if (parts.length === 3) {
-                        // Use year, month (0-indexed), day to create date object without timezone shifts
                         const date = new Date(parts[0], parts[1] - 1, parts[2]);
-                        const month = date.toLocaleString('default', { month: 'short' });
-                        const paid = parseFloat(b.paid_amount || 0);
-                        const total = parseFloat(b.total_amount || 0);
-
-                        if (monthIndices.hasOwnProperty(month)) {
-                            const idx = monthIndices[month];
+                        const key = date.getFullYear() + '-' + date.getMonth();
+                        
+                        if (monthIndices.hasOwnProperty(key)) {
+                            const idx = monthIndices[key];
                             const status = (b.status || '').toLowerCase();
+                            const payStatus = (b.payment_status || 'unpaid').toLowerCase();
+                            const hasTicket = !!b.ticket_code;
+                            const total = parseFloat(b.total_amount || 0);
+                            const onlinePaid = parseFloat(b.paid_amount || 0);
+                            
+                            if (status === 'cancelled') {
+                                realConfirmed[idx] += onlinePaid;
+                            } else if (payStatus === 'paid' || hasTicket) {
+                                realConfirmed[idx] += total;
+                            } else {
+                                realConfirmed[idx] += onlinePaid;
+                            }
 
-                            // "CONFIRMED" part - always include what was actually paid
-                            realConfirmed[idx] += paid;
-
-                            // "PENDING" part - only include for non-cancelled bookings
-                            if (status !== 'cancelled') {
-                                realPending[idx] += Math.max(0, total - paid);
+                            if (status !== 'cancelled' && payStatus !== 'paid' && !hasTicket) {
+                                realPending[idx] += Math.max(0, total - onlinePaid);
                             }
                         }
                     }

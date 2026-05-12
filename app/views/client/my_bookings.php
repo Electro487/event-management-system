@@ -560,7 +560,7 @@
                                 <div class="b-date-booked">Booked on: ${new Date(booking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                                 <div class="b-price-action">
                                     <span class="b-price">Rs. ${parseFloat(booking.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                    <a href="javascript:void(0)" onclick="event.stopPropagation(); selectBookingByObject(${booking.id}, this.closest('.b-item'))" class="b-view-link">View Details</a>
+                                    <a href="/EventManagementSystem/public/client/bookings/view?id=${booking.id}" onclick="event.stopPropagation()" class="b-view-link">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -634,6 +634,12 @@
         }
 
         function selectBookingByObject(id, element) {
+            // If on mobile/tablet where sidebar is hidden, navigate to full details page
+            if (window.innerWidth <= 1024) {
+                window.location.href = `/EventManagementSystem/public/client/bookings/view?id=${id}`;
+                return;
+            }
+
             document.querySelectorAll('.b-item').forEach(el => el.classList.remove('active'));
             if (element) element.classList.add('active');
 

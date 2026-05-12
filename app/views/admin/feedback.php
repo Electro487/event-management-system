@@ -70,7 +70,11 @@
         <!-- STATS ROW -->
         <div class="np-stats-row" id="stats-row">
             <!-- Loading placeholders -->
-            <div class="np-stat-card"><div class="np-stat-info"><div class="np-stat-label">Loading...</div></div></div>
+            <div class="np-stat-card">
+                <div class="np-stat-info">
+                    <div class="np-stat-label">Loading...</div>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER BAR -->
@@ -104,17 +108,19 @@
         <div id="alert-container"></div>
 
         <div id="feedback-list" class="feedback-grid">
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px; border: 2px dashed #eee;">
+            <div
+                style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px; border: 2px dashed #eee;">
                 <p style="color: #999;"><i class="fa-solid fa-spinner fa-spin"></i> Loading feedback...</p>
             </div>
         </div>
+        <div id="pagination-container" style="display: flex; gap: 8px; justify-content: center; margin-top: 30px; align-items: center; margin-bottom: 30px;"></div>
     </main>
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/mentions.js?v=<?php echo time(); ?>"></script>
     <script>
-        const currentUserId = <?php echo (int)$_SESSION['user_id']; ?>;
+        const currentUserId = <?php echo (int) $_SESSION['user_id']; ?>;
         let currentFilter = 'all';
 
         function getAvatarHtml(user, className = "reply-avatar") {
@@ -130,16 +136,16 @@
 
         function loadStats() {
             window.emsApi.apiFetch('/api/v1/feedback/stats')
-            .then(res => {
-                if (res.success) {
-                    const stats = res.data;
-                    document.getElementById('total-reviews-badge').textContent = `${stats.total} Total Reviews`;
-                    document.getElementById('count-all').textContent = stats.total;
-                    for (let i = 1; i <= 5; i++) {
-                        document.getElementById(`count-${i}`).textContent = stats.counts[i];
-                    }
+                .then(res => {
+                    if (res.success) {
+                        const stats = res.data;
+                        document.getElementById('total-reviews-badge').textContent = `${stats.total} Total Reviews`;
+                        document.getElementById('count-all').textContent = stats.total;
+                        for (let i = 1; i <= 5; i++) {
+                            document.getElementById(`count-${i}`).textContent = stats.counts[i];
+                        }
 
-                    document.getElementById('stats-row').innerHTML = `
+                        document.getElementById('stats-row').innerHTML = `
                         <div class="np-stat-card">
                             <div class="np-stat-icon green"><i class="fa-solid fa-comments"></i></div>
                             <div class="np-stat-info">
@@ -190,34 +196,56 @@
                             </div>
                         </div>
                     `;
-                }
-            });
+                    }
+                });
         }
 
-        function loadFeedbacks() {
-            const url = currentFilter === 'all' ? '/api/v1/feedback' : `/api/v1/feedback?rating=${currentFilter}`;
-            window.emsApi.apiFetch(url)
-            .then(res => {
-                const feedbacks = res.data || [];
-                const list = document.getElementById('feedback-list');
-                
-                if (feedbacks.length === 0) {
-                    list.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px; border: 2px dashed #eee;">
-                            <i class="far fa-comment-dots" style="font-size: 50px; color: #ddd; margin-bottom: 20px; display: block;"></i>
-                            <p style="color: #999; font-size: 16px;">No feedback received yet.</p>
-                        </div>
-                    `;
-                    return;
-                }
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let totalItemsCount = 0;
 
-                list.innerHTML = feedbacks.map(fb => {
-                    const stars = [];
-                    for (let i = 1; i <= 5; i++) {
-                        stars.push(`<i class="${i <= fb.rating ? 'fas' : 'far'} fa-star"></i>`);
-                    }
-                    
-                    const repliesHtml = fb.replies.map((reply, index) => `
+        function loadFeedbacks() {
+            const url = currentFilter === 'all' 
+                ? `/api/v1/feedback?page=${currentPage}&limit=${itemsPerPage}` 
+                : `/api/v1/feedback?rating=${currentFilter}&page=${currentPage}&limit=${itemsPerPage}`;
+            window.emsApi.apiFetch(url)
+                .then(res => {
+                    const paginatedItems = res.data || [];
+                    totalItemsCount = res.pagination ? res.pagination.total : paginatedItems.length;
+                    renderFeedbacks(paginatedItems);
+                    renderPagination(totalItemsCount);
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('feedback-list').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px; border: 2px dashed #eee;">
+                        <p style="color: #b91c1c;">Failed to load feedback history. Please try again later.</p>
+                    </div>
+                    `;
+                });
+        }
+
+        function renderFeedbacks(paginatedItems) {
+            const list = document.getElementById('feedback-list');
+
+            if (paginatedItems.length === 0 && currentPage === 1) {
+                list.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px; border: 2px dashed #eee;">
+                    <i class="far fa-comment-dots" style="font-size: 50px; color: #ddd; margin-bottom: 20px; display: block;"></i>
+                    <p style="color: #999; font-size: 16px;">No feedback received yet.</p>
+                </div>
+            `;
+                document.getElementById('pagination-container').innerHTML = '';
+                return;
+            }
+
+            list.innerHTML = paginatedItems.map(fb => {
+                        const stars = [];
+                        for (let i = 1; i <= 5; i++) {
+                            stars.push(`<i class="${i <= fb.rating ? 'fas' : 'far'} fa-star"></i>`);
+                        }
+
+                        const repliesHtml = fb.replies.map((reply, index) => `
                         <div class="reply-item ${reply.user_role !== 'client' ? 'admin-reply' : ''} ${index >= 2 ? 'reply-hidden' : ''}">
                             ${getAvatarHtml(reply, 'reply-avatar')}
                             <div class="reply-content">
@@ -241,18 +269,18 @@
                                         </form>
                                     ` : ''}
                                 </div>
-                                <span class="reply-time">${new Date(reply.created_at).toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true})}</span>
+                                <span class="reply-time">${new Date(reply.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
                             </div>
                         </div>
                     `).join('');
 
-                    return `
+                        return `
                         <div class="feedback-card">
                             <div class="feedback-client" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
                                 ${getAvatarHtml(fb, 'client-img')}
                                 <div class="client-info">
                                     <h4 style="margin: 0; color: #1a4d2e; font-size: 16px; font-weight: 700;">${fb.client_name}</h4>
-                                    <span style="font-size: 12px; color: #888;">${new Date(fb.created_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                                    <span style="font-size: 12px; color: #888;">${new Date(fb.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
                             </div>
                             <div class="rating-display" style="color: #FFC24A; margin-bottom: 15px; font-size: 15px;">
@@ -292,9 +320,46 @@
                             </div>
                         </div>
                     `;
-                }).join('');
-            });
+                    }).join('');
+                }
+
+        function renderPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const container = document.getElementById('pagination-container');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const btnBaseStyle = "width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; border:1px solid #e2e8f0; background:#fff; color:#0f172a;";
+            const activeStyle = "background:#004d40; color:#fff; border:1px solid #004d40; box-shadow: 0 4px 6px -1px rgba(0, 77, 64, 0.2);";
+            const disabledStyle = "opacity:0.5; cursor:not-allowed; color:#cbd5e1;";
+            
+            let html = `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})" style="${btnBaseStyle} ${currentPage === 1 ? disabledStyle : ''}">
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button onclick="changePage(${i})" style="${btnBaseStyle} ${i === currentPage ? activeStyle : ''}">${i}</button>`;
+                } else if ((i === 2 && currentPage > 3) || (i === totalPages - 1 && currentPage < totalPages - 2)) {
+                    html += `<span style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-weight:700; font-size:15px;">...</span>`;
+                    i = (i === 2) ? currentPage - 2 : totalPages - 1;
+                }
+            }
+            
+            html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})" style="${btnBaseStyle} ${currentPage === totalPages ? disabledStyle : ''}">
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+            
+            container.innerHTML = html;
         }
+
+        window.changePage = (page) => {
+            currentPage = page;
+            loadFeedbacks();
+            document.querySelector('#pagination-container').scrollIntoView({ behavior: 'smooth' });
+        };
 
         function handleAjaxForm(event, method = 'POST') {
             event.preventDefault();
@@ -308,18 +373,18 @@
                 method: method,
                 body: data
             })
-            .then(res => {
-                if (res.success) {
-                    loadFeedbacks();
-                    loadStats();
-                } else {
-                    alert(res.message || 'Action failed.');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('An error occurred: ' + err.message);
-            });
+                .then(res => {
+                    if (res.success) {
+                        loadFeedbacks();
+                        loadStats();
+                    } else {
+                        alert(res.message || 'Action failed.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('An error occurred: ' + err.message);
+                });
         }
 
         function toggleReplyBox(id) {

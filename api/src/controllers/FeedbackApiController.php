@@ -15,13 +15,26 @@ class FeedbackApiController
             ApiResponse::error($result['message'] ?? 'Request failed.', (int) ($result['status'] ?? 400));
             return;
         }
-        ApiResponse::success($result['data'] ?? [], (int) ($result['status'] ?? 200));
+        
+        $payload = [
+            'success' => true,
+            'data' => $result['data'] ?? [],
+        ];
+        
+        if (isset($result['pagination'])) {
+            $payload['pagination'] = $result['pagination'];
+        }
+
+        ApiResponse::json($payload, (int) ($result['status'] ?? 200));
     }
 
     public function list(): void
     {
         $rating = $_GET['rating'] ?? null;
-        $result = $this->feedbackService->getAll($rating ? (int) $rating : null);
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+        
+        $result = $this->feedbackService->getAll($rating ? (int) $rating : null, $page, $limit);
         $this->respond($result);
     }
 
@@ -32,7 +45,11 @@ class FeedbackApiController
             ApiResponse::error('Unauthorized', 401);
             return;
         }
-        $result = $this->feedbackService->getByClient((int) $authUser['id']);
+        
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+        
+        $result = $this->feedbackService->getByClient((int) $authUser['id'], $page, $limit);
         $this->respond($result);
     }
 

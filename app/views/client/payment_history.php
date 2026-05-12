@@ -9,6 +9,9 @@ foreach ($nameParts as $p) {
 }
 if (strlen($initials) > 2)
     $initials = substr($initials, 0, 2);
+
+$firstName = $nameParts[0] ?? '';
+$lastName = count($nameParts) > 1 ? end($nameParts) : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -623,6 +626,7 @@ if (strlen($initials) > 2)
             <a href="/EventManagementSystem/public/client/events">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
+            <a href="/EventManagementSystem/public/client/requests">My Requests</a>
             <a href="/EventManagementSystem/public/client/payments" class="active">Payment History</a>
         </nav>
         <div class="nav-icons">
@@ -688,6 +692,19 @@ if (strlen($initials) > 2)
                                 class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
                         </div>
                         <div class="pd-bottom">
+                            <div class="pd-detail">
+                                <label>FIRST NAME</label>
+                                <div><?php echo htmlspecialchars($firstName); ?></div>
+                            </div>
+                            <div class="pd-detail">
+                                <label>LAST NAME</label>
+                                <div><?php echo htmlspecialchars($lastName); ?></div>
+                            </div>
+                            <div class="pd-detail">
+                                <label>EMAIL ADDRESS</label>
+                                <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
+                            </div>
+
                             <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
                                 <i class="fa-solid fa-star"></i> Rating &amp; Feedback
                             </a>
