@@ -1,7 +1,7 @@
-<!-- ═══ e-Plan Chatbot Widget ═══ -->
+<!-- ═══ e.PLAN Chatbot Widget ═══ -->
 <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/chatbot.css?v=<?php echo time(); ?>">
 
-<div id="eplan-chat-bubble" onclick="toggleChat()" title="Chat with e-Plan Assistant">
+<div id="eplan-chat-bubble" onclick="toggleChat()" title="Chat with e.PLAN Assistant">
     <svg class="bubble-icon" width="26" height="26" viewBox="0 0 24 24" fill="white">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
     </svg>
@@ -15,7 +15,7 @@
         <div class="chat-header-info">
             <div class="chat-avatar">🤖</div>
             <div class="chat-header-text">
-                <strong>e-Plan Assistant</strong>
+                <strong>e.PLAN Assistant</strong>
                 <span id="chat-status">Online</span>
             </div>
         </div>

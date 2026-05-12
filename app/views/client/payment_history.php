@@ -1,29 +1,11 @@
 <?php
 /** @var array $payments @var float $totalSpent @var int $confirmedBookingsCount @var int $pendingPaymentsCount */
-$initials = '';
-$fullName = trim($_SESSION['user_fullname'] ?? 'User');
-$nameParts = explode(' ', $fullName);
-foreach ($nameParts as $p) {
-    if (!empty($p))
-        $initials .= strtoupper(substr($p, 0, 1));
-}
-if (strlen($initials) > 2)
-    $initials = substr($initials, 0, 2);
 
-$firstName = $nameParts[0] ?? '';
-$lastName = count($nameParts) > 1 ? end($nameParts) : '';
+$title = 'My Payment History - e-Plan';
+$activePage = 'payments';
+
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Payment History - e-Plan</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <style>
         :root {
             --primary-green: #246A55;
@@ -49,22 +31,21 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         }
 
         .header-section {
-            margin-bottom: 32px;
+            margin-bottom: 40px;
         }
 
         .header-section h1 {
             font-size: 32px;
             font-weight: 800;
-            color: var(--primary-green);
             margin-bottom: 8px;
         }
 
         .header-section p {
             color: var(--text-muted);
-            font-size: 15px;
+            font-size: 16px;
         }
 
-        /* Stats Grid */
+        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -75,48 +56,44 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         .stat-card {
             background: var(--white);
             padding: 24px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             gap: 20px;
-            border-bottom: 4px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-card.total {
-            border-color: var(--primary-green);
-        }
-
-        .stat-card.confirmed {
-            border-color: #F59E0B;
-        }
-
-        .stat-card.pending {
-            border-color: #DC2626;
+            box-shadow: var(--shadow-sm);
         }
 
         .stat-icon {
             width: 56px;
             height: 56px;
-            border-radius: 12px;
-            background: #f1f5f9;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            color: var(--text-muted);
+        }
+
+        .stat-card.total .stat-icon {
+            background: #f0fdf4;
+            color: var(--primary-green);
+        }
+
+        .stat-card.confirmed .stat-icon {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .stat-card.pending .stat-icon {
+            background: #fffbeb;
+            color: #d97706;
         }
 
         .stat-info .label {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
+            font-weight: 600;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 4px;
             display: block;
         }
@@ -129,119 +106,92 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
 
         /* Filter Bar */
         .filter-bar {
+            background: var(--white);
+            padding: 16px 24px;
+            border-radius: 16px;
             display: flex;
-            gap: 12px;
-            margin-bottom: 40px;
             align-items: center;
-            background: #eff2f5;
-            /* Light gray-green tint from image */
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            gap: 20px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
         }
 
         .search-box {
             flex: 1;
-            /* Matches the longer search in the image */
-            max-width: 680px;
-            /* But capped for better looks on wide screens */
             position: relative;
         }
 
         .search-box i {
             position: absolute;
-            left: 14px;
+            left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #64748b;
-            font-size: 15px;
+            color: var(--text-muted);
         }
 
         .search-box input {
-            width: 100%;
-            padding: 10px 10px 10px 42px;
-            border-radius: 6px;
-            border: 1px solid transparent;
-            background: var(--white);
-            font-size: 14px;
-            color: var(--text-main);
+            width: 92%;
+            padding: 12px 16px 12px 48px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
             outline: none;
-            transition: all 0.2s ease;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
         .search-box input:focus {
-            border-color: #cbd5e1;
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.02);
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(36, 106, 85, 0.08);
         }
 
         .filter-btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
             background: var(--white);
-            padding: 10px 18px;
-            border-radius: 6px;
-            border: 1px solid transparent;
+            color: var(--text-main);
             font-size: 14px;
-            font-weight: 500;
-            color: #334155;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             cursor: pointer;
             transition: all 0.2s;
-            white-space: nowrap;
-            margin-left: auto;
-            /* Pushes items to the far right */
-        }
-
-        .filter-btn i {
-            font-size: 13px;
-            color: #64748b;
+            position: relative;
         }
 
         .filter-btn:hover {
             background: #f8fafc;
-            border-color: #e2e8f0;
+            border-color: #cbd5e1;
         }
 
-        /* Custom Premium Dropdown */
+        /* Custom Dropdown */
         .custom-dropdown {
             position: relative;
-            min-width: 160px;
-            user-select: none;
+            min-width: 180px;
         }
 
         .cd-trigger {
-            background: var(--white);
-            padding: 10px 16px;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
             border: 1px solid #e2e8f0;
+            background: var(--white);
+            font-size: 14px;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .cd-trigger span {
-            font-size: 14px;
-            font-weight: 700;
-            color: #1e293b;
         }
 
         .cd-trigger i {
             font-size: 12px;
             color: #64748b;
-            transition: transform 0.2s;
         }
 
         .custom-dropdown.open .cd-trigger {
             border-color: var(--primary-green);
-            box-shadow: 0 0 0 4px rgba(36, 106, 85, 0.08);
-        }
-
-        .custom-dropdown.open .cd-trigger i {
-            transform: rotate(180deg);
         }
 
         .cd-options {
@@ -251,472 +201,117 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
             width: 100%;
             background: var(--white);
             border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-md);
             border: 1px solid #e2e8f0;
             overflow: hidden;
             z-index: 100;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(10px);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .custom-dropdown.open .cd-options {
             opacity: 1;
             visibility: visible;
-            transform: translateY(0);
         }
 
         .cd-option {
             padding: 12px 16px;
             font-size: 14px;
-            font-weight: 500;
-            color: #475569;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
-        .cd-option:hover {
-            background: #f8fafc;
-            color: var(--primary-green);
-        }
+        .cd-option:hover { background: #f8fafc; }
+        .cd-option.active { color: var(--primary-green); font-weight: 700; background: #f0fdf4; }
 
-        .cd-option.active {
-            background: #f0fdf4;
-            /* Light green background from image */
-            color: var(--primary-green);
-            font-weight: 700;
-        }
+        /* Payment List & Items */
+        .payment-list { display: flex; flex-direction: column; gap: 20px; }
+        .payment-item { background: var(--white); border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 24px; box-shadow: var(--shadow-sm); }
+        .event-img-container { width: 140px; height: 140px; border-radius: 12px; overflow: hidden; }
+        .event-img { width: 100%; height: 100%; object-fit: cover; }
+        .payment-details { flex: 1; }
+        .status-paid { background: #DCFCE7; color: #166534; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-partial { background: #E0F2FE; color: #0369A1; }
 
-        /* Payment List */
-        .payment-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .payment-item {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .payment-item:hover {
-            box-shadow: var(--shadow-md);
-            transform: scale(1.01);
-        }
-
-        .event-img-container {
-            width: 140px;
-            height: 140px;
-            border-radius: 12px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .event-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s;
-        }
-
-        .payment-item:hover .event-img {
-            transform: scale(1.1);
-        }
-
-        .payment-details {
-            flex: 1;
-        }
-
-        .event-title-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .event-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-main);
-            text-decoration: none;
+        .event-title { 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: var(--text-main); 
+            text-decoration: none; 
             transition: color 0.2s;
+            margin-bottom: 8px;
+            display: inline-block;
         }
+        .event-title:hover { color: var(--primary-green); }
+        .event-title:visited { color: var(--text-main); }
 
-        .event-title:hover {
-            color: var(--primary-green);
-        }
+        .event-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+        .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+        .meta-col .label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .meta-col .val { font-size: 14px; font-weight: 500; }
+        .amount-col { text-align: right; min-width: 180px; }
+        .amount-val { font-size: 26px; font-weight: 800; display: block; margin-bottom: 8px; }
+
+        .status-pill { display: inline-flex; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .status-paid { background: #DCFCE7; color: #166534; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-partial { background: #E0F2FE; color: #0369A1; }
 
         .tier-badge {
-            font-size: 10px;
-            font-weight: 800;
-            padding: 4px 12px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .tier-premium {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .tier-standard {
-            background: #E0F2FE;
-            color: #075985;
-        }
-
-        .tier-basic {
-            background: #F3F4F6;
-            color: #374151;
-        }
-
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-        }
-
-        .meta-col .label {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .meta-col .val {
-            font-size: 14px;
-            color: var(--text-main);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .meta-col i {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .amount-col {
-            text-align: right;
-            min-width: 180px;
-        }
-
-        .amount-val {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--text-main);
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .status-paid {
-            background: #DCFCE7;
-            color: #166534;
-        }
-
-        .status-partial {
-            background: #FFEDD5;
-            color: #9A3412;
-        }
-
-        .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .cancelled-badge {
-            background: #FEE2E2;
-            color: #991B1B;
-            font-size: 10px;
-            font-weight: 800;
             padding: 4px 10px;
             border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
         }
+        .tier-premium { background: #FFF7ED; color: #C2410C; border: 1px solid #FFEDD5; }
+        .tier-standard { background: #F0FDF4; color: #15803D; border: 1px solid #DCFCE7; }
+        .tier-basic { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
 
         .ticket-badge {
-            background: #ECFDF5;
-            color: #065F46;
-            font-size: 10px;
-            font-weight: 800;
+            background: #EEF2FF;
+            color: #4338CA;
             padding: 4px 10px;
             border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 10px;
+            font-weight: 800;
+            border: 1px solid #E0E7FF;
+        }
+
+        .actions-col { display: flex; flex-direction: column; gap: 10px; min-width: 120px; }
+        .btn-action {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-        }
-
-        .actions-col {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-action {
-            padding: 10px 24px;
-            border-radius: 10px;
-            font-size: 14px;
+            justify-content: center;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 700;
             text-decoration: none;
-            text-align: center;
             transition: all 0.2s;
-            cursor: pointer;
-            border: none;
-            outline: none;
-        }
-
-        .btn-receipt {
-            border: 2px solid var(--primary-green);
-            color: var(--primary-green);
-            background: transparent;
-        }
-
-        .btn-receipt:hover {
-            background: var(--primary-green);
-            color: var(--white);
-        }
-
-        .btn-cancel {
-            border: 2px solid #DC2626;
-            color: #DC2626;
-            background: transparent;
-        }
-
-        .btn-cancel:hover {
-            background: #DC2626;
-            color: var(--white);
-        }
-
-        .empty-state {
             text-align: center;
-            padding: 100px 20px;
-            background: var(--white);
-            border-radius: 20px;
-            box-shadow: var(--shadow-sm);
         }
-
-        .empty-state i {
-            font-size: 64px;
-            color: #e2e8f0;
-            margin-bottom: 24px;
+        .btn-receipt {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid #E2E8F0;
         }
-
-        .empty-state h3 {
-            font-size: 24px;
-            margin-bottom: 12px;
-        }
-
-        .empty-state p {
-            color: var(--text-muted);
-        }
-
-        /* Skeleton Loading */
-        .skeleton {
-            background: #e2e8f0;
-            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-        }
-
-        @keyframes skeleton-loading {
-            0% {
-                background-position: 200% 0;
-            }
-
-            100% {
-                background-position: -200% 0;
-            }
-        }
-
-        .skeleton-text {
-            height: 20px;
-            border-radius: 4px;
-            margin-bottom: 10px;
+        .btn-receipt:hover {
+            background: #E2E8F0;
+            color: #1E293B;
         }
 
         /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 40px;
-            padding-bottom: 40px;
-        }
-
-        .page-btn {
-            padding: 10px 16px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background: var(--white);
-            color: #475569;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .page-btn:hover:not(:disabled) {
-            border-color: var(--primary-green);
-            color: var(--primary-green);
-            background: #f0fdf4;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #f8fafc;
-        }
-
-        .page-btn.active {
-            background: var(--primary-green);
-            color: var(--white);
-            border-color: var(--primary-green);
-        }
-
-        .page-info {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin: 0 12px;
-        }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; padding-bottom: 40px; }
+        .page-btn { padding: 10px 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: var(--white); cursor: pointer; }
+        .page-info { font-size: 14px; color: var(--text-muted); margin: 0 12px; }
     </style>
-</head>
-
-<body>
-
-    <!-- Navbar -->
-    <header class="header">
-        <a href="/EventManagementSystem/public/client/home" class="logo"><img
-                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
-        <nav class="nav-links">
-            <a href="/EventManagementSystem/public/client/home">Home</a>
-            <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
-            <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
-            <a href="/EventManagementSystem/public/client/requests">My Requests</a>
-            <a href="/EventManagementSystem/public/client/payments" class="active">Payment History</a>
-        </nav>
-        <div class="nav-icons">
-            <div class="notifications-wrapper">
-                <div class="notification-bell-btn" id="notification-bell">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
-                </div>
-                <!-- Notifications Dropdown -->
-                <div class="notifications-dropdown" id="notifications-dropdown">
-                    <div class="nd-header">
-                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
-                        <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
-                    </div>
-                    <div class="nd-content" id="nd-list">
-                        <div class="nd-empty">
-                            <i class="fa-regular fa-bell-slash"></i>
-                            <p>No new notifications</p>
-                        </div>
-                    </div>
-                    <div class="nd-footer">
-                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
-                            Notifications <i class="fa-solid fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <div style="position: relative;" id="profile-container">
-                    <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
-                        <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar">
-                        <?php else: ?>
-                            <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Dropdown Modal -->
-                    <div id="profile-dropdown" class="profile-dropdown">
-                        <div class="pd-top">
-                            <div class="pd-avatar-container">
-                                <div class="pd-avatar">
-                                    <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
-                                            style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
-                                    <?php else: ?>
-                                        <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
-                                    <i class="fa-solid fa-pen"></i>
-                                </label>
-                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                    <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </div>
-                                <?php endif; ?>
-                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;"
-                                    onchange="uploadProfilePicture(this)">
-                            </div>
-                            <h3 class="pd-name"><?php echo htmlspecialchars($_SESSION['user_fullname'] ?? 'User'); ?></h3>
-                            <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
-                            <span
-                                class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
-                        </div>
-                        <div class="pd-bottom">
-                            <div class="pd-detail">
-                                <label>FIRST NAME</label>
-                                <div><?php echo htmlspecialchars($firstName); ?></div>
-                            </div>
-                            <div class="pd-detail">
-                                <label>LAST NAME</label>
-                                <div><?php echo htmlspecialchars($lastName); ?></div>
-                            </div>
-                            <div class="pd-detail">
-                                <label>EMAIL ADDRESS</label>
-                                <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
-                            </div>
-
-                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
-                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
-                            </a>
-                            <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-    </header>
+<?php
+$extra_head = ob_get_clean();
+include 'partials/header.php';
+?>
 
     <div class="history-wrapper">
         <div class="header-section">
@@ -790,23 +385,7 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         <div id="pagination" class="pagination"></div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-left">
-            <div class="footer-logo"><img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                    style="height: 28px; width: auto; object-fit: contain;"></div>
-            <p class="copyright">&copy; 2026 e.plan Architectural Event Curation. All rights reserved.</p>
-        </div>
-        <div class="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Contact Support</a>
-        </div>
-    </footer>
-
-    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
-    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
-    <script>
+<script>
         let allPayments = [];
         let currentStatus = 'all';
         let currentPage = 1;
@@ -1123,6 +702,4 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
             }
         });
     </script>
-</body>
-
-</html>
+<?php include 'partials/footer.php'; ?>

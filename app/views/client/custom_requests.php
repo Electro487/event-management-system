@@ -1,62 +1,7 @@
 <?php
 $title = "My Custom Requests - e.PLAN";
 $activePage = "requests";
-require_once __DIR__ . '/partials/header.php';
-?>
-
-<div class="dashboard-container" style="padding: 40px; max-width: 1200px; margin: 0 auto;">
-    <div class="main-content">
-        <div class="content-header">
-            <h1 class="page-title">My Custom Requests</h1>
-            <p class="page-subtitle">Track your package negotiation requests</p>
-        </div>
-
-        <div class="bookings-grid">
-            <?php if (empty($requests)): ?>
-                <div class="empty-state">
-                    <i class="fa-solid fa-code-pull-request"></i>
-                    <h3>No requests found</h3>
-                    <p>You haven't made any custom package requests yet.</p>
-                    <a href="/EventManagementSystem/public/client/events" class="btn-primary" style="text-decoration:none; display:inline-block; margin-top:20px;">Browse Events</a>
-                </div>
-            <?php else: ?>
-                <?php foreach ($requests as $request): 
-                    $statusClass = 'status-' . strtolower($request['status']);
-                    $imagePath = $request['event_image'];
-                    if (!empty($imagePath)) {
-                        $imagePath = ($imagePath[0] === '/') ? $imagePath : '/EventManagementSystem/public/assets/images/events/' . $imagePath;
-                    } else {
-                        $imagePath = '/EventManagementSystem/public/assets/images/default-event.jpg';
-                    }
-                ?>
-                    <div class="booking-card">
-                        <div class="booking-image">
-                            <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Event">
-                            <span class="status-badge <?php echo $statusClass; ?>">
-                                <?php echo ucfirst($request['status']); ?>
-                            </span>
-                        </div>
-                        <div class="booking-details">
-                            <div class="booking-header">
-                                <h3 class="booking-title"><?php echo htmlspecialchars($request['event_title']); ?></h3>
-                            </div>
-                            <div class="booking-meta">
-                                <span><i class="fa-solid fa-box"></i> <?php echo ucfirst($request['base_package_tier']); ?> Tier Base</span>
-                                <span><i class="fa-solid fa-money-bill"></i> Proposed: Rs. <?php echo number_format($request['proposed_price'], 2); ?></span>
-                                <span><i class="fa-solid fa-user-tie"></i> Organizer: <?php echo htmlspecialchars($request['organizer_name']); ?></span>
-                                <span><i class="fa-regular fa-clock"></i> Date: <?php echo date('M d, Y', strtotime($request['created_at'])); ?></span>
-                            </div>
-                            <div class="card-actions">
-                                <a href="/EventManagementSystem/public/client/requests/view?id=<?php echo $request['id']; ?>" class="btn-secondary">View Thread</a>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
-
+$extra_head = '
 <style>
 /* Mimic the booking layout styles */
 .bookings-grid { display: grid; gap: 24px; }
@@ -77,6 +22,156 @@ require_once __DIR__ . '/partials/header.php';
 .btn-secondary { background: #f8fafc; color: var(--text-dark); border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 20px; text-decoration: none; font-weight: 600; transition: all 0.2s; }
 .empty-state { text-align: center; padding: 60px 20px; }
 .empty-state i { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; opacity: 0.5; }
-</style>
 
-<?php require_once __DIR__ . '/partials/footer.php'; ?>
+/* Pagination */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; padding-bottom: 40px; }
+.page-btn { padding: 10px 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.2s; font-weight: 600; font-size: 14px; color: #64748b; }
+.page-btn:hover { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; }
+.page-btn.active { background: #246A55; color: white; border-color: #246A55; }
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.page-info { font-size: 14px; color: #64748b; margin: 0 12px; }
+</style>
+';
+include 'partials/header.php';
+?>
+
+
+    <div class="dashboard-container">
+        <!-- Header Row -->
+        <div class="page-header-row clearfix" style="margin-bottom: 30px;">
+            <div class="headings">
+                <h1 class="page-header-title">MY CUSTOM REQUESTS</h1>
+                <p class="page-header-desc">Track and manage your custom event package negotiations. Communicate with organizers to tailor your dream event.</p>
+            </div>
+        </div>
+
+        <?php if (empty($requests)): ?>
+            <div class="empty-state">
+                <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fa-solid fa-message" style="font-size: 32px; color: #94a3b8;"></i>
+                </div>
+                <h3 style="font-size: 20px; color: #1e293b; margin-bottom: 10px;">No Active Requests</h3>
+                <p style="color: #64748b; margin-bottom: 25px;">You haven't initiated any custom event package negotiations yet. Browse events and select "Customize" to get started.</p>
+                <a href="/EventManagementSystem/public/client/events" class="btn-browse-more" style="float:none;">Browse Events</a>
+            </div>
+        <?php else: ?>
+            <div class="bookings-grid" id="requests-list">
+                <!-- JS will render requests here -->
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div id="pagination" class="pagination"></div>
+        <?php endif; ?>
+    </div>
+
+    <script>
+        const allRequests = <?php echo json_encode($requests); ?>;
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
+        function renderRequests() {
+            const listContainer = document.getElementById('requests-list');
+            if (!listContainer) return;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const paginatedRequests = allRequests.slice(startIndex, startIndex + itemsPerPage);
+
+            if (paginatedRequests.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state"><h3>No requests found.</h3></div>';
+                return;
+            }
+
+            listContainer.innerHTML = paginatedRequests.map(r => {
+                const statusClass = "status-" + r.status.toLowerCase();
+                const eventImg = r.event_image ? 
+                    (r.event_image[0] === '/' ? r.event_image : '/EventManagementSystem/public/assets/images/events/' + r.event_image) : 
+                    '/EventManagementSystem/public/assets/images/placeholder.jpg';
+                
+                const isConcert = (r.event_category || '').toLowerCase() === 'concert';
+                const tierLabel = r.base_package_tier.charAt(0).toUpperCase() + r.base_package_tier.slice(1);
+                const guestLabel = isConcert ? ' Tickets' : ' Guests';
+                const guestDisplay = r.guest_count ? r.guest_count + guestLabel : 'Quantity TBD';
+                const dateDisplay = r.event_date ? 'Requested for ' + formatDate(r.event_date) : 'Date to be confirmed';
+                const priceDisplay = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2 }).format(r.proposed_price);
+
+                return `
+                    <div class="booking-card">
+                        <div class="booking-image">
+                            <img src="${escapeHtml(eventImg)}" alt="Event">
+                            <span class="status-badge ${statusClass}">
+                                ${r.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="booking-details">
+                            <div class="booking-title">${escapeHtml(r.event_title || 'Custom Event Request')}</div>
+                            <div class="booking-meta">
+                                <span><i class="fa-solid fa-tag"></i> Based on ${tierLabel} Package</span>
+                                <span><i class="fa-solid ${isConcert ? 'fa-ticket' : 'fa-user-group'}"></i> ${guestDisplay}</span>
+                                <span><i class="fa-regular fa-calendar-check"></i> ${dateDisplay}</span>
+                                <span><i class="fa-solid fa-money-bill-wave"></i> Proposed Price: Rs. ${priceDisplay}</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/EventManagementSystem/public/client/requests/view?id=${r.id}" class="btn-secondary">
+                                    <i class="fa-solid fa-comments"></i> View Thread
+                                </a>
+                                ${r.status === 'approved' ? `
+                                    <a href="/EventManagementSystem/public/client/book?id=${r.group_event_id}&package=${r.base_package_tier}&request_id=${r.id}" class="btn-secondary" style="background: #246A55; color: white; border: none;">
+                                        Book Now
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            renderPagination(allRequests.length);
+        }
+
+        function renderPagination(totalItems) {
+            const container = document.getElementById('pagination');
+            if (!container) return;
+
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+                <button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderRequests();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function escapeHtml(unsafe) {
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', renderRequests);
+    </script>
+    </div>
+
+<?php include 'partials/footer.php'; ?>

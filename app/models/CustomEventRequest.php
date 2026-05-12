@@ -13,8 +13,8 @@ class CustomEventRequest
 
     public function create($data)
     {
-        $sql = "INSERT INTO custom_event_requests (group_event_id, client_id, organizer_id, base_package_tier, custom_packages, proposed_price, status) 
-                VALUES (:group_event_id, :client_id, :organizer_id, :base_package_tier, :custom_packages, :proposed_price, :status)";
+        $sql = "INSERT INTO custom_event_requests (group_event_id, client_id, organizer_id, base_package_tier, event_date, guest_count, custom_packages, proposed_price, status) 
+                VALUES (:group_event_id, :client_id, :organizer_id, :base_package_tier, :event_date, :guest_count, :custom_packages, :proposed_price, :status)";
 
         $stmt = $this->db->prepare($sql);
         
@@ -24,6 +24,8 @@ class CustomEventRequest
         $stmt->bindParam(':client_id', $data['client_id']);
         $stmt->bindParam(':organizer_id', $data['organizer_id']);
         $stmt->bindParam(':base_package_tier', $data['base_package_tier']);
+        $stmt->bindParam(':event_date', $data['event_date']);
+        $stmt->bindParam(':guest_count', $data['guest_count']);
         $stmt->bindParam(':custom_packages', $data['custom_packages']);
         $stmt->bindParam(':proposed_price', $data['proposed_price']);
         $stmt->bindParam(':status', $status);
@@ -53,7 +55,7 @@ class CustomEventRequest
 
     public function getByClientId($client_id)
     {
-        $sql = "SELECT c.*, e.title as event_title, e.image_path as event_image, u2.fullname as organizer_name 
+        $sql = "SELECT c.*, e.title as event_title, e.image_path as event_image, e.category as event_category, u2.fullname as organizer_name 
                 FROM custom_event_requests c
                 JOIN events e ON c.group_event_id = e.id
                 JOIN users u2 ON c.organizer_id = u2.id

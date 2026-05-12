@@ -7,12 +7,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo defined('URL_ROOT') ? URL_ROOT : '/EventManagementSystem/public'; ?>/assets/css/login.css">
 </head>
 <body>
 
 <div class="login-card">
     <div class="header">
+        <div class="login-logo">
+            <img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN Logo" style="height: 50px; width: auto; margin-bottom: 20px;">
+        </div>
         <h1>Welcome Back</h1>
         <p>Please enter your details to access your dashboard.</p>
     </div>
@@ -35,6 +39,7 @@
         </div>
     <?php endif; ?>
 
+
     <div id="api-status" style="display: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
 
     <form id="login-form" action="<?php echo defined('URL_ROOT') ? URL_ROOT . '/login' : '/EventManagementSystem/public/login'; ?>" method="POST">
@@ -42,7 +47,7 @@
             <div class="form-label-row">
                 <label for="email">Email / Username</label>
             </div>
-            <input type="text" id="email" name="email" class="form-control" placeholder="name@e-plan.com" required>
+            <input type="text" id="email" name="email" class="form-control" placeholder="name@e.plan.com" required>
         </div>
 
         <div class="form-group">
@@ -50,7 +55,10 @@
                 <label for="password">Password</label>
                 <a href="/EventManagementSystem/public/forgot-password" class="forgot-link">Forgot Password?</a>
             </div>
-            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            <div class="form-control-wrapper">
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                <i class="fa-regular fa-eye-slash toggle-password" id="togglePassword"></i>
+            </div>
         </div>
 
         <button type="submit" class="btn-submit">
@@ -133,8 +141,23 @@
                 }
             }
         });
+        // Password Visibility Toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // Toggle the eye icon class
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
     })();
 </script>
 
+    <?php require_once dirname(__DIR__) . '/partials/chatbot_widget.php'; ?>
 </body>
 </html>

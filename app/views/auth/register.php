@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/register.css">
 </head>
@@ -72,7 +74,10 @@
 
                     <div class="form-group">
                         <label for="password">PASSWORD</label>
-                        <input type="password" id="password" name="password" placeholder="••••••••••••" required>
+                        <div class="form-control-wrapper">
+                            <input type="password" id="password" name="password" placeholder="••••••••••••" required>
+                            <i class="fa-regular fa-eye-slash toggle-password" id="togglePassword"></i>
+                        </div>
                     </div>
 
                     <!-- OTP task will be handled by collaborator -->
@@ -157,8 +162,23 @@
                     submitBtn.innerHTML = originalBtnText;
                 }
             });
+            // Password Visibility Toggle
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    // Toggle the eye icon class
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
         })();
     </script>
+    <?php require_once dirname(__DIR__) . '/partials/chatbot_widget.php'; ?>
 </body>
 
 </html>

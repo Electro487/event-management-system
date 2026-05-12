@@ -5,21 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($title ?? 'e-Plan'); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
     <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
+    <?php if (isset($extra_head)) echo $extra_head; ?>
 </head>
 <body style="background:#f8fafc; margin:0; font-family:'Inter', sans-serif;">
 
     <!-- Navbar -->
     <header class="header">
-        <a href="/EventManagementSystem/public/" class="logo"><img
+        <a href="/EventManagementSystem/public/client/home" class="logo"><img
                 src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
                 style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
         <nav class="nav-links">
-            <a href="/EventManagementSystem/public/home" class="<?php echo ($activePage ?? '') == 'home' ? 'active' : ''; ?>">Home</a>
+            <a href="/EventManagementSystem/public/client/home" class="<?php echo ($activePage ?? '') == 'home' ? 'active' : ''; ?>">Home</a>
             <a href="/EventManagementSystem/public/client/events" class="<?php echo ($activePage ?? '') == 'events' ? 'active' : ''; ?>">Browse Events</a>
             <a href="/EventManagementSystem/public/client/bookings" class="<?php echo ($activePage ?? '') == 'bookings' ? 'active' : ''; ?>">My Bookings</a>
             <a href="/EventManagementSystem/public/client/tickets" class="<?php echo ($activePage ?? '') == 'tickets' ? 'active' : ''; ?>">My Tickets</a>

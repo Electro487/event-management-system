@@ -63,13 +63,17 @@ body {
 }
 
 .logo {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .logo-img {
-    height: 50px;
+    height: 42px;
     width: auto;
     display: block;
+    object-fit: contain;
 }
 
 .hero-title {
@@ -172,6 +176,23 @@ body {
     border-color: var(--color-green);
     background-color: #FFFFFF;
     box-shadow: 0 4px 12px rgba(43, 110, 82, 0.1);
+}
+.form-control-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: #888;
+    z-index: 10;
+    font-size: 14px;
+}
+.toggle-password:hover {
+    color: var(--color-green);
 }
 
 .btn-submit {
