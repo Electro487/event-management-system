@@ -1,18 +1,16 @@
 <?php
-$title = "Modify Package - " . htmlspecialchars($event['title']);
-require_once dirname(__DIR__) . '/client/partials/header.php';
-
 $tierNameMap = [
     'basic' => 'Basic Tier',
     'standard' => 'Standard Tier',
     'premium' => 'Premium Tier'
 ];
 
-$tierName = $tierNameMap[$packageTier] ?? 'Custom Package';
+$packageTierStr = is_scalar($packageTier) ? (string)$packageTier : '';
+$tierName = $tierNameMap[$packageTierStr] ?? 'Custom Package';
 
 // Decode event packages to populate the defaults
 $eventPackages = json_decode($event['packages'], true) ?? [];
-$selectedPackageData = $eventPackages[$packageTier] ?? [];
+$selectedPackageData = $eventPackages[$packageTierStr] ?? [];
 $pkgItems = $selectedPackageData['items'] ?? [];
 $pkgPrice = $selectedPackageData['price'] ?? ($selectedPackageData['price_range'] ?? '');
 
@@ -22,263 +20,284 @@ if (!empty($event['image_path'])) {
 } else {
     $eventImage = '/EventManagementSystem/public/assets/images/placeholder.jpg';
 }
+
+$title = "Modify Package - " . htmlspecialchars($event['title']);
+$activePage = 'events';
+$extra_head = <<<EOD
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #246A55 0%, #1a4d3e 100%);
+            --accent-glow: 0 0 15px rgba(36, 106, 85, 0.15);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { background-color: #f8fafc; }
+
+        .modify-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .form-section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .event-details-card {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            background: #fcfdfe;
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid #f1f5f9;
+            margin-top: -10px;
+        }
+
+        .event-thumbnail {
+            width: 220px;
+            height: 140px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+
+        .package-card { 
+            margin-bottom: 0; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .package-body {
+            padding: 24px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: #246A55;
+            margin-bottom: 12px;
+            color: white;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(36, 106, 85, 0.1);
+        }
+
+        .drag-handle {
+            cursor: grab;
+            opacity: 0.6;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-content strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+
+        .item-content p {
+            font-size: 13px;
+            opacity: 0.8;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .icon-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .icon-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .edit-item-btn:hover { color: #4ade80; }
+        .delete-item-btn:hover { color: #f87171; }
+
+        .btn-publish {
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 4px 12px rgba(36, 106, 85, 0.2);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-publish:hover {
+            background: #1a4d3e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(36, 106, 85, 0.3);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            margin: 20px;
+        }
+
+        .modal-box h3 { 
+            margin-top: 0; 
+            margin-bottom: 24px; 
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .modal-box .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-box label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .modal-box input[type="text"] {
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #e1e7ed;
+            background-color: #f8fafc;
+            font-size: 15px;
+            width: 100%;
+            transition: all 0.2s ease;
+            color: #1e293b;
+        }
+
+        .modal-box input[type="text"]:focus {
+            background-color: #fff;
+            border-color: #246A55;
+            box-shadow: 0 0 0 4px rgba(36, 106, 85, 0.1);
+            outline: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .modal-actions .btn-cancel, .btn-cancel {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background: #f8fafc;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+
+        .btn-cancel:visited {
+            color: #475569;
+        }
+
+        .modal-actions .btn-publish {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        input[type="number"], textarea {
+            transition: all 0.2s ease;
+        }
+
+        input[type="number"]:focus, textarea:focus {
+            border-color: #246A55;
+            box-shadow: 0 0 0 4px rgba(36, 106, 85, 0.1);
+            outline: none;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 24px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: #246A55;
+            border-radius: 2px;
+        }
+    </style>
+EOD;
+include 'partials/header.php';
 ?>
 
-<link rel="stylesheet" href="/EventManagementSystem/public/assets/css/create-event.css">
-<style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #246A55 0%, #1a4d3e 100%);
-        --accent-glow: 0 0 15px rgba(36, 106, 85, 0.15);
-    }
-
-    * { box-sizing: border-box; }
-
-    body { background-color: #f8fafc; }
-
-    .modify-container {
-        max-width: 1100px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
-
-    .form-section {
-        background: #fff;
-        border-radius: 16px;
-        padding: 32px;
-        margin-bottom: 32px;
-        box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05);
-        border: 1px solid #eef2f6;
-        display: flex;
-        flex-direction: column;
-        gap: 28px;
-    }
-
-    .event-details-card {
-        display: flex;
-        gap: 40px;
-        align-items: flex-start;
-        background: #fcfdfe;
-        padding: 24px;
-        border-radius: 14px;
-        border: 1px solid #f1f5f9;
-        margin-top: -10px;
-    }
-
-    .event-thumbnail {
-        width: 220px;
-        height: 140px;
-        border-radius: 12px;
-        object-fit: cover;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-    }
-
-    .package-card { 
-        margin-bottom: 0; 
-        border: 1px solid #e2e8f0; 
-        border-radius: 12px;
-        overflow: hidden;
-        background: #fff;
-    }
-
-    .package-body {
-        padding: 24px;
-    }
-
-    .item-row {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 16px 20px;
-        border-radius: 12px;
-        background: #246A55;
-        margin-bottom: 12px;
-        color: white;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(36, 106, 85, 0.1);
-    }
-
-    .drag-handle {
-        cursor: grab;
-        opacity: 0.6;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-
-    .item-content {
-        flex: 1;
-    }
-
-    .item-content strong {
-        display: block;
-        font-size: 15px;
-        margin-bottom: 2px;
-        font-weight: 700;
-    }
-
-    .item-content p {
-        font-size: 13px;
-        opacity: 0.8;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .item-actions {
-        display: flex;
-        gap: 8px;
-        flex-shrink: 0;
-    }
-
-    .icon-action-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
-        color: white;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 14px;
-    }
-
-    .icon-action-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(1.1);
-    }
-
-    .edit-item-btn:hover { color: #4ade80; }
-    .delete-item-btn:hover { color: #f87171; }
-
-    .btn-publish {
-        background: var(--primary-gradient);
-        border: none;
-        box-shadow: 0 4px 12px rgba(36, 106, 85, 0.2);
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-    .btn-publish:hover {
-        background: #1a4d3e;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(36, 106, 85, 0.3);
-    }
-
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-
-    .modal-box {
-        background: white;
-        padding: 40px;
-        border-radius: 20px;
-        width: 100%;
-        max-width: 500px;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.25);
-        margin: 20px;
-    }
-
-    .modal-box h3 { 
-        margin-top: 0; 
-        margin-bottom: 24px; 
-        font-size: 24px;
-        font-weight: 800;
-        color: #0f172a;
-    }
-
-    .modal-box .form-group {
-        margin-bottom: 20px;
-    }
-
-    .modal-box label {
-        font-size: 11px;
-        font-weight: 700;
-        color: #64748b;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    .modal-box input[type="text"] {
-        padding: 14px 18px;
-        border-radius: 12px;
-        border: 1px solid #e1e7ed;
-        background-color: #f8fafc;
-        font-size: 15px;
-        width: 100%;
-        transition: all 0.2s ease;
-        color: #1e293b;
-    }
-
-    .modal-box input[type="text"]:focus {
-        background-color: #fff;
-        border-color: #246A55;
-        box-shadow: 0 0 0 4px rgba(36, 106, 85, 0.1);
-        outline: none;
-    }
-
-    .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        margin-top: 32px;
-    }
-
-    .modal-actions .btn-cancel {
-        padding: 12px 24px;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        font-weight: 700;
-        font-size: 14px;
-    }
-
-    .modal-actions .btn-publish {
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 14px;
-    }
-
-    input[type="number"], textarea {
-        transition: all 0.2s ease;
-    }
-
-    input[type="number"]:focus, textarea:focus {
-        border-color: #246A55;
-        box-shadow: 0 0 0 4px rgba(36, 106, 85, 0.1);
-        outline: none;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 24px;
-        position: relative;
-        padding-left: 15px;
-    }
-
-    .section-title::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 4px;
-        height: 20px;
-        background: #246A55;
-        border-radius: 2px;
-    }
-</style>
 
 <div class="modify-container">
     <div style="margin-bottom: 30px;">
@@ -312,6 +331,31 @@ if (!empty($event['image_path'])) {
                         <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase;">Venue</label>
                         <div style="font-size: 16px; font-weight: 500; color: #0f172a; margin-top: 4px;"><?php echo htmlspecialchars($event['venue_name'] . ', ' . $event['venue_location']); ?></div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Details (Date & Guests) -->
+        <div class="form-section">
+            <h2 class="section-title">Your Planned Details</h2>
+            <p style="color: #64748b; font-size: 13px; margin-top: -15px; margin-bottom: 20px;">Tell us when you plan to host this event and for how many people.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div class="form-group">
+                    <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: block;">PROPOSED EVENT DATE</label>
+                    <?php if (strtolower($event['category'] ?? '') === 'concert'): ?>
+                        <input type="text" id="event_date_display" value="<?php echo date('F d, Y', strtotime($event['event_date'])); ?>" readonly 
+                            style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid #e1e7ed; background-color: #f1f5f9; cursor: not-allowed; font-size: 15px; color: #1e293b;">
+                        <input type="hidden" id="raw_event_date" value="<?php echo date('Y-m-d', strtotime($event['event_date'])); ?>">
+                    <?php else: ?>
+                        <input type="date" id="event_date" required min="<?php echo date('Y-m-d'); ?>" 
+                            style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid #e1e7ed; background-color: #f8fafc; font-size: 15px; color: #1e293b;">
+                    <?php endif; ?>
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: block;">ESTIMATED GUESTS</label>
+                    <input type="number" id="guest_count" required min="1" placeholder="e.g. 250"
+                        style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid #e1e7ed; background-color: #f8fafc; font-size: 15px; color: #1e293b;">
                 </div>
             </div>
         </div>
@@ -524,6 +568,8 @@ if (!empty($event['image_path'])) {
             group_event_id: document.getElementById('group_event_id').value,
             organizer_id: document.getElementById('organizer_id').value,
             base_package_tier: document.getElementById('base_package_tier').value,
+            event_date: document.getElementById('raw_event_date') ? document.getElementById('raw_event_date').value : document.getElementById('event_date').value,
+            guest_count: document.getElementById('guest_count').value,
             proposed_price: document.getElementById('proposedPrice').value,
             custom_packages: customPackagesJSON,
             initial_message: document.getElementById('initialMessage').value
@@ -557,3 +603,4 @@ if (!empty($event['image_path'])) {
         }
     });
 </script>
+<?php include 'partials/footer.php'; ?>

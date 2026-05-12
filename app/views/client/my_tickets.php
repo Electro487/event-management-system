@@ -1,345 +1,230 @@
 <?php
-// $tickets variable is passed from the controller
+$title = 'My Tickets - e-Plan';
+$activePage = 'tickets';
+$extra_head = '
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-tickets.css?v=' . time() . '">
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/feedback-popup.css?v=' . time() . '">
+    <style>
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px; margin-bottom: 20px; }
+        .page-btn { padding: 10px 18px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.2s; font-weight: 600; font-size: 14px; color: #64748b; display: flex; align-items: center; gap: 8px; }
+        .page-btn:hover:not(:disabled) { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; transform: translateY(-1px); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-info { font-size: 14px; color: #64748b; font-weight: 500; }
+        
+        .empty-state { grid-column: span 3; text-align: center; padding: 80px 20px; background: white; border-radius: 20px; border: 2px dashed #cbd5e1; }
+        .empty-icon { width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    </style>
+';
+include 'partials/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Tickets - e-Plan</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/booking.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-bookings.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/my-tickets.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
-    <script src="/EventManagementSystem/public/assets/js/apiClient.js"></script>
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/feedback-popup.css?v=<?php echo time(); ?>">
-
-</head>
-
-<body>
-    <!-- Navbar -->
-    <header class="header">
-        <a href="/EventManagementSystem/public/client/home" class="logo"><img
-                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
-        <nav class="nav-links">
-            <a href="/EventManagementSystem/public/client/home">Home</a>
-            <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
-            <a href="/EventManagementSystem/public/client/tickets" class="active">My Tickets</a>
-            <a href="/EventManagementSystem/public/client/requests" class="<?php echo ($activePage ?? '') == 'requests' ? 'active' : ''; ?>">My Requests</a>
-            <a href="/EventManagementSystem/public/client/payments">Payment History</a>
-
-        </nav>
-        <div class="nav-icons">
-            <div class="notifications-wrapper">
-                <div class="notification-bell-btn" id="notification-bell">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
-                </div>
-                <div class="notifications-dropdown" id="notifications-dropdown">
-                    <div class="nd-header">
-                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 New</span></h3>
-                        <a href="javascript:void(0)" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
-                    </div>
-                    <div class="nd-content" id="nd-list">
-                        <div class="nd-empty"><i class="fa-regular fa-bell-slash"></i>
-                            <p>No new notifications</p>
-                        </div>
-                    </div>
-                    <div class="nd-footer">
-                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">View All
-                            Notifications <i class="fa-solid fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <?php
-                $initials = '';
-                $nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
-                foreach ($nameParts as $p) {
-                    $initials .= strtoupper(substr($p, 0, 1));
-                }
-                if (strlen($initials) > 2)
-                    $initials = substr($initials, 0, 2);
-                ?>
-                <div style="position: relative;" id="profile-container">
-                    <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
-                        <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>" id="header-avatar">
-                        <?php else: ?>
-                            <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                    <?php
-                    $displayName = $_SESSION['user_fullname'] ?? 'User';
-                    $nameParts = explode(' ', $displayName);
-                    $firstName = $nameParts[0] ?? '';
-                    $lastName = count($nameParts) > 1 ? end($nameParts) : '';
-                    ?>
-                    <div id="profile-dropdown" class="profile-dropdown">
-                        <div class="pd-top">
-                            <div class="pd-avatar-container">
-                                <div class="pd-avatar">
-                                    <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
-                                            style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">
-                                    <?php else: ?>
-                                        <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
-                                    <i class="fa-solid fa-pen"></i>
-                                </label>
-                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                    <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </div>
-                                <?php endif; ?>
-                                <input type="file" id="profile_picture_upload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
-                            </div>
-                            <h3 class="pd-name"><?php echo htmlspecialchars($displayName); ?></h3>
-                            <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
-                            <span
-                                class="pd-role"><?php echo ucfirst(htmlspecialchars($_SESSION['user_role'] ?? 'Client')); ?></span>
-                        </div>
-                        <div class="pd-bottom">
-                            <div class="pd-detail">
-                                <label>FIRST NAME</label>
-                                <div><?php echo htmlspecialchars($firstName); ?></div>
-                            </div>
-                            <div class="pd-detail">
-                                <label>LAST NAME</label>
-                                <div><?php echo htmlspecialchars($lastName); ?></div>
-                            </div>
-                            <div class="pd-detail">
-                                <label>EMAIL ADDRESS</label>
-                                <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
-                            </div>
-
-                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
-                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
-                            </a>
-                            <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <script>
-                    function toggleProfileDropdown() {
-                        const dropdown = document.getElementById('profile-dropdown');
-                        dropdown.classList.toggle('show');
-                    }
-
-                    document.addEventListener('click', function(event) {
-                        const container = document.getElementById('profile-container');
-                        if (container && !container.contains(event.target)) {
-                            document.getElementById('profile-dropdown').classList.remove('show');
-                        }
-                    });
-
-                    function uploadProfilePicture(input) {
-                        if (input.files && input.files[0]) {
-                            const formData = new FormData();
-                            formData.append('profile_picture', input.files[0]);
-
-                            if (window.emsApi) {
-                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
-                                    method: 'POST',
-                                    body: formData
-                                })
-                                .then(data => {
-                                    if (data.success) {
-                                        const path = data.data?.path || data.path;
-                                        let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="header-avatar">';
-                                        
-                                        let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<img src="' + path + '" style="width: 100%; height: 100%; object-fit: cover;" id="dropdown-avatar">';
-                                        
-                                        if (!document.querySelector('.pd-delete-icon')) {
-                                            let avatarContainer = document.querySelector('.pd-avatar-container');
-                                            let deleteBtn = document.createElement('div');
-                                            deleteBtn.className = 'pd-delete-icon';
-                                            deleteBtn.title = 'Remove Photo';
-                                            deleteBtn.onclick = deleteProfilePicture;
-                                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                                            avatarContainer.appendChild(deleteBtn);
-                                        }
-                                    } else {
-                                        alert(data.message || 'Error uploading image.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('API Error:', error);
-                                    alert('An error occurred during upload.');
-                                });
-                            }
-                        }
-                    }
-
-                    function deleteProfilePicture() {
-                        if (confirm('Are you sure you want to remove your profile picture?')) {
-                            if (window.emsApi) {
-                                window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
-                                    method: 'DELETE'
-                                })
-                                .then(data => {
-                                    if (data.success) {
-                                        const initialsElement = '<span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                        let headerIcon = document.getElementById('profile-icon');
-                                        headerIcon.innerHTML = initialsElement;
-                                        
-                                        let dropdownAvatar = document.querySelector('.pd-avatar');
-                                        dropdownAvatar.innerHTML = '<span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>';
-                                        
-                                        let deleteIcon = document.querySelector('.pd-delete-icon');
-                                        if (deleteIcon) deleteIcon.remove();
-                                    } else {
-                                        alert('Error removing image.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('API Error:', error);
-                                    alert('An error occurred.');
-                                });
-                            }
-                        }
-                    }
-                </script>
-            <?php endif; ?>
-        </div>
-    </header>
-
-    <div class="dashboard-container">
-        <div class="page-header-row clearfix" style="margin-bottom: 30px;">
-            <div class="headings">
-                <h1 class="page-header-title">MY TICKETS</h1>
-                <p class="page-header-desc">Access your concert entry passes, track payment statuses, and print tickets
-                    for seamless venue entry.</p>
-            </div>
-        </div>
-
-        <div class="ticket-list">
-            <?php if (empty($tickets)): ?>
-                <div class="empty-state"
-                    style="grid-column: span 3; text-align: center; padding: 80px 20px; background: white; border-radius: 20px; border: 2px dashed #cbd5e1;">
-                    <div
-                        style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                        <i class="fa-solid fa-ticket" style="font-size: 32px; color: #94a3b8;"></i>
-                    </div>
-                    <h3 style="font-size: 20px; color: #1e293b; margin-bottom: 10px;">No Tickets Found</h3>
-                    <p style="color: #64748b; margin-bottom: 25px;">You haven't reserved any concert tickets yet. Explore
-                        upcoming concerts to get started.</p>
-                    <a href="/EventManagementSystem/public/client/events" class="btn-browse-more" style="float:none;">Browse
-                        Concerts</a>
-                </div>
-            <?php else: ?>
-                <?php foreach ($tickets as $t):
-                    $eSnap = !empty($t['event_snapshot']) ? json_decode($t['event_snapshot'], true) : null;
-                    $title = $eSnap['title'] ?? $t['event_title'];
-                    $rawImg = $eSnap['image_path'] ?? $t['event_image'] ?? '';
-                    $imgUrl = '/EventManagementSystem/public/assets/images/placeholder.jpg';
-                    if ($rawImg) {
-                        $imgUrl = ($rawImg[0] === '/') ? $rawImg : '/EventManagementSystem/public/assets/images/events/' . $rawImg;
-                    }
-                    $status = strtolower($t['status']);
-                    $payStatus = strtolower($t['payment_status'] ?? 'unpaid');
-                    ?>
-                    <div class="ticket-card">
-                        <div class="ticket-banner">
-                            <img src="<?php echo htmlspecialchars($imgUrl); ?>" alt="Event" class="ticket-img">
-                            <div class="ticket-overlay"></div>
-                            <span class="ticket-id">#EPLN-<?php echo str_pad($t['id'], 5, '0', STR_PAD_LEFT); ?></span>
-                        </div>
-
-                        <div class="ticket-info">
-                            <div class="ticket-title-row">
-                                <h3 class="ticket-title"><?php echo htmlspecialchars($title); ?></h3>
-                                <span class="ticket-status status-<?php echo $status; ?>"><?php echo $status; ?></span>
-                            </div>
-
-                            <div class="ticket-meta-grid">
-                                <div class="meta-item">
-                                    <span class="meta-label">Date & Time</span>
-                                    <span class="meta-value"><i class="fa-regular fa-calendar"></i>
-                                        <?php echo date('M d, Y', strtotime($t['event_date'])); ?></span>
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">Quantity</span>
-                                    <span class="meta-value"><i class="fa-solid fa-user-group"></i>
-                                        <?php echo $t['guest_count']; ?> Person(s)</span>
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">Tier</span>
-                                    <span class="meta-value"><i class="fa-solid fa-tag"></i>
-                                        <?php echo ucfirst($t['package_tier']); ?></span>
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">Venue</span>
-                                    <span class="meta-value" style="font-size: 12px;"><i class="fa-solid fa-location-dot"></i>
-                                        <?php echo htmlspecialchars($t['venue_name'] ?: 'Venue TBD'); ?></span>
-                                </div>
-                            </div>
-
-                            <div class="ticket-pricing">
-                                <div class="price-box">
-                                    <span class="price-label">TOTAL AMOUNT</span>
-                                    <span class="price-value">Rs. <?php echo number_format($t['total_amount'], 2); ?></span>
-                                </div>
-                                <span class="payment-badge pay-<?php echo $payStatus; ?>">
-                                    <?php echo strtoupper(str_replace('_', ' ', $payStatus)); ?>
-                                </span>
-                            </div>
-
-                            <div class="ticket-actions">
-                                <?php if ($payStatus === 'unpaid'): ?>
-                                    <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=<?php echo $t['id']; ?>"
-                                        class="btn-primary-ticket">
-                                        Complete Payment
-                                    </a>
-                                <?php elseif ($status === 'confirmed' || $status === 'completed'): ?>
-                                    <a href="/EventManagementSystem/public/client/ticket?id=<?php echo $t['id']; ?>"
-                                        class="btn-print-ticket" target="_blank">
-                                        <i class="fa-solid fa-print"></i> Print QR Ticket
-                                    </a>
-                                <?php endif; ?>
-
-                                <a href="/EventManagementSystem/public/client/bookings/view?id=<?php echo $t['id']; ?>"
-                                    class="btn-secondary-ticket-full">
-                                    View Ticket Details
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+<div class="dashboard-container">
+    <div class="page-header-row clearfix" style="margin-bottom: 30px;">
+        <div class="headings">
+            <h1 class="page-header-title">MY TICKETS</h1>
+            <p class="page-header-desc">Access your concert entry passes, track payment statuses, and print tickets for seamless venue entry.</p>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-left">
-            <div class="footer-logo"><img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                    style="height: 28px; width: auto; object-fit: contain;"></div>
-            <p class="copyright">&copy; 2026 e.plan Architectural Event Curation. All rights reserved.</p>
+    <div class="ticket-list" id="ticketList">
+        <div class="empty-state">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: #246A55;"></i>
+            <p style="margin-top: 15px;">Loading your tickets...</p>
         </div>
-        <div class="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Contact Support</a>
-        </div>
-    </footer>
+    </div>
 
-    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
-    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
-    <?php include 'partials/feedback_popup.php'; ?>
-</body>
+    <div id="pagination" class="pagination-container" style="display: none;"></div>
+</div>
 
-</html>
+<script>
+    let allTickets = [];
+    let currentPage = 1;
+    const itemsPerPage = 6;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchTickets();
+    });
+
+    function fetchTickets() {
+        if (!window.emsApi) return;
+        
+        window.emsApi.apiFetch('/api/v1/bookings')
+            .then(res => {
+                if (res.success && res.data && res.data.items) {
+                    // Filter for concerts only
+                    allTickets = res.data.items.filter(b => (b.event_category || '').trim().toLowerCase() === 'concert');
+                    renderTickets();
+                } else {
+                    showEmptyState();
+                }
+            })
+            .catch(err => {
+                console.error('Fetch error:', err);
+                showEmptyState('Error loading tickets. Please refresh.');
+            });
+    }
+
+    function renderTickets() {
+        const container = document.getElementById('ticketList');
+        if (!allTickets.length) {
+            showEmptyState();
+            return;
+        }
+
+        const totalPages = Math.ceil(allTickets.length / itemsPerPage);
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageItems = allTickets.slice(start, end);
+
+        let html = '';
+        pageItems.forEach(t => {
+            const eSnap = safeParse(t.event_snapshot);
+            const title = eSnap?.title || t.event_title;
+            const rawImg = eSnap?.image_path || t.event_image || '';
+            const imgUrl = getValidImageUrl(rawImg);
+            const status = (t.status || '').toLowerCase();
+            const payStatus = (t.payment_status || 'unpaid').toLowerCase();
+            const ticketId = 'EPLN-' + String(t.id).padStart(5, '0');
+
+            html += `
+                <div class="ticket-card">
+                    <div class="ticket-banner">
+                        <img src="${escapeHtml(imgUrl)}" alt="Event" class="ticket-img">
+                        <div class="ticket-overlay"></div>
+                        <span class="ticket-id">#${ticketId}</span>
+                    </div>
+
+                    <div class="ticket-info">
+                        <div class="ticket-title-row">
+                            <h3 class="ticket-title">${escapeHtml(title)}</h3>
+                            <span class="ticket-status status-${status}">${status}</span>
+                        </div>
+
+                        <div class="ticket-meta-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">Date & Time</span>
+                                <span class="meta-value"><i class="fa-regular fa-calendar"></i> ${formatDate(t.event_date)}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Quantity</span>
+                                <span class="meta-value"><i class="fa-solid fa-user-group"></i> ${t.guest_count} Person(s)</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Tier</span>
+                                <span class="meta-value"><i class="fa-solid fa-tag"></i> ${capitalize(t.package_tier)}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Venue</span>
+                                <span class="meta-value" style="font-size: 12px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(t.venue_name || 'Venue TBD')}</span>
+                            </div>
+                        </div>
+
+                        <div class="ticket-pricing">
+                            <div class="price-box">
+                                <span class="price-label">TOTAL AMOUNT</span>
+                                <span class="price-value">Rs. ${parseFloat(t.total_amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                            </div>
+                            <span class="payment-badge pay-${payStatus}">
+                                ${payStatus.toUpperCase().replace('_', ' ')}
+                            </span>
+                        </div>
+
+                        <div class="ticket-actions">
+                            ${payStatus === 'unpaid' ? `
+                                <a href="/EventManagementSystem/public/client/payment/checkout?booking_id=${t.id}" class="btn-primary-ticket">
+                                    Complete Payment
+                                </a>
+                            ` : (status === 'confirmed' || status === 'completed' ? `
+                                <a href="/EventManagementSystem/public/client/ticket?id=${t.id}" class="btn-print-ticket" target="_blank">
+                                    <i class="fa-solid fa-print"></i> Print QR Ticket
+                                </a>
+                            ` : '')}
+
+                            <a href="/EventManagementSystem/public/client/bookings/view?id=${t.id}" class="btn-secondary-ticket-full">
+                                View Ticket Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        const pag = document.getElementById('pagination');
+        if (totalPages <= 1) {
+            pag.style.display = 'none';
+            return;
+        }
+
+        pag.style.display = 'flex';
+        pag.innerHTML = `
+            <button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                <i class="fa-solid fa-arrow-left"></i> Previous
+            </button>
+            <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+            <button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                Next <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        `;
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        renderTickets();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showEmptyState(msg) {
+        const container = document.getElementById('ticketList');
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fa-solid fa-ticket" style="font-size: 32px; color: #94a3b8;"></i>
+                </div>
+                <h3 style="font-size: 20px; color: #1e293b; margin-bottom: 10px;">No Tickets Found</h3>
+                <p style="color: #64748b; margin-bottom: 25px;">${msg || "You haven't reserved any concert tickets yet. Explore upcoming concerts to get started."}</p>
+                <a href="/EventManagementSystem/public/client/events" class="btn-browse-more" style="float:none; padding: 12px 24px; background: #246A55; color: white; text-decoration: none; border-radius: 10px; font-weight: 600;">Browse Concerts</a>
+            </div>
+        `;
+        document.getElementById('pagination').style.display = 'none';
+    }
+
+    // Helper functions
+    function safeParse(json) {
+        if (!json) return null;
+        if (typeof json === 'object') return json;
+        try { return JSON.parse(json); } catch (e) { return null; }
+    }
+
+    function getValidImageUrl(imagePath) {
+        if (!imagePath) return '/EventManagementSystem/public/assets/images/placeholder.jpg';
+        if (imagePath.startsWith('[')) {
+            const paths = safeParse(imagePath);
+            if (paths && paths.length > 0) imagePath = paths[0];
+        }
+        return (imagePath.startsWith('/')) ? imagePath : '/EventManagementSystem/public/assets/images/events/' + imagePath;
+    }
+
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function capitalize(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function escapeHtml(unsafe) {
+        return (unsafe || "").toString()
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+</script>
+
+<?php include 'partials/feedback_popup.php'; ?>
+<?php include 'partials/footer.php'; ?>

@@ -1,5 +1,5 @@
 /**
- * e-Plan Chatbot Widget
+ * e.PLAN Chatbot Widget
  * Uses window.emsApi.apiFetch() for API calls (requires apiClient.js loaded first).
  */
 (() => {
@@ -24,7 +24,7 @@
       
       // Greet on first open
       if (chatHistory.length === 0) {
-        addBotMessage('Hello! 👋 I\'m the e-Plan Assistant. How can I help you today?');
+        addBotMessage('Hello! 👋 I\'m the e.PLAN Assistant. How can I help you today?');
       }
       document.getElementById('chat-input').focus();
     } else {
@@ -88,7 +88,7 @@
       removeTyping(typingId);
       const msg = err?.message || 'Connection error. Please try again.';
       addBotMessage(msg);
-      console.error('[e-Plan Chatbot]', err);
+      console.error('[e.PLAN Chatbot]', err);
     } finally {
       isLoading = false;
       document.getElementById('chat-send-btn').disabled = false;

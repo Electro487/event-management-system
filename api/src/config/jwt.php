@@ -9,5 +9,5 @@ if (file_exists($envFile)) {
 return [
     'secret' => $env['JWT_SECRET'] ?? 'replace-this-jwt-secret-in-env',
     'issuer' => $env['JWT_ISSUER'] ?? 'ems-api',
-    'ttl_seconds' => (int)($env['JWT_TTL_SECONDS'] ?? 7200),
+    'ttl_seconds' => (int)($env['JWT_TTL_SECONDS'] ?? 172800),
 ];

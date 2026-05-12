@@ -27,6 +27,8 @@ class CustomEventApiController
         $groupEventId = Request::input('group_event_id');
         $organizerId = Request::input('organizer_id');
         $baseTier = Request::input('base_package_tier');
+        $eventDate = Request::input('event_date');
+        $guestCount = Request::input('guest_count');
         $customPkgs = Request::input('custom_packages', '{}');
         $proposedPrice = Request::input('proposed_price');
         $initialMsg = Request::input('initial_message');
@@ -41,6 +43,8 @@ class CustomEventApiController
             'client_id' => $user['id'],
             'organizer_id' => $organizerId,
             'base_package_tier' => $baseTier,
+            'event_date' => $eventDate,
+            'guest_count' => $guestCount,
             'custom_packages' => $customPkgs,
             'proposed_price' => $proposedPrice,
             'status' => 'pending'

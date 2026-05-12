@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `events` (
 CREATE TABLE IF NOT EXISTS `bookings` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `event_id` INT NOT NULL,
+    `custom_request_id` INT DEFAULT NULL,
     `event_snapshot` LONGTEXT DEFAULT NULL,
     `client_id` INT NOT NULL,
     `package_tier` VARCHAR(50) NOT NULL,
@@ -50,7 +51,8 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     `payment_status` ENUM('unpaid', 'partially_paid', 'paid') NOT NULL DEFAULT 'unpaid',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    FOREIGN KEY (`client_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`custom_request_id`) REFERENCES `custom_event_requests`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `payments` (

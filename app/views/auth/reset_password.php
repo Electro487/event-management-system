@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password - <?php echo SITE_NAME; ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/auth-otp.css">
 </head>
 <body>
@@ -19,11 +19,17 @@
         <form action="/EventManagementSystem/public/reset-password" method="POST">
             <div class="form-group">
                 <label for="password">New Password</label>
-                <input type="password" id="password" name="password" placeholder="Min 6 characters" required>
+                <div class="form-control-wrapper">
+                    <input type="password" id="password" name="password" placeholder="Min 6 characters" required>
+                    <i class="fa-regular fa-eye-slash toggle-password"></i>
+                </div>
             </div>
             <div class="form-group">
                 <label for="confirm_password">Confirm New Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                <div class="form-control-wrapper">
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                    <i class="fa-regular fa-eye-slash toggle-password"></i>
+                </div>
             </div>
             <button type="submit" class="btn">Update Password</button>
         </form>
@@ -56,6 +62,19 @@
                     console.error('API Reset Password failed, falling back to MVC:', err);
                     form.submit();
                 }
+            });
+
+            // Password Visibility Toggle Logic
+            document.querySelectorAll('.toggle-password').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('input');
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    
+                    // Toggle the eye icon class
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
             });
         })();
     </script>

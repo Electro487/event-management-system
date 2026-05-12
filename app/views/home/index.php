@@ -182,65 +182,78 @@
     </section>
 
     <section class="section-models" id="services">
-        <div class="section-header">
-            <div class="section-title">
-                <h2>Event Models</h2>
-                <p>Every celebration has its own structural logic. Explore our specialized categories for a tailored
-                    experience.</p>
-            </div>
+        <div class="section-models-container">
             <?php
             $isLoggedIn = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'client';
             $servicesUrl = $isLoggedIn ? '/EventManagementSystem/public/client/events' : '/EventManagementSystem/public/login';
             ?>
-            <a href="<?php echo $servicesUrl; ?>" class="btn-view"
-                style="color: #00796b; border-color: #00796b; height: 50px; padding: 15px 30px; display: inline-flex; align-items: center; text-decoration: none;">See
-                All Services</a>
-        </div>
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Event Models</h2>
+                    <p>Every celebration has its own structural logic. Explore our specialized categories for a tailored
+                        experience.</p>
+                </div>
+                <a href="<?php echo $servicesUrl; ?>" class="btn-view"
+                    style="color: var(--primary-color); border-color: var(--primary-color); height: 48px; padding: 12px 24px; display: inline-flex; align-items: center; text-decoration: none; font-size: 14px; border-radius: 8px;">See
+                    All Services</a>
+            </div>
 
-        <div class="grid-top">
-            <div class="model-card card-wedding"
-                style="background-image: url('/EventManagementSystem/public/assets/images/marriage.jpeg');">
-                <div class="model-info">
-                    <h3>Weddings</h3>
-                    <p style="margin-bottom: 20px; opacity: 0.8;">Timeless architectural celebrations of union.</p>
-                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Weddings' : '/EventManagementSystem/public/login'; ?>"
-                        class="btn-view btn-dark">View Types</a>
+            <div class="bento-container">
+                <!-- Large Featured Item -->
+                <div class="bento-item bento-item-large"
+                    style="background-image: url('/EventManagementSystem/public/assets/images/marriage.jpeg');">
+                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Weddings' : '/EventManagementSystem/public/login'; ?>" class="bento-overlay-link"></a>
+                    <div class="bento-info">
+                        <h3>Weddings</h3>
+                        <p>Timeless architectural celebrations of union. We curate every detail with precision to create a masterpiece of memory.</p>
+                        <span class="btn-view btn-dark">View Wedding Models</span>
+                    </div>
                 </div>
-            </div>
-            <div class="model-card card-meeting"
-                style="background-image: url('/EventManagementSystem/public/assets/images/meetings.jpeg');">
-                <div class="model-info">
-                    <h3>Meetings</h3>
-                    <p style="margin-bottom: 20px; opacity: 0.8;">Professional environments for strategic flow.</p>
-                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Meetings' : '/EventManagementSystem/public/login'; ?>"
-                        class="btn-view btn-dark">View Types</a>
-                </div>
-            </div>
-        </div>
 
-        <div class="models-grid">
-            <div class="model-card"
-                style="background-image: url('/EventManagementSystem/public/assets/images/baby.png');">
-                <div class="model-info">
-                    <h3>Cultural Events</h3>
-                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Cultural Events' : '/EventManagementSystem/public/login'; ?>"
-                        class="btn-view btn-dark">View Types</a>
+                <!-- Standard Items -->
+                <div class="bento-item"
+                    style="background-image: url('/EventManagementSystem/public/assets/images/meetings.jpeg');">
+                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Meetings' : '/EventManagementSystem/public/login'; ?>" class="bento-overlay-link"></a>
+                    <div class="bento-info">
+                        <h3>Meetings</h3>
+                        <span class="btn-view btn-dark">Professional Flow</span>
+                    </div>
                 </div>
-            </div>
-            <div class="model-card"
-                style="background-image: url('/EventManagementSystem/public/assets/images/family_functions.png');">
-                <div class="model-info">
-                    <h3>Family Functions</h3>
-                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Family Functions' : '/EventManagementSystem/public/login'; ?>"
-                        class="btn-view btn-dark">View Types</a>
+
+                <div class="bento-item"
+                    style="background-image: url('/EventManagementSystem/public/assets/images/concert.png');">
+                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Concert' : '/EventManagementSystem/public/login'; ?>" class="bento-overlay-link"></a>
+                    <div class="bento-info">
+                        <h3>Concerts</h3>
+                        <span class="btn-view btn-dark">Live Experience</span>
+                    </div>
                 </div>
-            </div>
-            <div class="model-card"
-                style="background-image: url('/EventManagementSystem/public/assets/images/other_events.png');">
-                <div class="model-info">
-                    <h3>Other Events and Programs</h3>
-                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Other Events and Programs' : '/EventManagementSystem/public/login'; ?>"
-                        class="btn-view btn-dark">View Types</a>
+
+                <div class="bento-item"
+                    style="background-image: url('/EventManagementSystem/public/assets/images/cultural.png');">
+                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Cultural Events' : '/EventManagementSystem/public/login'; ?>" class="bento-overlay-link"></a>
+                    <div class="bento-info">
+                        <h3>Cultural Events</h3>
+                        <span class="btn-view btn-dark">Tradition Reimagined</span>
+                    </div>
+                </div>
+
+                <div class="bento-item"
+                    style="background-image: url('/EventManagementSystem/public/assets/images/family_functions.png');">
+                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Family Functions' : '/EventManagementSystem/public/login'; ?>" class="bento-overlay-link"></a>
+                    <div class="bento-info">
+                        <h3>Family Functions</h3>
+                        <span class="btn-view btn-dark">Private Gatherings</span>
+                    </div>
+                </div>
+
+                <div class="bento-item"
+                    style="background-image: url('/EventManagementSystem/public/assets/images/other_events.png');">
+                    <a href="<?php echo $isLoggedIn ? '/EventManagementSystem/public/client/events?category=Other Events and Programs' : '/EventManagementSystem/public/login'; ?>" class="bento-overlay-link"></a>
+                    <div class="bento-info">
+                        <h3>Other Events</h3>
+                        <span class="btn-view btn-dark">Custom Curation</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -279,7 +292,7 @@
     </section>
 
     <!-- Recent Reviews List -->
-    <section class="recent-reviews-section">
+    <section class="recent-reviews-section" id="recent-reviews-container" style="display: none;">
         <div class="section-subtitle">
             <h3>Recent Testimonials</h3>
             <p>Real experiences from our elite clientele.</p>
@@ -376,11 +389,15 @@
                     if (res.success) {
                         const allReviews = res.data || [];
                         const grid = document.getElementById('reviews-grid');
+                        const container = document.getElementById('recent-reviews-container');
 
                         if (allReviews.length === 0) {
-                            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No reviews shared yet.</div>';
+                            container.style.display = 'none';
                             return;
                         }
+
+                        // Show container since we have reviews
+                        container.style.display = 'block';
 
                         // --- SELECTION LOGIC ---
                         // 1. Sort by rating DESC, then date DESC

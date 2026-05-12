@@ -213,8 +213,6 @@ $id = $_GET['id'] ?? 0;
                     </div>
                 </div>
 
-                <button class="btn-manage btn-message" disabled><i class="fa-regular fa-paper-plane"></i> Send Message
-                    to Client</button>
             </div>
         </div>
     </main>

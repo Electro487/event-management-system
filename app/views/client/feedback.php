@@ -1,30 +1,7 @@
 <?php
-$initials = '';
-$nameParts = explode(' ', $_SESSION['user_fullname'] ?? 'User');
-foreach ($nameParts as $p) {
-    if (!empty($p))
-        $initials .= strtoupper(substr($p, 0, 1));
-}
-if (strlen($initials) > 2)
-    $initials = substr($initials, 0, 2);
-$displayName = $_SESSION['user_fullname'] ?? 'User';
-$firstName = $nameParts[0] ?? '';
-$lastName = count($nameParts) > 1 ? end($nameParts) : '';
-?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback – e.PLAN</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/client-home.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/notifications.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet"
-        href="/EventManagementSystem/public/assets/css/all-notifications.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/feedback.css?v=<?php echo time(); ?>">
+$title = 'Feedback – e.PLAN';
+$extra_head = '
+    <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/feedback.css?v=' . time() . '">
     <style>
         body {
             background: #f4f7f6;
@@ -37,111 +14,10 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
             padding: 40px 24px 80px;
         }
     </style>
-</head>
+';
+include 'partials/header.php';
+?>
 
-<body>
-    <!-- Navbar -->
-    <header class="header">
-        <a href="/EventManagementSystem/public/client/home" class="logo">
-            <img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;">
-        </a>
-        <nav class="nav-links">
-            <a href="/EventManagementSystem/public/client/home">Home</a>
-            <a href="/EventManagementSystem/public/client/events">Browse Events</a>
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="/EventManagementSystem/public/client/bookings">My Bookings</a>
-                <a href="/EventManagementSystem/public/client/tickets">My Tickets</a>
-                <a href="/EventManagementSystem/public/client/payments">Payment History</a>
-            <?php endif; ?>
-        </nav>
-        <div class="nav-icons">
-            <div class="notifications-wrapper">
-                <div class="notification-bell-btn" id="notification-bell">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="unread-badge" id="unread-badge" style="display:none;">0</span>
-                </div>
-                <div class="notifications-dropdown" id="notifications-dropdown">
-                    <div class="nd-header">
-                        <h3>Notifications <span class="nd-unread-tag" id="nd-unread-status">0 UNREAD</span></h3>
-                        <a href="#" class="nd-mark-all" id="mark-all-read">Mark all as read</a>
-                    </div>
-                    <div class="nd-content" id="nd-list">
-                        <div class="nd-empty">
-                            <i class="fa-regular fa-bell-slash"></i> Loading notifications...
-                        </div>
-                    </div>
-                    <div class="nd-footer">
-                        <a href="/EventManagementSystem/public/notifications/all" class="nd-view-all">
-                            View All Notifications <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <div style="position:relative;" id="profile-container">
-                    <div onclick="toggleProfileDropdown()" id="profile-icon" class="header-profile-icon">
-                        <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
-                                style="width:100%;height:100%;object-fit:cover;" id="header-avatar">
-                        <?php else: ?>
-                            <span id="header-initials"><?php echo htmlspecialchars($initials); ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Profile Dropdown -->
-                    <div id="profile-dropdown" class="profile-dropdown">
-                        <div class="pd-top">
-                            <div class="pd-avatar-container">
-                                <div class="pd-avatar">
-                                    <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                        <img src="<?php echo htmlspecialchars($_SESSION['user_profile_pic']); ?>"
-                                            style="width:100%;height:100%;object-fit:cover;" id="dropdown-avatar">
-                                    <?php else: ?>
-                                        <span id="dropdown-initials"><?php echo htmlspecialchars($initials); ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <label for="profile_picture_upload" class="pd-edit-icon" title="Change Photo">
-                                    <i class="fa-solid fa-pen"></i>
-                                </label>
-                                <?php if (!empty($_SESSION['user_profile_pic'])): ?>
-                                    <div class="pd-delete-icon" onclick="deleteProfilePicture()" title="Remove Photo">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </div>
-                                <?php endif; ?>
-                                <input type="file" id="profile_picture_upload" accept="image/*" style="display:none;"
-                                    onchange="uploadProfilePicture(this)">
-                            </div>
-                            <h3 class="pd-name"><?php echo htmlspecialchars($displayName); ?></h3>
-                            <p class="pd-email"><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></p>
-                            <span class="pd-role">Client</span>
-                        </div>
-                        <div class="pd-bottom">
-                            <div class="pd-detail">
-                                <label>FIRST NAME</label>
-                                <div><?php echo htmlspecialchars($firstName); ?></div>
-                            </div>
-                            <div class="pd-detail">
-                                <label>LAST NAME</label>
-                                <div><?php echo htmlspecialchars($lastName); ?></div>
-                            </div>
-                            <div class="pd-detail">
-                                <label>EMAIL ADDRESS</label>
-                                <div><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></div>
-                            </div>
-                            <a href="/EventManagementSystem/public/client/feedback" class="pd-rating-btn">
-                                <i class="fa-solid fa-star"></i> Rating &amp; Feedback
-                            </a>
-                            <a href="/EventManagementSystem/public/logout" class="pd-logout-btn">
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-    </header>
 
     <div class="feedback-page-client">
         <!-- HERO -->
@@ -183,27 +59,27 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                                 <div class="star-rating"
                                     style="display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 10px;">
                                     <input type="radio" id="star5" name="rating" value="5" required
-                                        style="display:none;" />
+                                        style="position: absolute; opacity: 0; pointer-events: none;" />
                                     <label for="star5" title="5 stars"
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
 
-                                    <input type="radio" id="star4" name="rating" value="4" style="display:none;" />
+                                    <input type="radio" id="star4" name="rating" value="4" style="position: absolute; opacity: 0; pointer-events: none;" />
                                     <label for="star4" title="4 stars"
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
 
-                                    <input type="radio" id="star3" name="rating" value="3" style="display:none;" />
+                                    <input type="radio" id="star3" name="rating" value="3" style="position: absolute; opacity: 0; pointer-events: none;" />
                                     <label for="star3" title="3 stars"
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
 
-                                    <input type="radio" id="star2" name="rating" value="2" style="display:none;" />
+                                    <input type="radio" id="star2" name="rating" value="2" style="position: absolute; opacity: 0; pointer-events: none;" />
                                     <label for="star2" title="2 stars"
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
 
-                                    <input type="radio" id="star1" name="rating" value="1" style="display:none;" />
+                                    <input type="radio" id="star1" name="rating" value="1" style="position: absolute; opacity: 0; pointer-events: none;" />
                                     <label for="star1" title="1 star"
                                         style="font-size: 28px; color: #ddd; cursor: pointer; transition: 0.2s;"><i
                                             class="fas fa-star"></i></label>
@@ -247,22 +123,6 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-left">
-            <div class="footer-logo"><img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                    style="height: 28px; width: auto; object-fit: contain;"></div>
-            <p class="copyright">&copy; 2026 e.plan Architectural Event Curation. All rights reserved.</p>
-        </div>
-        <div class="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Contact Support</a>
-        </div>
-    </footer>
-
-    <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
-    <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/mentions.js?v=<?php echo time(); ?>"></script>
     <script>
         const currentUserId = <?php echo (int) ($_SESSION['user_id'] ?? 0); ?>;
@@ -618,34 +478,5 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                 handleAjaxForm(e);
             });
         });
-
-        function uploadProfilePicture(input) {
-            if (!input.files || !input.files[0]) return;
-            const fd = new FormData();
-            fd.append('profile_picture', input.files[0]);
-            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
-                method: 'POST',
-                body: fd
-            })
-                .then(data => {
-                    if (data.success) location.reload();
-                    else alert(data.message || 'Upload failed.');
-                })
-                .catch(err => alert('Upload failed: ' + err.message));
-        }
-
-        function deleteProfilePicture() {
-            if (!confirm('Remove your profile picture?')) return;
-            window.emsApi.apiFetch('/api/v1/auth/profile/picture', {
-                method: 'DELETE'
-            })
-                .then(data => {
-                    if (data.success) location.reload();
-                    else alert('Error removing image.');
-                })
-                .catch(err => alert('Delete failed: ' + err.message));
-        }
     </script>
-</body>
-
-</html>
+<?php include 'partials/footer.php'; ?>
