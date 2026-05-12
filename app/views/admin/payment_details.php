@@ -888,7 +888,6 @@
                         
                         updateStats(response.data.stats);
                         renderTable();
-                        renderChart();
                     }
                 } catch (error) {
                     console.error('Error fetching data:', error);
@@ -1020,6 +1019,7 @@
                 }).join('');
 
                 renderPagination(filtered.length);
+                renderChart(filtered);
             }
 
             function renderPagination(totalItems) {
@@ -1039,31 +1039,42 @@
 
             window.changePage = (page) => { currentPage = page; renderTable(); };
 
-            function renderChart() {
+            function renderChart(data = allBookings) {
                 const ctx = document.getElementById('earningsChart').getContext('2d');
-                const months = []; const labels = []; const d = new Date();
+                const monthKeys = []; const labels = []; const d = new Date();
                 for (let i = 5; i >= 0; i--) {
                     const m = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                    const monthKey = m.getFullYear() + '-' + m.getMonth();
                     const monthName = m.toLocaleString('default', { month: 'short' });
-                    months.push(monthName); labels.push(monthName.toUpperCase());
+                    monthKeys.push(monthKey); labels.push(monthName.toUpperCase());
                 }
                 const realConfirmed = new Array(6).fill(0); const realPending = new Array(6).fill(0);
-                const monthIndices = {}; months.forEach((m, i) => monthIndices[m] = i);
+                const monthIndices = {}; monthKeys.forEach((key, i) => monthIndices[key] = i);
 
-                allBookings.forEach(b => {
+                data.forEach(b => {
                     const parts = (b.event_date || b.event_start_date || '').split(' ')[0].split('-');
                     if (parts.length === 3) {
-                        const m = new Date(parts[0], parts[1] - 1, parts[2]).toLocaleString('default', { month: 'short' });
-                        if (monthIndices.hasOwnProperty(m)) {
-                            const idx = monthIndices[m];
+                        const date = new Date(parts[0], parts[1] - 1, parts[2]);
+                        const key = date.getFullYear() + '-' + date.getMonth();
+                        
+                        if (monthIndices.hasOwnProperty(key)) {
+                            const idx = monthIndices[key];
                             const status = (b.status || '').toLowerCase();
+                            const payStatus = (b.payment_status || 'unpaid').toLowerCase();
+                            const hasTicket = !!b.ticket_code;
+                            const total = parseFloat(b.total_amount || 0);
+                            const onlinePaid = parseFloat(b.paid_amount || 0);
                             
-                            // "RECEIVED" part - always include what was actually paid
-                            realConfirmed[idx] += parseFloat(b.paid_amount || 0);
-                            
-                            // "REMAINING" part - only include for non-cancelled bookings
-                            if (status !== 'cancelled') {
-                                realPending[idx] += Math.max(0, parseFloat(b.total_amount || 0) - parseFloat(b.paid_amount || 0));
+                            if (status === 'cancelled') {
+                                realConfirmed[idx] += onlinePaid;
+                            } else if (payStatus === 'paid' || hasTicket) {
+                                realConfirmed[idx] += total;
+                            } else {
+                                realConfirmed[idx] += onlinePaid;
+                            }
+
+                            if (status !== 'cancelled' && payStatus !== 'paid' && !hasTicket) {
+                                realPending[idx] += Math.max(0, total - onlinePaid);
                             }
                         }
                     }

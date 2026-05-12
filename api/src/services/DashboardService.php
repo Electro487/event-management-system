@@ -16,7 +16,7 @@ class DashboardService
                 'total_bookings' => $bookingModel->countAll(),
                 'total_users' => $userModel->countAll(),
                 'pending_requests' => $bookingModel->countByStatus('pending'),
-                'revenue' => $bookingModel->getTotalSystemRevenue(),
+                'revenue' => $bookingModel->getSystemPaymentStats()['total_revenue'] ?? 0,
                 'recent_bookings' => $bookingModel->getRecent(5),
                 'upcoming_events' => $eventModel->getUpcoming(5),
             ],
@@ -48,7 +48,7 @@ class DashboardService
                 'total_events' => $eventModel->getTotalEvents($organizerId),
                 'total_bookings' => $bookingModel->countByOrganizer($organizerId),
                 'pending_requests' => $bookingModel->countByStatusForOrganizer($organizerId, 'pending'),
-                'revenue' => $bookingModel->getRevenueByOrganizer($organizerId),
+                'revenue' => $bookingModel->getOrganizerPaymentStats($organizerId)['total_earned'] ?? 0,
                 'status_summary' => [
                     'confirmed' => $bookingModel->countByStatusForOrganizer($organizerId, 'confirmed'),
                     'pending' => $bookingModel->countByStatusForOrganizer($organizerId, 'pending'),

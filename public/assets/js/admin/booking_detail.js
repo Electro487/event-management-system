@@ -58,7 +58,9 @@ function populateUI(booking) {
     statusBadge.className = `badge-status ${status}`;
 
     document.getElementById('event-title-display').innerText = dispTitle;
-    document.getElementById('package-tier-display').innerText = (booking.package_tier || 'Basic').charAt(0).toUpperCase() + (booking.package_tier || 'basic').slice(1).toLowerCase();
+    const rawTier = booking.package_tier || 'Basic';
+    const capitalizedTier = rawTier.charAt(0).toUpperCase() + rawTier.slice(1).toLowerCase();
+    document.getElementById('package-tier-display').innerText = capitalizedTier;
 
     // Client
     const clientName = booking.full_name || booking.client_user_name || 'Unknown Client';
@@ -98,7 +100,7 @@ function populateUI(booking) {
     document.getElementById('venue-location-display').innerText = eSnap?.venue_location || booking.venue_location || 'Bhaktapur';
 
     // Package
-    document.getElementById('pkg-tier-name').innerText = `${(booking.package_tier || 'Basic').charAt(0).toUpperCase() + (booking.package_tier || 'basic').slice(1).toLowerCase()} Package`;
+    document.getElementById('pkg-tier-name').innerText = `${capitalizedTier} Package`;
     document.getElementById('pkg-price-display').innerText = `Rs. ${parseFloat(booking.total_amount).toLocaleString()}`;
 
     // Features

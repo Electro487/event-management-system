@@ -389,7 +389,11 @@ $steps = [
                     <div class="pkg-details">
                         <div class="pkg-header">
                             <span class="pkg-name">Package Details</span>
-                            <span class="pkg-tier-label"><?php echo htmlspecialchars($booking['package_tier']); ?>
+                            <?php 
+                                $tierName = $booking['package_tier'] ?? 'Basic';
+                                $capTier = ucfirst($tierName);
+                            ?>
+                            <span class="pkg-tier-label"><?php echo htmlspecialchars($capTier); ?>
                                 Package</span>
                         </div>
                         <p class="pkg-desc">

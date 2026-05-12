@@ -241,10 +241,25 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                                 history...</p>
                         </div>
                     </div>
+                    <div id="pagination-container" style="display: flex; gap: 8px; justify-content: center; margin-top: 30px; align-items: center;"></div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-left">
+            <div class="footer-logo"><img src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
+                    style="height: 28px; width: auto; object-fit: contain;"></div>
+            <p class="copyright">&copy; 2026 e.plan Architectural Event Curation. All rights reserved.</p>
+        </div>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Support</a>
+        </div>
+    </footer>
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
@@ -391,23 +406,45 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
             lessBtn.style.display = 'none';
         }
 
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let totalItemsCount = 0;
+
         function loadFeedbacks() {
-            window.emsApi.apiFetch('/api/v1/feedback/my')
+            window.emsApi.apiFetch(`/api/v1/feedback/my?page=${currentPage}&limit=${itemsPerPage}`)
                 .then(res => {
-                    const feedbacks = res.data || [];
-                    const list = document.getElementById('feedback-list');
-                    document.getElementById('feedback-count-badge').textContent = `${feedbacks.length} Feedback${feedbacks.length !== 1 ? 's' : ''} Shared`;
-
-                    if (feedbacks.length === 0) {
-                        list.innerHTML = `
-                        <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px dashed #ddd;">
-                            <p style="color: #888;">No feedback history found.</p>
-                        </div>
-                    `;
-                        return;
+                    const paginatedItems = res.data || [];
+                    totalItemsCount = res.pagination ? res.pagination.total : paginatedItems.length;
+                    
+                    if (currentPage === 1) {
+                        document.getElementById('feedback-count-badge').textContent = `${totalItemsCount} Feedback${totalItemsCount !== 1 ? 's' : ''} Shared`;
                     }
+                    renderFeedbacks(paginatedItems);
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('feedback-list').innerHTML = `
+                    <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #fee2e2;">
+                        <p style="color: #b91c1c;">Failed to load feedback history. Please try again later.</p>
+                    </div>
+                `;
+                });
+        }
 
-                    list.innerHTML = feedbacks.map(fb => {
+        function renderFeedbacks(paginatedItems) {
+            const list = document.getElementById('feedback-list');
+
+            if (paginatedItems.length === 0 && currentPage === 1) {
+                list.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px dashed #ddd;">
+                    <p style="color: #888;">No feedback history found.</p>
+                </div>
+            `;
+                document.getElementById('pagination-container').innerHTML = '';
+                return;
+            }
+
+            list.innerHTML = paginatedItems.map(fb => {
                         const stars = [];
                         for (let i = 1; i <= 5; i++) {
                             stars.push(`<i class="${i <= fb.rating ? 'fas' : 'far'} fa-star"></i>`);
@@ -500,16 +537,45 @@ $lastName = count($nameParts) > 1 ? end($nameParts) : '';
                         </div>
                     `;
                     }).join('');
-                })
-                .catch(err => {
-                    console.error(err);
-                    document.getElementById('feedback-list').innerHTML = `
-                    <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #fee2e2;">
-                        <p style="color: #b91c1c;">Failed to load feedback history. Please try again later.</p>
-                    </div>
-                `;
-                });
+                    renderPagination(totalItemsCount);
+                }
+
+        function renderPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const container = document.getElementById('pagination-container');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const btnBaseStyle = "width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; border:1px solid #e2e8f0; background:#fff; color:#0f172a;";
+            const activeStyle = "background:#004d40; color:#fff; border:1px solid #004d40; box-shadow: 0 4px 6px -1px rgba(0, 77, 64, 0.2);";
+            const disabledStyle = "opacity:0.5; cursor:not-allowed; color:#cbd5e1;";
+            
+            let html = `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})" style="${btnBaseStyle} ${currentPage === 1 ? disabledStyle : ''}">
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button onclick="changePage(${i})" style="${btnBaseStyle} ${i === currentPage ? activeStyle : ''}">${i}</button>`;
+                } else if ((i === 2 && currentPage > 3) || (i === totalPages - 1 && currentPage < totalPages - 2)) {
+                    html += `<span style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-weight:700; font-size:15px;">...</span>`;
+                    i = (i === 2) ? currentPage - 2 : totalPages - 1;
+                }
+            }
+            
+            html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})" style="${btnBaseStyle} ${currentPage === totalPages ? disabledStyle : ''}">
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+            
+            container.innerHTML = html;
         }
+
+        window.changePage = (page) => {
+            currentPage = page;
+            loadFeedbacks();
+        };
 
         function handleAjaxForm(event, method = 'POST') {
             event.preventDefault();
