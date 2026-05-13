@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS `custom_event_requests` (
     `client_id` INT NOT NULL,
     `organizer_id` INT NOT NULL,
     `base_package_tier` VARCHAR(50) NOT NULL,
+    `event_date` DATE DEFAULT NULL,
+    `guest_count` INT DEFAULT NULL,
     `custom_packages` JSON DEFAULT NULL,
     `proposed_price` DECIMAL(10, 2) NOT NULL,
     `status` ENUM('pending', 'negotiating', 'approved', 'rejected', 'booked') NOT NULL DEFAULT 'pending',
@@ -138,4 +140,16 @@ CREATE TABLE IF NOT EXISTS `messages` (
     FOREIGN KEY (`sender_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`receiver_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`request_id`) REFERENCES `custom_event_requests`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `promo_codes` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `code` VARCHAR(50) UNIQUE NOT NULL,
+    `discount_percentage` DECIMAL(5, 2) NOT NULL,
+    `expires_at` DATETIME NOT NULL,
+    `created_by` INT NOT NULL,
+    `usage_limit` INT DEFAULT NULL,
+    `usage_count` INT DEFAULT 0,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
