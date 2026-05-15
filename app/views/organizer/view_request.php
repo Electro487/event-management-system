@@ -230,6 +230,52 @@ $items = $customPackages['items'] ?? [];
 @media (max-width: 900px) {
     .negotiation-layout { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 576px) {
+    .main-content { padding: 20px; }
+    .content-header > div:last-child {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        width: 100%;
+    }
+    .content-header > div:last-child > div[style*="width: 1px"] {
+        width: 100% !important;
+        height: 1px !important;
+    }
+    .items-list-container > div:first-child {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+    .item-row {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    .item-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 5px;
+    }
+}
+
+@media (max-width: 380px) {
+    .main-content { padding: 10px !important; }
+    .card-body { padding: 15px !important; }
+    .content-header { gap: 10px !important; margin-bottom: 20px !important; }
+    .page-title { font-size: 24px !important; }
+    
+    /* Make Approve/Reject buttons stack */
+    form .btn-secondary {
+        width: 100%;
+    }
+    form > div:last-child > div {
+        flex-direction: column !important;
+    }
+    
+    .modal-box { padding: 20px !important; }
+    #proposedPrice { font-size: 18px !important; }
+}
 </style>
 
 <script>

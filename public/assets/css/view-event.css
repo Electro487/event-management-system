@@ -28,28 +28,13 @@ body {
     line-height: 1.6;
 }
 
-/* Navbar */
-.header {
-    background-color: var(--white);
-    padding: 15px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
+/* Client header layout: booking.css */
 .logo {
-    font-weight: 700;
-    font-size: 22px;
     color: var(--primary-light);
-    text-decoration: none;
 }
 
 .nav-links {
-    display: flex;
-    gap: 30px;
+    gap: 24px;
 }
 
 .nav-links a {
@@ -412,10 +397,17 @@ body {
 @media (max-width: 768px) {
     .hero {
         height: 300px;
+        margin-bottom: 25px;
     }
 
     .hero h1 {
         font-size: 32px;
+    }
+
+    .hero-content {
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
     }
 
     .included-grid {
@@ -424,6 +416,40 @@ body {
 
     .details-grid {
         grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 26px;
+    }
+
+    .hero p {
+        font-size: 14px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .details-box {
+        padding: 20px;
+    }
+
+    .packages-box {
+        padding: 20px;
+    }
+
+    .package-tier {
+        padding: 15px;
+    }
+
+    /* Fix dropdown width for very small screens */
+    .profile-dropdown {
+        width: 280px !important;
+        right: -90px !important;
+        max-width: 90vw;
     }
 }
 
@@ -627,3 +653,5 @@ body {
 .pd-logout-btn i {
     margin-right: 8px;
 }
+
+/* Header mobile: see booking.css */

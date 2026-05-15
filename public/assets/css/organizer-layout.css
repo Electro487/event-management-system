@@ -28,6 +28,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-color);
@@ -48,23 +53,32 @@ a:visited {
 
 
 .sidebar {
-    position: fixed;
+    position: fixed !important;
     height: 100vh;
-    top: 0;
+    top: 0 !important;
     left: 0;
     width: var(--sidebar-width);
     background-color: var(--sidebar-bg);
     color: var(--white);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     z-index: 1000;
+    overflow: hidden; /* Never scrollable */
+}
+
+/* The inner wrapper must be fully constrained to sidebar height */
+.sidebar > div {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .sidebar .brand {
     padding: 20px 10px;
     font-size: 10px;
     font-weight: 700;
+    flex-shrink: 0; /* Brand never collapses */
 }
 
 .sidebar .brand img {
@@ -73,27 +87,35 @@ a:visited {
 }
 
 .sidebar nav {
-    flex-grow: 1;
+    flex: 1;
+    overflow: hidden; /* Nav never scrolls */
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar nav ul {
     list-style: none;
+    overflow: hidden;
+    flex: 1;
 }
 
 .sidebar nav ul li {
-    margin: 4px 0;
+    margin: 2px 0;
 }
 
 .sidebar nav a {
     display: flex;
     align-items: center;
-    padding: 12px 25px;
+    padding: 11px 25px;
     color: var(--sidebar-text);
     text-decoration: none;
     font-weight: 500;
+    font-size: 14px;
     transition: all 0.2s ease;
     border-radius: 0 25px 25px 0;
     margin-right: 15px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .sidebar nav a:hover {
@@ -107,13 +129,15 @@ a:visited {
 }
 
 .sidebar nav a i {
-    margin-right: 15px;
-    font-size: 18px;
+    margin-right: 12px;
+    font-size: 17px;
+    flex-shrink: 0;
 }
 
 .sidebar-bottom {
-    padding: 20px;
+    padding: 15px 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0; /* Bottom bar never collapses */
 }
 
 .sidebar-bottom .user-profile {
@@ -160,14 +184,16 @@ a:visited {
     flex-direction: column;
     gap: 25px;
     min-width: 0;
-    /* Ensure it doesn't overflow */
+    max-width: 1400px; /* Reduced content width for better readability on large screens */
+    margin-right: auto;
 }
 
 /* Dashboard Header Options */
-.header {
+.header, .content-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 15px;
 }
 
 .header-actions {
@@ -373,6 +399,11 @@ a:visited {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
     gap: 25px;
+    min-width: 0; /* Prevent grid from pushing width */
+}
+
+.left-col, .right-col {
+    min-width: 0; /* Ensure columns can shrink */
 }
 
 /* Recent Bookings */
@@ -400,6 +431,14 @@ a:visited {
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .section-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 }
 
 table {
@@ -970,6 +1009,24 @@ td {
         margin-right: 0;
         font-size: 18px;
     }
+
+    /* Make headers stack vertically on mobile to prevent overflow */
+    .content-header, .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-right, .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-left h1, .content-header h1 {
+        font-size: 22px;
+    }
 }
 
 /* Premium Custom Dropdown & Date Picker Globals */
@@ -1115,7 +1172,7 @@ td {
     }
 
     .right-col {
-        display: none;
+        display: block; /* Don't hide, just stack */
     }
 }
 
@@ -1127,15 +1184,55 @@ td {
 
     .welcome-banner {
         padding: 20px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
     }
 
     .welcome-banner h2 {
         font-size: 24px;
     }
 
+    .recent-bookings {
+        padding: 12px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 20px !important;
+        border-radius: 12px;
+    }
+
+    .recent-bookings table {
+        min-width: 100%;
+        table-layout: fixed; /* Enforce strict width control */
+        border-spacing: 0 4px;
+    }
+
+    .recent-bookings th, 
+    .recent-bookings td {
+        padding: 10px 4px !important;
+    }
+
+    .client-info {
+        gap: 6px !important;
+    }
+
+    .client-info span {
+        font-size: 12px !important;
+    }
+
+    .bottom-grid {
+        gap: 15px !important;
+        min-width: 0;
+    }
+
+    .section-header h3 {
+        white-space: normal !important; /* Force wrap even if inline style says nowrap */
+        flex-wrap: wrap;
+    }
+
     .stats-row {
         gap: 15px;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
         display: grid;
     }
 
@@ -1144,17 +1241,14 @@ td {
     }
 
     .status-summary {
-        flex-wrap: wrap;
-        gap: 16px;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px;
     }
 
     .status-card {
-        flex: 1 1 calc(33.333% - 16px);
-        min-width: 120px;
-    }
-
-    .search-bar {
-        width: 240px;
+        width: 100%;
+        min-width: 0;
     }
 
     .section-header h3 {
@@ -1162,15 +1256,17 @@ td {
     }
 
     th {
-        padding: 12px 8px;
-        font-size: 11px;
+        padding: 10px 4px;
+        font-size: 10px;
     }
 
     td {
-        padding: 12px 8px;
-        font-size: 13px;
+        padding: 10px 4px;
+        font-size: 12px;
     }
 
+    table th:nth-child(2),
+    table td:nth-child(2),
     table th:nth-child(3),
     table td:nth-child(3),
     table th:nth-child(4),
@@ -1181,7 +1277,7 @@ td {
 
 @media (max-width: 768px) {
     .stats-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     .stat-card {
@@ -1197,8 +1293,9 @@ td {
     }
 
     .status-summary {
-        flex-direction: column;
-        gap: 12px;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 15px;
     }
 
     .status-card {
@@ -1218,8 +1315,20 @@ td {
         padding: 16px;
     }
 
+    .header, .content-header {
+        padding: 15px 0;
+        flex-wrap: wrap;
+    }
+
     .search-bar {
-        width: 200px;
+        width: 100%;
+        order: 2;
+    }
+
+    .header-right, .header-icons {
+        width: 100%;
+        justify-content: flex-end;
+        order: 1;
     }
 
     .search-bar input {
@@ -1251,12 +1360,22 @@ td {
     .badge {
         padding: 4px 8px;
         font-size: 10px;
+        white-space: nowrap;
     }
 
+    .event-meta {
+        flex-wrap: wrap !important;
+    }
+
+    .event-meta .date {
+        margin-left: 0 !important; /* Prevent pushing to far right on mobile */
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    /* Hide less critical columns on mobile (e.g. Organizer/Package) */
     table th:nth-child(3),
-    table td:nth-child(3),
-    table th:nth-child(4),
-    table td:nth-child(4) {
+    table td:nth-child(3) {
         display: none;
     }
 }
@@ -1269,6 +1388,12 @@ td {
 
     .sidebar {
         width: 60px;
+        overflow: hidden;
+    }
+
+    .sidebar > div {
+        height: 100%;
+        overflow: hidden;
     }
 
     .main-content {
@@ -1276,17 +1401,34 @@ td {
     }
 
     .sidebar .brand {
-        padding: 4px 2px;
-        font-size: 1px;
+        padding: 8px 0;
+        font-size: 0; /* Hide text */
         text-align: center;
-        line-height: 1.1;
-        word-wrap: break-word;
-        word-break: break-word;
+        flex-shrink: 0;
     }
 
     .sidebar .brand img {
         height: 22px !important;
         width: auto !important;
+        margin: 0 !important;
+    }
+
+    .sidebar nav ul li {
+        margin: 0;
+    }
+
+    .sidebar nav a {
+        padding: 10px 0;
+        justify-content: center;
+        margin-right: 0;
+        border-radius: 0;
+        font-size: 0; /* Hide text labels on mobile */
+        overflow: hidden;
+    }
+
+    .sidebar nav a i {
+        margin-right: 0;
+        font-size: 18px;
     }
 
     .welcome-banner {
@@ -1305,8 +1447,12 @@ td {
         padding: 12px;
     }
 
-    .stat-header {
-        margin-bottom: 12px;
+    .stats-row {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .stat-card {
+        padding: 12px;
     }
 
     .stat-icon {
@@ -1636,4 +1782,76 @@ td {
 .pg-dots {
     color: #94a3b8;
     font-weight: 600;
+}
+
+/* Mobile Responsiveness for Profile Dropdown and Header */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 20px 15px;
+        margin-left: 70px;
+        width: calc(100% - 70px);
+        max-width: calc(100% - 70px);
+    }
+
+    .content-header {
+        padding: 15px;
+    }
+
+    .page-title-section {
+        margin-bottom: 25px;
+    }
+}
+
+@media (max-width: 576px) {
+    .header-right {
+        gap: 12px;
+    }
+
+    .search-wrap.top-search {
+        display: none;
+    }
+
+    .header-icons {
+        gap: 10px;
+    }
+
+    .pd-top {
+        padding: 20px 15px;
+    }
+
+    .pd-avatar-container {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .sidebar {
+        width: 60px;
+    }
+    
+    .main-content {
+        margin-left: 60px;
+        padding: 10px 5px;
+        width: calc(100% - 60px);
+        max-width: calc(100% - 60px);
+        overflow-x: hidden;
+        min-width: 0;
+    }
+
+    .recent-bookings {
+        padding: 10px !important; /* Even tighter padding */
+    }
+    
+    .recent-bookings table {
+        min-width: 100%;
+    }
+
+    .recent-bookings th:first-child,
+    .recent-bookings td:first-child {
+        width: 40%; /* Client */
+    }
+
+    .recent-bookings th:nth-child(2),
+    .recent-bookings td:nth-child(2) {
+        width: 30%; /* Event */
+    }
 }

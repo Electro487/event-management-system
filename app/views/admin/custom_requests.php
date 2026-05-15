@@ -69,7 +69,7 @@ include_once __DIR__ . '/partials/sidebar.php';
 <style>
 /* Mimic the booking layout styles */
 .bookings-grid { display: grid; gap: 24px; }
-.booking-card { display: flex; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
+.booking-card { display: flex; flex-direction: column; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
 .booking-image { width: 280px; position: relative; }
 .booking-image img { width: 100%; height: 100%; object-fit: cover; }
 .status-badge { position: absolute; top: 16px; right: 16px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: white; }
@@ -87,6 +87,18 @@ include_once __DIR__ . '/partials/sidebar.php';
 .btn-secondary:hover { background: #e2e8f0; }
 .empty-state { text-align: center; padding: 60px 20px; }
 .empty-state i { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; opacity: 0.5; }
+@media (max-width: 768px) {
+    .booking-meta {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+@media (max-width: 768px) {
+    .booking-image {
+        width: 100%;
+        height: 180px;
+    }
+}
 </style>
 
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>

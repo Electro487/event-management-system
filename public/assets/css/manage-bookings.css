@@ -901,8 +901,35 @@
     }
 
     .showing-text {
-        font-size: 12px;
+        font-size: 11px;
     }
+}
+
+/* Mobile Fixes for Dropdowns */
+@media (max-width: 576px) {
+    .notifications-dropdown, .profile-dropdown {
+        position: fixed !important;
+        top: 70px !important;
+        left: 10px !important;
+        right: 10px !important;
+        width: auto !important;
+        max-width: none !important;
+        z-index: 10000 !important;
+    }
+    
+    .b-header-right {
+        gap: 10px !important;
+    }
+    
+    .search-wrap.top-search {
+        flex: 1;
+        width: auto !important;
+    }
+    
+    .search-wrap.top-search input {
+        width: 100% !important;
+    }
+}
 
     .pagination-controls {
         width: 100%;
@@ -914,4 +941,3 @@
         height: 32px;
         font-size: 12px;
     }
-}

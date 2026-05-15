@@ -52,6 +52,7 @@
                             <i class="fa-regular fa-bell"></i>
                             <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
                         </div>
+                        <?php include_once dirname(__DIR__) . '/partials/notifications_dropdown.php'; ?>
                     </div>
                     <?php include_once __DIR__ . '/partials/header_profile.php'; ?>
                 </div>

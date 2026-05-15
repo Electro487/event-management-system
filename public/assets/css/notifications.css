@@ -2,6 +2,8 @@
 .notifications-wrapper {
     position: relative;
     display: inline-block;
+    z-index: 1100;
+    flex-shrink: 0;
 }
 
 .notification-bell-btn {
@@ -354,5 +356,86 @@
 
     to {
         width: 0%;
+    }
+}
+
+/* Mobile Responsiveness for Notifications Dropdown */
+@media (max-width: 992px) {
+    .content-header,
+    .header-right,
+    .header-icons,
+    .header-actions {
+        overflow: visible;
+    }
+
+    .notifications-dropdown {
+        z-index: 10050;
+    }
+}
+
+@media (max-width: 576px) {
+    .notifications-dropdown {
+        position: fixed !important;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: calc(100vw - 20px);
+        margin-top: 0;
+        max-height: 80vh;
+        z-index: 10050 !important;
+    }
+
+    .notifications-dropdown.show {
+        display: flex !important;
+    }
+
+    .notification-bell-btn {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .toast-container {
+        width: calc(100vw - 40px);
+        left: 20px;
+        right: 20px;
+    }
+}
+
+/* Profile dropdown — keep fully on screen (client, admin, organizer) */
+@media (max-width: 992px) {
+    #profile-container {
+        position: relative;
+    }
+
+    #profile-container .profile-dropdown,
+    #profile-dropdown.profile-dropdown {
+        position: fixed !important;
+        top: 58px !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: none !important;
+        transform: none !important;
+        max-height: calc(100vh - 72px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #profile-container .profile-dropdown::before,
+    #profile-dropdown.profile-dropdown::before {
+        right: 20px !important;
+        left: auto !important;
+        transform: rotate(45deg) !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #profile-container .profile-dropdown,
+    #profile-dropdown.profile-dropdown {
+        top: 54px !important;
+        left: 10px !important;
+        right: 10px !important;
+        max-height: calc(100vh - 64px);
     }
 }

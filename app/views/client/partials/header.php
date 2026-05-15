@@ -17,8 +17,7 @@
     <!-- Navbar -->
     <header class="header">
         <a href="/EventManagementSystem/public/client/home" class="logo"><img
-                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"
-                style="height: 26px; width: auto; object-fit: contain; transform: scale(1.7); transform-origin: left center;"></a>
+                src="/EventManagementSystem/public/assets/images/logo.png" alt="e.PLAN"></a>
         <nav class="nav-links">
             <a href="/EventManagementSystem/public/client/home" class="<?php echo ($activePage ?? '') == 'home' ? 'active' : ''; ?>">Home</a>
             <a href="/EventManagementSystem/public/client/events" class="<?php echo ($activePage ?? '') == 'events' ? 'active' : ''; ?>">Browse Events</a>

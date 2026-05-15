@@ -87,6 +87,23 @@ include_once __DIR__ . '/partials/sidebar.php';
 .btn-secondary:hover { background: #e2e8f0; }
 .empty-state { text-align: center; padding: 60px 20px; }
 .empty-state i { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; opacity: 0.5; }
+
+/* Mobile Responsiveness for Custom Requests */
+@media (max-width: 768px) {
+    .booking-card { flex-direction: column; }
+    .booking-image { width: 100%; height: 180px; }
+    .booking-details { padding: 20px; }
+    .booking-title { font-size: 18px; }
+    .booking-meta { grid-template-columns: 1fr; gap: 8px; }
+    .card-actions { justify-content: stretch; }
+    .btn-secondary { text-align: center; width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .main-content { padding: 15px; }
+    .page-title { font-size: 20px; }
+    .page-subtitle { font-size: 13px; }
+}
 </style>
 
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>

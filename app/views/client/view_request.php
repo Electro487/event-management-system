@@ -62,6 +62,15 @@ $extra_head = '
 @media (max-width: 900px) {
     .negotiation-layout { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 576px) {
+    .dashboard-container { padding: 15px; }
+    .page-header-title { font-size: 24px !important; }
+    .message { max-width: 95%; }
+    .chat-messages { padding: 15px; }
+    .chat-input-area { padding: 15px; }
+    .item-pill { padding: 10px; }
+}
 </style>
 ';
 include 'partials/header.php';

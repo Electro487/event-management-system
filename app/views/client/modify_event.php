@@ -293,6 +293,39 @@ $extra_head = <<<EOD
             background: #246A55;
             border-radius: 2px;
         }
+
+        .grid-2-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .modify-container { padding: 0 10px; margin: 20px auto; }
+            .event-details-card { flex-direction: column; gap: 20px; align-items: stretch; }
+            .event-thumbnail { width: 100%; height: auto; aspect-ratio: 16/9; }
+            .form-section { padding: 20px; }
+            .price-section { grid-template-columns: 1fr; }
+            .item-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .item-actions { width: 100%; justify-content: flex-end; }
+            .modal-box { width: 95%; padding: 20px; margin: 10px; }
+            
+            .grid-2-cols { grid-template-columns: 1fr !important; }
+            .full-width-col { grid-column: span 1 !important; }
+        }
+
+        @media (max-width: 576px) {
+            .modify-container h1 { font-size: 24px !important; }
+            .form-section { padding: 20px 15px; gap: 20px; }
+            .event-details-card { padding: 15px; }
+            .item-row { padding: 12px 15px; }
+            .item-content strong { font-size: 14px; }
+            .item-content p { font-size: 12px; }
+            #proposedPrice { font-size: 18px !important; padding: 12px !important; }
+            .btn-publish { width: 100%; justify-content: center; }
+            div[style*="justify-content: flex-end"] { justify-content: center !important; }
+            .grid-2-cols div { word-break: break-word; }
+        }
     </style>
 EOD;
 include 'partials/header.php';
@@ -318,7 +351,7 @@ include 'partials/header.php';
             <h2 class="section-title">Event Details</h2>
             <div class="event-details-card">
                 <img src="<?php echo htmlspecialchars($eventImage); ?>" class="event-thumbnail" alt="Event Thumbnail">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1;">
+                <div class="grid-2-cols" style="gap: 20px; flex: 1;">
                     <div>
                         <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase;">Title</label>
                         <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;"><?php echo htmlspecialchars($event['title']); ?></div>
@@ -327,7 +360,7 @@ include 'partials/header.php';
                         <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase;">Category</label>
                         <div style="font-size: 16px; font-weight: 500; color: #0f172a; margin-top: 4px;"><?php echo htmlspecialchars(ucfirst($event['category'])); ?></div>
                     </div>
-                    <div style="grid-column: span 2;">
+                    <div style="grid-column: span 2;" class="full-width-col">
                         <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase;">Venue</label>
                         <div style="font-size: 16px; font-weight: 500; color: #0f172a; margin-top: 4px;"><?php echo htmlspecialchars($event['venue_name'] . ', ' . $event['venue_location']); ?></div>
                     </div>
@@ -340,7 +373,7 @@ include 'partials/header.php';
             <h2 class="section-title">Your Planned Details</h2>
             <p style="color: #64748b; font-size: 13px; margin-top: -15px; margin-bottom: 20px;">Tell us when you plan to host this event and for how many people.</p>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div class="grid-2-cols" style="gap: 30px;">
                 <div class="form-group">
                     <label style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: block;">PROPOSED EVENT DATE</label>
                     <?php if (strtolower($event['category'] ?? '') === 'concert'): ?>
@@ -362,7 +395,7 @@ include 'partials/header.php';
 
         <!-- Package Curation (Editable) -->
         <div class="form-section">
-            <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h2 class="section-title" style="margin-bottom:0;">Customize Package Items</h2>
                 <button type="button" class="btn-publish" onclick="openAddSectionModal()" style="padding: 10px 20px; font-size: 14px; border-radius: 8px;">+ Add New Item</button>
             </div>
@@ -452,7 +485,6 @@ include 'partials/header.php';
     </div>
 </div>
 
-<?php require_once dirname(__DIR__) . '/client/partials/footer.php'; ?>
 
 <script>
     // Editable List Logic

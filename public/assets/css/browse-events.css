@@ -35,38 +35,9 @@ body {
     color: #FFC24A !important;
 }
 
-/* Navbar */
-.header {
-    background-color: var(--white);
-    padding: 15px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.logo {
-    font-weight: 700;
-    font-size: 22px;
+/* Client header layout: booking.css — color tweaks only */
+.header .logo {
     color: var(--primary-color);
-    text-decoration: none;
-}
-
-.nav-links {
-    display: flex;
-    gap: 30px;
-}
-
-.nav-links a {
-    color: var(--text-gray);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 14px;
-    position: relative;
-    padding-bottom: 5px;
 }
 
 .nav-links a.active {
@@ -74,25 +45,11 @@ body {
 }
 
 .nav-links a.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 3px;
     background-color: var(--primary-color);
-    border-radius: 2px;
 }
 
 .nav-links a:hover {
     color: var(--primary-color);
-}
-
-.nav-icons {
-    display: flex;
-    gap: 20px;
-    align-items: center;
 }
 
 .nav-icons img {
@@ -142,7 +99,9 @@ body {
 
 /* Hero Section */
 .hero {
-    background-color: #1f6f59;
+    position: relative;
+    background: url('/EventManagementSystem/public/assets/images/marriage.jpeg') no-repeat center center;
+    background-size: cover;
     padding: 60px 20px;
     text-align: center;
     color: var(--white);
@@ -150,6 +109,28 @@ body {
     width: 100%;
     max-width: 1160px;
     margin: 20px auto 10px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(22, 61, 48, 0.88) 0%, rgba(22, 61, 48, 0.45) 100%);
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.hero h1,
+.hero p,
+.hero .search-bar {
+    position: relative;
+    z-index: 2;
 }
 
 .hero h1 {
@@ -160,7 +141,7 @@ body {
 
 .hero p {
     font-size: 16px;
-    opacity: 0.9;
+    opacity: 0.95;
     max-width: 600px;
     margin: 0 auto 30px;
 }
@@ -452,44 +433,6 @@ footer {
 }
 
 @media (max-width: 768px) {
-    .header {
-        padding: 10px 14px;
-        flex-wrap: wrap;
-        row-gap: 10px;
-    }
-
-    .header .logo img {
-        height: 24px !important;
-        transform: scale(1.45) !important;
-    }
-
-    .nav-icons {
-        margin-left: auto;
-        gap: 12px;
-    }
-
-    .header-profile-icon {
-        width: 36px;
-        height: 36px;
-    }
-
-    .nav-links {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        gap: 18px;
-        padding-top: 8px;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .nav-links a {
-        font-size: 13px;
-    }
-
-    .profile-dropdown {
-        width: min(300px, 92vw);
-    }
-
     .event-grid {
         grid-template-columns: 1fr;
     }
@@ -708,4 +651,83 @@ footer {
 
 .pd-logout-btn i {
     margin-right: 8px;
-}
+}
+
+/* Mobile Responsiveness for Browse Events Hero & Search */
+@media (max-width: 768px) {
+    footer {
+        flex-direction: column;
+        padding: 20px;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hero {
+        padding: 40px 15px;
+        border-radius: 0;
+        margin: 0 auto 20px;
+        min-height: 260px;
+    }
+    
+    .hero h1 {
+        font-size: 28px;
+    }
+    
+    .hero p {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .search-bar {
+        flex-direction: column;
+        border-radius: 12px;
+        background: transparent;
+        box-shadow: none;
+        gap: 10px;
+        padding: 0;
+    }
+
+    .search-icon {
+        display: none; /* Hide icon on mobile stacked view to save space */
+    }
+
+    .search-input {
+        width: 100%;
+        border-radius: 8px;
+        padding: 14px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .search-btn {
+        width: 100%;
+        border-radius: 8px;
+        padding: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-links {
+        gap: 10px;
+    }
+    .nav-links a {
+        font-size: 12px;
+    }
+    .category-filters {
+        gap: 8px;
+    }
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    .hero h1 {
+        font-size: 24px;
+    }
+    .profile-dropdown { width: 280px; left: 50%; right: auto; transform: translateX(-50%); max-width: 90vw; }
+    .profile-dropdown::before { left: 50%; right: auto; transform: translateX(-50%) rotate(45deg); }
+}

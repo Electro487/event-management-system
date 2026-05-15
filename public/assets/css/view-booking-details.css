@@ -117,13 +117,35 @@ body { background-color: var(--bg-light); color: var(--text-dark); line-height: 
 
 @media (max-width: 900px) {
     .content-grid { grid-template-columns: 1fr; }
-    .hero { height: 250px; }
+    .hero { height: 280px; }
     .hero h1 { font-size: 32px; }
+    .summary-box { position: static; margin-top: 20px; }
 }
-@media (max-width: 600px) {
+
+@media (max-width: 768px) {
+    .header { flex-direction: column; padding: 15px; gap: 15px; }
+    .nav-links { flex-wrap: wrap; justify-content: center; gap: 15px; }
+    .status-bar { flex-direction: column; gap: 15px; text-align: center; }
+    .sb-left { flex-direction: column; gap: 5px; }
     .info-grid { grid-template-columns: 1fr; }
     .items-list { grid-template-columns: 1fr; }
-    .header { flex-direction: column; gap: 15px; }
+    .footer { flex-direction: column; gap: 20px; text-align: center; }
+}
+
+@media (max-width: 480px) {
+    .container { padding: 0 15px; margin: 25px auto; }
+    .hero h1 { font-size: 24px; }
+    .hero p { font-size: 14px; }
+    .card-section { padding: 20px; }
+    .profile-dropdown { width: 280px; left: 50%; right: auto; transform: translateX(-50%); max-width: 90vw; }
+    .profile-dropdown::before { left: 50%; right: auto; transform: translateX(-50%) rotate(45deg); }
+    .pd-top { padding: 20px 15px; }
+    .pd-name { font-size: 16px; }
+    .pd-email { font-size: 12px; }
+    .timeline { padding-left: 30px; }
+    .tl-dot { left: -30px; width: 30px; }
+    .dot-inner { width: 20px; height: 20px; }
+    .timeline-item::before { left: -16px; }
 }
 
 /* Booking Journey Timeline */

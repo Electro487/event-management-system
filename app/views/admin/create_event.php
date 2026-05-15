@@ -150,7 +150,7 @@
 
                     <!-- Concert Based Date & Time: Only for Concert Category -->
                     <div id="ticketScheduleFields" style="display: none; width: 100%;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div class="schedule-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>EVENT DATE</label>
                                 <input type="date" name="event_date" id="event_date_input" style="width: 100%;">

@@ -183,7 +183,7 @@
 
                     <!-- Concert Based Date & Time: Only for Concert Category -->
                     <div id="ticketScheduleFields" style="<?php echo (isset($event['category']) && strtolower($event['category']) === 'concert') ? 'display: block;' : 'display: none;'; ?> width: 100%;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div class="schedule-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>EVENT DATE</label>
                                 <input type="date" name="event_date" value="<?php echo (isset($event['event_date'])) ? date('Y-m-d', strtotime($event['event_date'])) : ''; ?>" style="width: 100%;">
