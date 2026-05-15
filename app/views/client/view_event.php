@@ -15,6 +15,7 @@ if (is_array($packages)) {
     }
 }
 $includedItemsList = array_values($includedItems);
+$isConcert = strtolower(trim($event['category'] ?? '')) === 'concert';
 if (empty($includedItemsList)) {
     $includedItemsList = [
         ['title' => 'Bespoke Floral Decoration'],
@@ -174,11 +175,14 @@ include 'partials/header.php';
                     <button class="btn-book-now" onclick="proceedToBooking(<?php echo $event['id']; ?>)">
                         Book Now <i class="fa-solid fa-arrow-right"></i>
                     </button>
+                    <?php if (!$isConcert): ?>
                     <button class="btn-modify-package" onclick="modifyPackage(<?php echo $event['id']; ?>)" style="margin-top: 10px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0;">
                         Modify Package <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    
-                    <p class="tax-note">* Prices are exclusive of taxes and subject to customization.</p>
+                    <?php endif; ?>
+
+                    <p class="tax-note"><?php echo $isConcert ? '* Ticket prices are exclusive of taxes.' : '* Prices are exclusive of taxes and subject to customization.'; ?></p>
+                    <?php if (!$isConcert): ?>
                     <div class="policy-badge"
                         style="margin-top: 15px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 11px; color: #92400e; display: flex; align-items: start; gap: 8px; line-height: 1.4;">
                         <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
@@ -186,6 +190,7 @@ include 'partials/header.php';
                                 payment</b> online. The remaining balance will be collected in cash on the event
                             day.</span>
                     </div>
+                    <?php endif; ?>
                 </div>
 
             </div>

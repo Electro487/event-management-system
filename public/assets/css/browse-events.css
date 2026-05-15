@@ -142,7 +142,9 @@ body {
 
 /* Hero Section */
 .hero {
-    background-color: #1f6f59;
+    position: relative;
+    background: url('/EventManagementSystem/public/assets/images/marriage.jpeg') no-repeat center center;
+    background-size: cover;
     padding: 60px 20px;
     text-align: center;
     color: var(--white);
@@ -150,6 +152,28 @@ body {
     width: 100%;
     max-width: 1160px;
     margin: 20px auto 10px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(22, 61, 48, 0.88) 0%, rgba(22, 61, 48, 0.45) 100%);
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.hero h1,
+.hero p,
+.hero .search-bar {
+    position: relative;
+    z-index: 2;
 }
 
 .hero h1 {
@@ -160,7 +184,7 @@ body {
 
 .hero p {
     font-size: 16px;
-    opacity: 0.9;
+    opacity: 0.95;
     max-width: 600px;
     margin: 0 auto 30px;
 }
@@ -738,8 +762,9 @@ footer {
 
     .hero {
         padding: 40px 15px;
-        border-radius: 0; /* Remove rounded corners so it spans full width gracefully */
+        border-radius: 0;
         margin: 0 auto 20px;
+        min-height: 260px;
     }
     
     .hero h1 {
@@ -798,4 +823,4 @@ footer {
     }
     .profile-dropdown { width: 280px; left: 50%; right: auto; transform: translateX(-50%); max-width: 90vw; }
     .profile-dropdown::before { left: 50%; right: auto; transform: translateX(-50%) rotate(45deg); }
-}
+}
