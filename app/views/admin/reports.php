@@ -376,6 +376,31 @@
                 margin-bottom: 20px !important;
             }
         }
+
+        /* Mobile Responsiveness for Reports */
+        @media (max-width: 1024px) {
+            .analytics-stats { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .analytics-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 20px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .header-controls { width: 100%; flex-wrap: wrap; }
+            .date-filter { width: 100%; justify-content: space-between; }
+            .btn-generate { width: 100%; justify-content: center; }
+            .analytics-stats { grid-template-columns: 1fr; }
+            .table-controls { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .table-search { width: 100%; }
+            .transactions-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .transactions-card table { min-width: 800px; }
+        }
+
+        @media (max-width: 480px) {
+            .main-content { padding: 15px; }
+            .a-stat-card { padding: 15px; }
+            .a-stat-card .value { font-size: 20px; }
+        }
     </style>
 </head>
 
@@ -478,11 +503,11 @@
                     <div class="header-controls">
                         <div class="table-search">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" placeholder="Search transactions...">
+                            <input type="text" id="transactions-search" placeholder="Search transactions...">
                         </div>
                         <div class="table-export">
-                            <button class="btn-export"><i class="fa-solid fa-file-pdf"></i> Export as PDF</button>
-                            <button class="btn-export"><i class="fa-solid fa-file-csv"></i> Export as CSV</button>
+                            <button type="button" class="btn-export" id="btn-export-pdf"><i class="fa-solid fa-file-pdf"></i> Export as PDF</button>
+                            <button type="button" class="btn-export" id="btn-export-csv"><i class="fa-solid fa-file-csv"></i> Export as CSV</button>
                         </div>
                     </div>
                 </div>
@@ -508,10 +533,15 @@
 
     <script src="/EventManagementSystem/public/assets/js/apiClient.js?v=<?php echo time(); ?>"></script>
     <script src="/EventManagementSystem/public/assets/js/notifications.js?v=<?php echo time(); ?>"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let allTransactions = [];
+
         document.addEventListener('DOMContentLoaded', () => {
             const startInput = document.getElementById('filter-start');
             const endInput = document.getElementById('filter-end');
+            const searchInput = document.getElementById('transactions-search');
 
             const today = new Date();
             // Start local first/last day logic
@@ -530,6 +560,10 @@
 
             startInput.addEventListener('change', handleFilterChange);
             endInput.addEventListener('change', handleFilterChange);
+            searchInput.addEventListener('input', () => renderTransactions(allTransactions, searchInput.value));
+
+            document.getElementById('btn-export-csv').addEventListener('click', exportTransactionsCsv);
+            document.getElementById('btn-export-pdf').addEventListener('click', exportTransactionsPdf);
 
             handleFilterChange();
         });
@@ -695,22 +729,224 @@
             });
 
             // 5. Transactions
+            allTransactions = data.recent_transactions || [];
+            const searchInput = document.getElementById('transactions-search');
+            renderTransactions(allTransactions, searchInput ? searchInput.value : '');
+        }
+
+        function renderTransactions(transactions, query = '') {
             const trBody = document.getElementById('transactions-body');
+            const term = query.trim().toLowerCase();
+            const filtered = term
+                ? transactions.filter(tr =>
+                    [tr.id, tr.client, tr.event, tr.method, tr.status, tr.date, String(tr.amount)]
+                        .some(val => String(val).toLowerCase().includes(term))
+                )
+                : transactions;
+
             trBody.innerHTML = '';
-            data.recent_transactions.forEach(tr => {
-                const statusClass = 'tr-status-' + tr.status.toLowerCase();
+            if (filtered.length === 0) {
+                trBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#64748b; padding:24px;">
+                            ${transactions.length === 0 ? 'No transactions in the selected date range.' : 'No transactions match your search.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(tr => {
+                const statusKey = (tr.status_class || tr.status || 'pending').toLowerCase();
+                const statusClass = 'tr-status-' + statusKey;
                 trBody.insertAdjacentHTML('beforeend', `
                     <tr>
-                        <td style="font-weight:600; color:#1f6f59;"># ${tr.id}</td>
-                        <td>${tr.client}</td>
-                        <td>${tr.event}</td>
-                        <td style="font-weight:700;">Rs. ${tr.amount.toLocaleString()}</td>
-                        <td>${tr.date}</td>
-                        <td><i class="fa-solid fa-money-bill-transfer"></i> ${tr.method}</td>
-                        <td><span class="tr-badge ${statusClass}">${tr.status}</span></td>
+                        <td style="font-weight:600; color:#1f6f59;"># ${escapeHtml(tr.id)}</td>
+                        <td>${escapeHtml(tr.client)}</td>
+                        <td>${escapeHtml(tr.event)}</td>
+                        <td style="font-weight:700;">Rs. ${Number(tr.amount).toLocaleString()}</td>
+                        <td>${escapeHtml(tr.date)}</td>
+                        <td><i class="fa-solid fa-money-bill-transfer"></i> ${escapeHtml(tr.method)}</td>
+                        <td><span class="tr-badge ${statusClass}">${escapeHtml(tr.status)}</span></td>
                     </tr>
                 `);
             });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text ?? '';
+            return div.innerHTML;
+        }
+
+        function getFilteredTransactions() {
+            const searchInput = document.getElementById('transactions-search');
+            const term = (searchInput?.value || '').trim().toLowerCase();
+            if (!term) return [...allTransactions];
+            return allTransactions.filter(tr =>
+                [tr.id, tr.client, tr.event, tr.method, tr.status, tr.date, String(tr.amount)]
+                    .some(val => String(val).toLowerCase().includes(term))
+            );
+        }
+
+        function getExportDateRange() {
+            const start = document.getElementById('filter-start')?.value || '';
+            const end = document.getElementById('filter-end')?.value || '';
+            return { start, end, label: start && end ? `${start}_to_${end}` : 'export' };
+        }
+
+        function csvEscape(value) {
+            const str = String(value ?? '');
+            if (/[",\n\r]/.test(str)) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportTransactionsCsv() {
+            const rows = getFilteredTransactions();
+            if (!rows.length) {
+                alert('No transactions to export for the selected date range.');
+                return;
+            }
+
+            const headers = ['Transaction ID', 'Client', 'Event Name', 'Amount (Rs.)', 'Date', 'Method', 'Status'];
+            const lines = [
+                headers.map(csvEscape).join(','),
+                ...rows.map(tr => [
+                    tr.id,
+                    tr.client,
+                    tr.event,
+                    Number(tr.amount),
+                    tr.date,
+                    tr.method,
+                    tr.status
+                ].map(csvEscape).join(','))
+            ];
+
+            const { label } = getExportDateRange();
+            downloadFile('\uFEFF' + lines.join('\n'), `transactions_${label}.csv`, 'text/csv;charset=utf-8;');
+        }
+
+        function exportTransactionsPdf() {
+            const rows = getFilteredTransactions();
+            if (!rows.length) {
+                alert('No transactions to export for the selected date range.');
+                return;
+            }
+
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                exportTransactionsPdfPrint(rows);
+                return;
+            }
+
+            const { start, end, label } = getExportDateRange();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(16);
+            doc.setTextColor(30, 41, 59);
+            doc.text('Recent Transactions Report', 14, 16);
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            if (start && end) {
+                doc.text(`Period: ${start} to ${end}`, 14, 23);
+            }
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 29);
+            doc.text(`Total records: ${rows.length}`, 14, 35);
+
+            doc.autoTable({
+                startY: 42,
+                head: [['Transaction ID', 'Client', 'Event Name', 'Amount', 'Date', 'Method', 'Status']],
+                body: rows.map(tr => [
+                    tr.id,
+                    tr.client,
+                    tr.event,
+                    'Rs. ' + Number(tr.amount).toLocaleString(),
+                    tr.date,
+                    tr.method,
+                    tr.status
+                ]),
+                styles: { fontSize: 9, cellPadding: 3 },
+                headStyles: { fillColor: [36, 106, 85], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                margin: { left: 14, right: 14 }
+            });
+
+            doc.save(`transactions_${label}.pdf`);
+        }
+
+        function exportTransactionsPdfPrint(rows) {
+            const { start, end } = getExportDateRange();
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('Please allow pop-ups to export as PDF.');
+                return;
+            }
+
+            const tableRows = rows.map(tr => `
+                <tr>
+                    <td>${escapeHtml(tr.id)}</td>
+                    <td>${escapeHtml(tr.client)}</td>
+                    <td>${escapeHtml(tr.event)}</td>
+                    <td>Rs. ${Number(tr.amount).toLocaleString()}</td>
+                    <td>${escapeHtml(tr.date)}</td>
+                    <td>${escapeHtml(tr.method)}</td>
+                    <td>${escapeHtml(tr.status)}</td>
+                </tr>
+            `).join('');
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Transactions Report</title>
+                    <style>
+                        body { font-family: Inter, Arial, sans-serif; padding: 24px; color: #1e293b; }
+                        h1 { font-size: 20px; margin: 0 0 8px; }
+                        p { color: #64748b; font-size: 12px; margin: 0 0 20px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                        th, td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
+                        th { background: #246A55; color: #fff; }
+                        tr:nth-child(even) td { background: #f8fafc; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Recent Transactions Report</h1>
+                    <p>Period: ${escapeHtml(start)} to ${escapeHtml(end)} &bull; Generated: ${new Date().toLocaleString()}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Client</th>
+                                <th>Event Name</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </body>
+                </html>
+            `);
+            win.document.close();
+            win.focus();
+            setTimeout(() => win.print(), 300);
         }
     </script>
 </body>

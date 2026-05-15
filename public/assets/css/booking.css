@@ -761,3 +761,91 @@ body {
 .pd-logout-btn i {
     margin-right: 8px;
 }
+
+/* Global Client Responsive Styles */
+@media (max-width: 992px) {
+    .booking-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .order-summary {
+        position: static;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .footer {
+        flex-direction: column;
+        padding: 20px;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* Stepper Mobile */
+    .stepper {
+        margin-bottom: 30px;
+    }
+    .step-line {
+        max-width: 60px;
+    }
+    .step-label {
+        font-size: 10px;
+    }
+
+    .input-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .img-overlay h3 {
+        font-size: 22px;
+    }
+
+    .confirmation-box {
+        padding: 40px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-links {
+        gap: 10px;
+    }
+    .nav-links a {
+        font-size: 12px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .form-section {
+        padding: 20px 15px;
+    }
+
+    .order-summary {
+        padding: 20px 15px;
+    }
+
+    .btn-confirm {
+        padding: 14px;
+        font-size: 15px;
+    }
+}

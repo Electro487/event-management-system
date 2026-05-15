@@ -706,9 +706,12 @@
         float: none;
     }
 
-    .btn-browse-more {
+    .page-header-row .btn-browse-more {
         float: none;
         margin: 0 0 14px 0;
+        max-width: 320px;
+        width: auto;
+        box-sizing: border-box;
     }
 
     .filter-tabs {
@@ -789,10 +792,12 @@
         font-size: 14px;
     }
 
-    .btn-browse-more {
-        width: 100%;
+    .page-header-row .btn-browse-more {
+        width: auto;
+        max-width: 320px;
         justify-content: center;
-        padding: 11px 14px;
+        padding: 11px 18px;
+        box-sizing: border-box;
     }
 
     .stat-label {

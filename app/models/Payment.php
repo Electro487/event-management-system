@@ -115,4 +115,26 @@ class Payment
             return $row;
         }, $results);
     }
+
+    public function getRecentByDateRange($start, $end, $limit = 50)
+    {
+        $sql = "SELECT p.id, p.transaction_id, p.amount, p.payment_method, p.status, p.created_at,
+                       u.fullname AS client_name,
+                       e.title AS event_title,
+                       b.event_snapshot
+                FROM payments p
+                INNER JOIN users u ON p.client_id = u.id
+                INNER JOIN bookings b ON p.booking_id = b.id
+                LEFT JOIN events e ON b.event_id = e.id
+                WHERE DATE(p.created_at) >= :start AND DATE(p.created_at) <= :end
+                ORDER BY p.created_at DESC
+                LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':start', $start);
+        $stmt->bindParam(':end', $end);
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

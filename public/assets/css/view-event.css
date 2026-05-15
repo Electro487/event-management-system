@@ -412,10 +412,17 @@ body {
 @media (max-width: 768px) {
     .hero {
         height: 300px;
+        margin-bottom: 25px;
     }
 
     .hero h1 {
         font-size: 32px;
+    }
+
+    .hero-content {
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
     }
 
     .included-grid {
@@ -424,6 +431,40 @@ body {
 
     .details-grid {
         grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 26px;
+    }
+
+    .hero p {
+        font-size: 14px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .details-box {
+        padding: 20px;
+    }
+
+    .packages-box {
+        padding: 20px;
+    }
+
+    .package-tier {
+        padding: 15px;
+    }
+
+    /* Fix dropdown width for very small screens */
+    .profile-dropdown {
+        width: 280px !important;
+        right: -90px !important;
+        max-width: 90vw;
     }
 }
 
@@ -626,4 +667,30 @@ body {
 
 .pd-logout-btn i {
     margin-right: 8px;
+}
+
+/* Global Header & Footer Mobile Responsiveness */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-links {
+        gap: 10px;
+    }
+    .nav-links a {
+        font-size: 12px;
+    }
+    .profile-dropdown { width: 280px; left: 50%; right: auto; transform: translateX(-50%); max-width: 90vw; }
+    .profile-dropdown::before { left: 50%; right: auto; transform: translateX(-50%) rotate(45deg); }
 }

@@ -432,6 +432,8 @@
             padding: 24px;
             border-radius: 12px;
             box-shadow: var(--shadow-sm);
+            min-width: 0;
+            overflow: hidden;
         }
 
         .chart-header {
@@ -654,6 +656,31 @@
             font-weight: 700;
             padding: 0 4px;
         }
+
+        /* Mobile Responsiveness for Payment Details */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+            .filters-row { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 20px; }
+            .page-header { flex-direction: column; gap: 20px; }
+            .page-header h1 { font-size: 24px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+            .filters-row { grid-template-columns: 1fr; gap: 12px; }
+            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .payments-table { min-width: 800px; }
+            .bottom-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .main-content { padding: 15px; }
+            .stat-card { padding: 16px; gap: 12px; }
+            .stat-icon { width: 44px; height: 44px; font-size: 20px; }
+            .stat-info .value { font-size: 20px; }
+            .payments-table th, .payments-table td { padding: 12px 10px; font-size: 13px; }
+        }
     </style>
 </head>
 
@@ -823,7 +850,7 @@
                         </div>
                     </div>
                 </div>
-                <div style="height: 300px;">
+                <div style="position: relative; height: 300px; width: 100%;">
                     <canvas id="earningsChart"></canvas>
                 </div>
             </div>

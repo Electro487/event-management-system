@@ -18,15 +18,29 @@ body {
     color: var(--text-main);
 }
 
-/* Balanced aesthetic distance from sidebar */
-.sidebar {
-    width: 250px !important;
+/* Sidebar and Main Content alignment */
+@media (min-width: 1025px) {
+    .sidebar {
+        width: 250px;
+    }
+    .main-content {
+        margin-left: 250px;
+        padding: 30px 35px;
+    }
 }
 
-.main-content {
-    margin-left: 0 !important; /* Sidebar is sticky/flow, so no margin needed to push */
-    padding: 30px 35px;
-    /* Flush alignment with sidebar */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 70px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        margin-left: 60px;
+        padding: 15px;
+    }
 }
 
 /* Breadcrumbs & Header */
@@ -35,6 +49,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .breadcrumb-container {
@@ -128,6 +144,7 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
+    flex-wrap: wrap; /* Ensure actions stack on small screens */
 }
 
 .back-link {
@@ -223,6 +240,7 @@ body {
     display: flex;
     align-items: center;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .client-avatar-large {
@@ -337,7 +355,7 @@ body {
 
 .quick-stats {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 16px 24px;
     padding: 20px;
 }
@@ -369,6 +387,8 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .pkg-title h3 {
@@ -404,7 +424,7 @@ body {
 
 .features-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
 }
 
@@ -670,9 +690,181 @@ body {
     object-fit: cover;
 }
 
-/* Sidebar Overrides if needed */
-.sidebar {
-    height: 100vh;
-    position: sticky;
-    top: 0;
+/* Sidebar: fixed positioning handled globally in organizer-layout.css */
+
+/* =============================================
+   MOBILE RESPONSIVENESS - Booking Detail
+   ============================================= */
+@media (max-width: 1024px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        height: 100vh;
+        position: fixed;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 20px;
+    }
+
+    .bd-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .bd-header h1 {
+        font-size: 22px;
+    }
+
+    .bd-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .bd-actions a,
+    .bd-actions button {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .timeline-item {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+    }
+
+    .client-card {
+        padding: 16px;
+    }
+
+    .client-info-main {
+        gap: 15px;
+    }
+
+    .client-avatar-large {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .client-details h3 {
+        font-size: 18px;
+    }
+
+    .contact-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .title-section h1 {
+        font-size: 20px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .sub-title {
+        font-size: 13px;
+    }
+
+    .event-hero {
+        height: 200px;
+    }
+
+    .event-hero-overlay h2 {
+        font-size: 24px;
+    }
+
+    .pkg-title h3 {
+        font-size: 20px;
+    }
+
+    .pkg-price .amt {
+        font-size: 24px;
+    }
+
+    .quick-stats {
+        grid-template-columns: 1fr; /* Force 1 column on very small screens */
+        padding: 10px 0;
+    }
+
+    .timeline {
+        padding-left: 28px;
+    }
+
+    .tl-dot {
+        left: -28px;
+        width: 28px;
+        height: 28px;
+    }
+
+    .dot-inner {
+        width: 22px;
+        height: 22px;
+    }
+
+    .timeline-item::before {
+        left: -15px;
+    }
+
+    .finance-row {
+        font-size: 13px;
+    }
+
+    .btn-manage {
+        padding: 12px;
+        font-size: 13px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 350px) {
+    .main-content {
+        padding: 10px 8px;
+    }
+
+    .card {
+        padding: 12px;
+    }
+
+    .title-section h1 {
+        font-size: 18px;
+    }
+
+    .badge-status {
+        font-size: 9px;
+        padding: 2px 8px;
+    }
+    
+    .client-avatar-large {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
 }

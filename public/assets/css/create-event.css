@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 .page-title-section {
     margin-bottom: 40px;
 }
@@ -84,6 +88,7 @@ input::-webkit-inner-spin-button {
 
 input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .form-group input::placeholder, 
@@ -426,5 +431,122 @@ input[type=number] {
 @media (max-width: 992px) {
     .form-section {
         grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .section-info {
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title-section h1 {
+        font-size: 26px;
+    }
+
+    .page-title-section p {
+        font-size: 14px;
+    }
+
+    .package-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .add-section-btn {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    .form-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .footer-right {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-cancel, .btn-draft, .btn-publish {
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+    }
+
+    .modal-box {
+        padding: 25px;
+        gap: 15px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title-section h1 {
+        font-size: 22px;
+    }
+
+    .package-card {
+        padding: 15px;
+    }
+
+    .item-row {
+        padding: 10px 15px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .item-actions {
+        width: 100%;
+        justify-content: flex-end;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 8px;
+    }
+
+    .upload-box {
+        padding: 25px 15px;
+    }
+
+    .form-group label {
+        font-size: 11px;
+    }
+
+    .form-group input, .form-group textarea {
+        font-size: 14px;
+        padding: 12px 15px;
+        width: 100%; /* Force full width */
+    }
+
+    .form-footer {
+        padding: 20px 15px;
+        position: static; /* Remove sticky if any */
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .footer-right {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .btn-cancel, .btn-draft, .btn-publish {
+        width: 100% !important;
+        margin: 0 !important;
     }
 }

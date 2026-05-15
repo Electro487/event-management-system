@@ -6,6 +6,7 @@ class AnalyticsService
     {
         $eventModel = new Event();
         $bookingModel = new Booking();
+        $paymentModel = new Payment();
 
         // Calculate prior period dynamically for percentage trends
         $startDate = new DateTime($start);
@@ -70,6 +71,11 @@ class AnalyticsService
         // 5. Revenue Over Time (Graph Data)
         $revenueOverTime = $bookingModel->getRevenueOverTimeByDate($start, $end);
 
+        // 6. Recent Transactions (from payments table)
+        $recentTransactions = $this->formatRecentTransactions(
+            $paymentModel->getRecentByDateRange($start, $end, 50)
+        );
+
         return [
             'ok' => true,
             'status' => 200,
@@ -88,15 +94,68 @@ class AnalyticsService
                 'categories' => $categoryRevenue,
                 'packages' => $packages,
                 'revenue_over_time' => $revenueOverTime,
-                // Static transactions for now as requested
-                'recent_transactions' => [
-                    ['id' => 'TX-8822', 'client' => 'Pratik Kumar', 'event' => 'Global Dev Summit', 'amount' => 4500, 'date' => 'Oct 24, 2023', 'method' => 'eSewa', 'status' => 'Paid'],
-                    ['id' => 'TX-8819', 'client' => 'Ananya Sharma', 'event' => 'Winter Fest Ed.', 'amount' => 12000, 'date' => 'Oct 23, 2023', 'method' => 'Bank Transfer', 'status' => 'Pending'],
-                    ['id' => 'TX-8815', 'client' => 'Vikram Singh', 'event' => 'Startup Expo 24', 'amount' => 2100, 'date' => 'Oct 22, 2023', 'method' => 'Khalti', 'status' => 'Paid'],
-                    ['id' => 'TX-8812', 'client' => 'Sarah Christina', 'event' => 'Music Night Live', 'amount' => 1500, 'date' => 'Oct 20, 2023', 'method' => 'Card', 'status' => 'Failed'],
-                ]
+                'recent_transactions' => $recentTransactions,
             ],
         ];
+    }
+
+    private function formatRecentTransactions(array $rows): array
+    {
+        return array_map(function ($row) {
+            $status = $this->mapPaymentStatus($row['status'] ?? '');
+
+            return [
+                'id' => 'TX-' . str_pad((string) ($row['id'] ?? ''), 4, '0', STR_PAD_LEFT),
+                'client' => $row['client_name'] ?? 'Unknown Client',
+                'event' => $this->resolveEventTitle($row),
+                'amount' => (float) ($row['amount'] ?? 0),
+                'date' => !empty($row['created_at'])
+                    ? date('M j, Y', strtotime($row['created_at']))
+                    : '—',
+                'method' => $this->formatPaymentMethod($row['payment_method'] ?? 'card'),
+                'status' => $status['label'],
+                'status_class' => $status['class'],
+            ];
+        }, $rows);
+    }
+
+    private function resolveEventTitle(array $row): string
+    {
+        if (!empty($row['event_title'])) {
+            return $row['event_title'];
+        }
+
+        if (!empty($row['event_snapshot'])) {
+            $snapshot = json_decode($row['event_snapshot'], true);
+            if (is_array($snapshot) && !empty($snapshot['title'])) {
+                return $snapshot['title'];
+            }
+        }
+
+        return 'Unknown Event';
+    }
+
+    private function formatPaymentMethod(string $method): string
+    {
+        $normalized = strtolower(str_replace([' ', '-'], '_', trim($method)));
+        $labels = [
+            'card' => 'Card',
+            'cash' => 'Cash',
+            'esewa' => 'eSewa',
+            'khalti' => 'Khalti',
+            'bank_transfer' => 'Bank Transfer',
+        ];
+
+        return $labels[$normalized] ?? ucwords(str_replace('_', ' ', $normalized));
+    }
+
+    private function mapPaymentStatus(string $status): array
+    {
+        return match (strtolower($status)) {
+            'succeeded' => ['label' => 'Paid', 'class' => 'paid'],
+            'failed' => ['label' => 'Failed', 'class' => 'failed'],
+            default => ['label' => 'Pending', 'class' => 'pending'],
+        };
     }
 
     private function calcTrend($current, $prior)

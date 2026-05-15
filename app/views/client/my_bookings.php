@@ -303,7 +303,7 @@ include 'partials/header.php';
                 const guestLabel = (bListCat.toLowerCase() === 'concert') ? 'Tickets' : 'Guests';
 
                 const html = `
-                    <div class="b-item" onclick="selectBookingByObject(${booking.id}, this)">
+                    <div class="b-item" onclick="selectBookingByObject(${booking.id}, this, true)">
                         <img src="${bListImg}" alt="Event Cover" class="b-img">
                         <div class="b-content">
                             <div>
@@ -335,11 +335,14 @@ include 'partials/header.php';
 
             renderPagination(totalPages);
 
-            // Select first item of the page automatically
-            document.getElementById('sidebarPanel').style.display = 'block';
+            // Auto-select first item for desktop sidebar only (avoid mobile auto-redirect)
+            const sidebarPanel = document.getElementById('sidebarPanel');
             const firstItem = listContainer.querySelector('.b-item');
-            if (firstItem) {
-                selectBookingByObject(currentItems[0].id, firstItem);
+            if (window.innerWidth > 1024 && firstItem) {
+                sidebarPanel.style.display = 'block';
+                selectBookingByObject(currentItems[0].id, firstItem, false);
+            } else {
+                sidebarPanel.style.display = 'none';
             }
         }
 
@@ -397,9 +400,9 @@ include 'partials/header.php';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function selectBookingByObject(id, element) {
-            // If on mobile/tablet where sidebar is hidden, navigate to full details page
-            if (window.innerWidth <= 1024) {
+        function selectBookingByObject(id, element, navigateOnMobile = false) {
+            // Only navigate when the user explicitly taps a row (not on auto-select after load)
+            if (navigateOnMobile && window.innerWidth <= 1024) {
                 window.location.href = `/EventManagementSystem/public/client/bookings/view?id=${id}`;
                 return;
             }
@@ -580,4 +583,4 @@ include 'partials/header.php';
     </script>
 
     <?php include 'partials/feedback_popup.php'; ?>
-<?php include 'partials/footer.php'; ?>
+<?php include 'partials/footer.php'; ?>

@@ -2,18 +2,6 @@
 $title = 'Feedback – e.PLAN';
 $extra_head = '
     <link rel="stylesheet" href="/EventManagementSystem/public/assets/css/feedback.css?v=' . time() . '">
-    <style>
-        body {
-            background: #f4f7f6;
-        }
-
-        .feedback-page-client {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 24px 80px;
-        }
-    </style>
 ';
 include 'partials/header.php';
 ?>
@@ -39,8 +27,7 @@ include 'partials/header.php';
         </div>
 
         <div class="feedback-container">
-            <div class="feedback-layout"
-                style="display: grid; grid-template-columns: 350px 1fr; gap: 40px; align-items: start;">
+            <div class="feedback-layout">
 
                 <!-- Left: Feedback Form -->
                 <div
@@ -94,8 +81,7 @@ include 'partials/header.php';
                             <label for="comment"
                                 style="display: block; font-weight: 600; color: #333; margin-bottom: 12px; font-size: 15px;">Comments</label>
                             <textarea name="comment" id="comment" rows="4" class="form-control"
-                                placeholder="Share your thoughts..." required
-                                style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #eee; background: #fcfcfc; font-family: inherit; font-size: 14px; resize: none;"></textarea>
+                                placeholder="Share your thoughts..." required></textarea>
                         </div>
 
                         <button type="submit"
@@ -341,11 +327,11 @@ include 'partials/header.php';
 
                         return `
                         <div class="feedback-card">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                                <div style="color: #ffcf96; font-size: 14px;">
+                            <div class="feedback-card-header">
+                                <div class="rating-stars">
                                     ${stars.join('')}
                                 </div>
-                                <span style="font-size: 12px; color: #999;">${new Date(fb.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                <span class="feedback-date">${new Date(fb.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                             </div>
                             <div class="feedback-text-container">
                                 <p class="feedback-comment" id="fb-comment-${fb.id}">"${fb.comment}"</p>
@@ -479,4 +465,4 @@ include 'partials/header.php';
             });
         });
     </script>
-<?php include 'partials/footer.php'; ?>
+<?php include 'partials/footer.php'; ?>

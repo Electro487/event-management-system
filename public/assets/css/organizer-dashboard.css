@@ -1,4 +1,8 @@
 /* Organizer Dashboard Premium Styles */
+* {
+    box-sizing: border-box;
+}
+
 .stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -53,7 +57,7 @@
 /* Status Summary */
 .status-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 15px;
     margin-top: 25px;
 }
@@ -235,6 +239,10 @@
 }
 
 /* Recent Bookings Table Styles */
+.recent-bookings {
+    overflow: hidden; /* Prevent container overflow */
+}
+
 .recent-bookings table {
     width: 100%;
     border-collapse: separate;
@@ -298,6 +306,133 @@
 
 @media (max-width: 1200px) {
     .status-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .bottom-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-row {
         grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .welcome-banner {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .welcome-banner h2 {
+        font-size: 20px;
+    }
+
+    .recent-bookings {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px !important;
+        margin-left: -5px;
+        margin-right: -5px;
+        border-radius: 12px;
+    }
+
+    .recent-bookings table {
+        min-width: 450px; /* Further reduced */
+    }
+
+    .recent-bookings th, 
+    .recent-bookings td {
+        padding: 10px 8px !important; /* Compact padding */
+    }
+
+    /* Hide Package column on mobile to save space */
+    .recent-bookings th:nth-child(3),
+    .recent-bookings td:nth-child(3) {
+        display: none;
+    }
+
+    .client-info {
+        gap: 8px !important;
+    }
+
+    .client-info span {
+        font-size: 12px !important;
+        white-space: nowrap;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .status-summary {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .section-header h3 {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    .stat-card h3 {
+        font-size: 24px;
+    }
+
+    .status-card {
+        padding: 12px; /* More compact on very small screens */
+    }
+
+    .status-card-header h4 {
+        font-size: 11px;
+    }
+
+    .status-card-header span {
+        font-size: 16px;
+    }
+
+    .recent-bookings table {
+        min-width: 100%; /* Let it shrink as much as possible */
+    }
+
+    /* Also hide Date column on very small screens to keep width minimal */
+    .recent-bookings th:nth-child(4),
+    .recent-bookings td:nth-child(4) {
+        display: none;
+    }
+
+    .upcoming-events-mini {
+        padding: 20px;
+    }
+
+    .create-event-cta {
+        padding: 30px 20px;
+    }
+}
+
+/* Specific fix for 320px devices */
+@media (max-width: 320px) {
+    .stat-card h3 {
+        font-size: 20px;
+    }
+    
+    .create-event-cta h4 {
+        font-size: 18px;
+    }
+
+    .btn-create {
+        width: 100%;
+        padding: 10px;
     }
 }

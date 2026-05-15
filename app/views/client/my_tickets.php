@@ -11,8 +11,7 @@ $extra_head = '
         .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .page-info { font-size: 14px; color: #64748b; font-weight: 500; }
         
-        .empty-state { grid-column: span 3; text-align: center; padding: 80px 20px; background: white; border-radius: 20px; border: 2px dashed #cbd5e1; }
-        .empty-icon { width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        /* empty-state + btn-browse-more: see my-tickets.css */
     </style>
 ';
 include 'partials/header.php';
@@ -187,7 +186,7 @@ include 'partials/header.php';
                 </div>
                 <h3 style="font-size: 20px; color: #1e293b; margin-bottom: 10px;">No Tickets Found</h3>
                 <p style="color: #64748b; margin-bottom: 25px;">${msg || "You haven't reserved any concert tickets yet. Explore upcoming concerts to get started."}</p>
-                <a href="/EventManagementSystem/public/client/events" class="btn-browse-more" style="float:none; padding: 12px 24px; background: #246A55; color: white; text-decoration: none; border-radius: 10px; font-weight: 600;">Browse Concerts</a>
+                <a href="/EventManagementSystem/public/client/events" class="btn-browse-more">Browse Concerts <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         `;
         document.getElementById('pagination').style.display = 'none';

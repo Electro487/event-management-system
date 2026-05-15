@@ -30,6 +30,23 @@ $extra_head = '
 .page-btn.active { background: #246A55; color: white; border-color: #246A55; }
 .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .page-info { font-size: 14px; color: #64748b; margin: 0 12px; }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .booking-card { flex-direction: column; }
+    .booking-image { width: 100%; height: 200px; }
+    .booking-meta { grid-template-columns: 1fr; gap: 10px; }
+    .card-actions { flex-direction: column; width: 100%; gap: 10px; }
+    .card-actions .btn-secondary { width: 100%; text-align: center; display: block; box-sizing: border-box; }
+    .page-header-title { font-size: 24px; text-align: center; }
+    .page-header-desc { font-size: 13px; text-align: center; }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container { padding: 15px; }
+    .booking-details { padding: 20px; }
+    .booking-title { font-size: 18px; }
+}
 </style>
 ';
 include 'partials/header.php';
