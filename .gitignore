@@ -3,5 +3,7 @@
 /.env
 /public/uploads/*
 !/public/uploads/.gitkeep
+.claude
+.cursor
 
 *.ps1
