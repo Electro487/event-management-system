@@ -145,7 +145,7 @@ function renderGrid(events) {
         let rawImg = e.image_path || '';
         let img = '/EventManagementSystem/public/assets/images/placeholder.jpg';
         if (rawImg) {
-            img = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+            img = (rawImg[0] === '/') ? rawImg : (rawImg.includes('assets/images') ? '/EventManagementSystem/public/' + rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg);
         }
         const status = (e.status || 'draft').toLowerCase();
         const desc = (e.description || '').substring(0, 80) + '...';

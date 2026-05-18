@@ -75,7 +75,7 @@ function initBrowseEvents() {
             return;
         }
         eventGrid.innerHTML = events.map(event => {
-            const image = event.image_path ? (event.image_path[0] === "/" ? event.image_path : "/EventManagementSystem/public/assets/images/events/" + event.image_path) : "/EventManagementSystem/public/assets/images/placeholder.jpg";
+            const image = event.image_path ? (event.image_path[0] === "/" ? event.image_path : event.image_path.includes('assets/images') ? '/EventManagementSystem/public/' + event.image_path : '/EventManagementSystem/public/assets/images/events/' + event.image_path) : "/EventManagementSystem/public/assets/images/placeholder.jpg";
             let startingPrice = 10000;
             try {
                 const packages = typeof event.packages === "string" ? JSON.parse(event.packages) : event.packages;

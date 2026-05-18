@@ -110,7 +110,7 @@ function renderUpcomingEvents(events) {
         let rawImg = e.image_path || '';
         let eventImg = '/EventManagementSystem/public/assets/images/placeholder.jpg';
         if (rawImg) {
-            eventImg = (rawImg[0] === '/') ? rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg;
+            eventImg = (rawImg[0] === '/') ? rawImg : (rawImg.includes('assets/images') ? '/EventManagementSystem/public/' + rawImg : '/EventManagementSystem/public/assets/images/events/' + rawImg);
         }
         
         let daysText = "Ongoing";

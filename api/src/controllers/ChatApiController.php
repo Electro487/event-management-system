@@ -8,14 +8,16 @@
  */
 class ChatApiController {
     private array $apiKeys = [];
-    private string $model = 'inclusionai/ring-2.6-1t:free';
+    private array $models = [
+        'anthropic/claude-3-haiku'
+    ];
 
     public function __construct() {
         // Load API keys from .env (supports comma separated list)
         $envFile = dirname(__DIR__, 3) . '/.env';
         $env = file_exists($envFile) ? parse_ini_file($envFile) : [];
         $rawKeys = $env['OPENROUTER_API_KEY'] ?? '';
-        
+
         if (!empty($rawKeys)) {
             // Split by comma and filter out empty strings
             $this->apiKeys = array_filter(array_map('trim', explode(',', $rawKeys)));
@@ -42,34 +44,43 @@ class ChatApiController {
         // Step A: Fetch real-time data from DB to "feed" the AI
         $context = $this->getSystemContext();
 
-        // Step B: Call OpenRouter API with fallback logic
+        // Step B: Call OpenRouter API with fallback logic (keys + models)
         $response = null;
         $lastError = 'Unknown error';
 
         foreach ($this->apiKeys as $key) {
-            $response = $this->callOpenRouter($message, $context, $key);
-            
-            // If success, break loop
-            if (!isset($response['error'])) {
-                break;
-            }
+            // Try each model with this key
+            foreach ($this->models as $model) {
+                $response = $this->callOpenRouter($message, $context, $key, $model);
 
-            // If error, check if it's worth retrying with next key
-            $lastError = $response['error']['message'] ?? 'API Error';
-            $errCode = $response['error']['code'] ?? 0;
-            
-            error_log("[Chatbot Key Failure] Using key ending in ..." . substr($key, -4) . " Error: " . $lastError);
-            
-            // List of error messages/codes that trigger a fallback to next key
-            // 401: Unauthorized, 402: Payment Required (No credits), 429: Rate Limit
-            if (in_array($errCode, [401, 402, 429]) || 
-                stripos($lastError, 'credit') !== false || 
-                stripos($lastError, 'limit') !== false ||
-                stripos($lastError, 'insufficient') !== false) {
-                continue; // Try next key
-            } else {
-                // For other errors (like validation), don't bother retrying with other keys
-                break;
+                // If success, break both loops
+                if (!isset($response['error'])) {
+                    break 2;
+                }
+
+                // If error, check if it's worth retrying
+                $lastError = $response['error']['message'] ?? 'API Error';
+                $errCode = $response['error']['code'] ?? 0;
+
+                error_log("[Chatbot] Model $model failed with key ..." . substr($key, -4) . ": $lastError (code: $errCode)");
+
+                // Fallback to next model for most errors
+                if (in_array($errCode, [401, 402, 429, 500, 503]) ||
+                    stripos($lastError, 'credit') !== false ||
+                    stripos($lastError, 'limit') !== false ||
+                    stripos($lastError, 'insufficient') !== false ||
+                    stripos($lastError, 'overloaded') !== false ||
+                    stripos($lastError, 'unavailable') !== false ||
+                    stripos($lastError, 'not found') !== false ||
+                    $errCode >= 500) {
+                    continue; // Try next model
+                } else {
+                    // For client errors (4xx except 401/402/429), stop trying this key
+                    if ($errCode >= 400 && $errCode < 500 && !in_array($errCode, [401, 402, 429])) {
+                        break;
+                    }
+                    continue; // Otherwise try next model
+                }
             }
         }
 
@@ -128,11 +139,11 @@ class ChatApiController {
     /**
      * Makes the actual CURL request to OpenRouter.
      */
-    private function callOpenRouter(string $message, string $context, string $apiKey): array {
+    private function callOpenRouter(string $message, string $context, string $apiKey, string $model = null): array {
         $url = 'https://openrouter.ai/api/v1/chat/completions';
-        
+
         $data = [
-            'model' => $this->model,
+            'model' => $model ?? $this->models[0],
             'messages' => [
                 ['role' => 'system', 'content' => $context],
                 ['role' => 'user', 'content' => $message]
