@@ -631,3 +631,193 @@ a, a:visited, a:hover, a:active {
         padding-right: 0;
     }
 }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+
+    /* Header: hide nav links, stack logo + buttons */
+    .header {
+        padding: 14px 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-left {
+        gap: 0;
+        flex: 1;
+    }
+
+    .nav-links {
+        display: none; /* hidden on mobile — no hamburger needed for this project */
+    }
+
+    .nav-right {
+        gap: 12px;
+    }
+
+    .btn-secondary,
+    .btn-primary {
+        font-size: 14px;
+        padding: 10px 18px;
+    }
+
+    /* Hero: stack vertically, smaller text */
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 80px 24px 60px;
+        min-height: auto;
+        gap: 40px;
+    }
+
+    .hero-content h1 {
+        font-size: 38px;
+        line-height: 1.15;
+    }
+
+    .hero-content p {
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+
+    .hero-image {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .image-tilted {
+        width: 100%;
+        max-width: 340px;
+        height: 380px;
+        transform: rotate(1.5deg);
+    }
+
+    /* Event Models (Bento) */
+    .section-models-container {
+        padding: 0 20px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .section-title h2 {
+        font-size: 28px;
+    }
+
+    /* About Section */
+    .about-section {
+        padding: 60px 24px;
+    }
+
+    .about-section h2 {
+        font-size: 30px;
+    }
+
+    .about-lead {
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+
+    .about-cards-container {
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .about-card {
+        padding: 28px 24px;
+    }
+
+    .about-card h3 {
+        font-size: 18px;
+    }
+
+    /* Review Stats Section */
+    .review-section {
+        padding: 40px 20px;
+    }
+
+    .review-container {
+        padding: 24px 20px;
+        gap: 24px;
+    }
+
+    .review-text h2 {
+        font-size: 24px;
+    }
+
+    .review-score-large {
+        font-size: 38px;
+    }
+
+    .review-stats {
+        width: 100%;
+        justify-content: center;
+        padding: 20px 24px;
+    }
+
+    /* Footer */
+    .footer {
+        padding: 40px 24px;
+    }
+
+    .footer-top {
+        gap: 24px;
+        align-items: center;
+    }
+
+    .footer-nav {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .footer-copy {
+        text-align: center;
+    }
+}
+
+/* ── Small Mobile ── */
+@media (max-width: 480px) {
+
+    .hero-content h1 {
+        font-size: 30px;
+    }
+
+    .hero-content p {
+        font-size: 15px;
+    }
+
+    .image-tilted {
+        max-width: 100%;
+        height: 300px;
+        transform: none;
+    }
+
+    .section-title h2 {
+        font-size: 24px;
+    }
+
+    .review-score-large {
+        font-size: 32px;
+    }
+
+    .review-text h2 {
+        font-size: 20px;
+    }
+
+    .about-section h2 {
+        font-size: 26px;
+    }
+
+    .about-lead {
+        font-size: 15px;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
