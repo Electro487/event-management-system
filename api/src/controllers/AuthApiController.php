@@ -51,6 +51,16 @@ class AuthApiController
         $this->respond($result);
     }
 
+    public function resendOtp(): void
+    {
+        $result = $this->authService->resendOtp(
+            trim((string)Request::input('email', '')),
+            trim((string)Request::input('otp_type', 'registration'))
+        );
+
+        $this->respond($result);
+    }
+
     public function resetPassword(): void
     {
         $result = $this->authService->resetPassword(

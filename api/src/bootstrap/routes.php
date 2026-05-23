@@ -10,6 +10,7 @@ return [
     ['POST', '/api/v1/auth/login', [AuthApiController::class, 'login'], []],
     ['POST', '/api/v1/auth/forgot-password', [AuthApiController::class, 'forgotPassword'], []],
     ['POST', '/api/v1/auth/verify-otp', [AuthApiController::class, 'verifyOtp'], []],
+    ['POST', '/api/v1/auth/resend-otp', [AuthApiController::class, 'resendOtp'], []],
     ['POST', '/api/v1/auth/reset-password', [AuthApiController::class, 'resetPassword'], []],
     ['POST', '/api/v1/auth/logout', [AuthApiController::class, 'logout'], []],
     ['GET', '/api/v1/auth/me', [AuthApiController::class, 'me'], [JwtAuthMiddleware::class]],

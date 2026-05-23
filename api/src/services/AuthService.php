@@ -167,6 +167,42 @@ class AuthService
         ];
     }
 
+    public function resendOtp(string $email, string $otpType = 'registration'): array
+    {
+        if ($email === '') {
+            return ['ok' => false, 'status' => 422, 'message' => 'Email is required.'];
+        }
+        if (!$this->userModel->emailExists($email)) {
+            return ['ok' => false, 'status' => 404, 'message' => 'Email not found.'];
+        }
+
+        $otp = str_pad((string)rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+        if (!$this->userModel->updateOTP($email, $otp, $expiresAt)) {
+            return ['ok' => false, 'status' => 500, 'message' => 'Something went wrong while generating OTP.'];
+        }
+
+        if (!MailHelper::sendOTP($email, $otp)) {
+            return ['ok' => false, 'status' => 500, 'message' => 'Failed to send verification email. Please try again.'];
+        }
+
+        // Keep session synced
+        $this->startSessionIfNeeded();
+        $_SESSION['otp_email'] = $email;
+        $_SESSION['otp_type'] = $otpType;
+
+        return [
+            'ok' => true,
+            'status' => 200,
+            'data' => [
+                'email' => $email,
+                'otp_type' => $otpType,
+                'otp_expires_in_seconds' => 600
+            ]
+        ];
+    }
+
     public function verifyOtp(string $email, string $otp, string $otpType = 'registration'): array
     {
         if ($email === '') {

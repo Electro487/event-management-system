@@ -136,19 +136,63 @@
             let timeLeft = 165;
             const timerDisplay = document.getElementById('timer');
             const resendBtn = document.getElementById('resend-btn');
+            let countdown;
 
-            const countdown = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerDisplay.style.display = 'none';
-                    resendBtn.style.display = 'inline-block';
-                } else {
-                    let minutes = Math.floor(timeLeft / 60);
-                    let seconds = timeLeft % 60;
-                    timerDisplay.textContent = `Resend available in ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    timeLeft--;
+            function startTimer() {
+                timeLeft = 165;
+                timerDisplay.style.display = 'inline-block';
+                resendBtn.style.display = 'none';
+                
+                if (countdown) clearInterval(countdown);
+                
+                countdown = setInterval(() => {
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        timerDisplay.style.display = 'none';
+                        resendBtn.style.display = 'inline-block';
+                    } else {
+                        let minutes = Math.floor(timeLeft / 60);
+                        let seconds = timeLeft % 60;
+                        timerDisplay.textContent = `Resend available in ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        timeLeft--;
+                    }
+                }, 1000);
+            }
+
+            // Start initial timer
+            startTimer();
+
+            // Resend Click Listener
+            resendBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                const email = "<?php echo $_SESSION['otp_email'] ?? ''; ?>";
+                const otp_type = "<?php echo $_SESSION['otp_type'] ?? 'registration'; ?>";
+                if (!email) return;
+
+                resendBtn.style.pointerEvents = 'none';
+                resendBtn.style.opacity = '0.5';
+                resendBtn.textContent = 'Sending...';
+
+                try {
+                    const res = await window.emsApi.apiFetch('/api/v1/auth/resend-otp', {
+                        method: 'POST',
+                        body: { email, otp_type }
+                    });
+
+                    if (res?.success) {
+                        showStatus('A new code has been sent to your email!', false);
+                        startTimer();
+                    } else {
+                        showStatus(res?.message || 'Failed to resend code.');
+                    }
+                } catch (err) {
+                    showStatus(err.message || 'Error occurred while resending code.');
+                } finally {
+                    resendBtn.style.pointerEvents = 'auto';
+                    resendBtn.style.opacity = '1';
+                    resendBtn.textContent = 'Resend code';
                 }
-            }, 1000);
+            });
         })();
     </script>
 </body>
